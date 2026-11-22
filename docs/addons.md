@@ -62,7 +62,7 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:0.141.6+1.21.11"
 
     // 本体发行 jar：GitHub Release 的 evernight-<version>.jar
-    modImplementation files("libs/evernight-1.0.1.jar")
+    modImplementation files("libs/evernight-1.0.2.jar")
 }
 ```
 
