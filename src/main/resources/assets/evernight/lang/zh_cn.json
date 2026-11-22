@@ -3773,6 +3773,7 @@
   "evernight.ui.modules.AutoMining.WrongDimension": "当前挖矿模式无法在这个维度使用",
   "evernight.ui.modules.AutoMining.YRangeChanged": "挖掘 Y 范围：%s（%s~%s）",
   "evernight.ui.modules.AutoSand.BreakFailed": "Baritone 无法破坏已放置的方块",
+  "evernight.ui.modules.AutoSand.ClearingDebug": "正在清理 %s 个方块",
   "evernight.ui.modules.AutoSand.ConflictWarning": "自动挖矿或自动挖脚已开启，可能干扰自动挖沙",
   "evernight.ui.modules.AutoSand.EmergencyLogout": "自动挖沙已停止并登出",
   "evernight.ui.modules.AutoSand.EnderChestDeposit": "已将装满的潜影盒存入末影箱",

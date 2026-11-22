@@ -3773,6 +3773,7 @@
   "evernight.ui.modules.AutoMining.WrongDimension": "This mining mode does not work in this dimension.",
   "evernight.ui.modules.AutoMining.YRangeChanged": "Mining Y range: %s (%s~%s).",
   "evernight.ui.modules.AutoSand.BreakFailed": "Baritone could not break the placed block.",
+  "evernight.ui.modules.AutoSand.ClearingDebug": "Clearing %s blocks.",
   "evernight.ui.modules.AutoSand.ConflictWarning": "AutoMining or AutoMine is enabled and may interfere with the sand miner.",
   "evernight.ui.modules.AutoSand.EmergencyLogout": "Auto sand miner stopped and logged you out.",
   "evernight.ui.modules.AutoSand.EnderChestDeposit": "Stored a filled shulker box in the ender chest.",
