@@ -1,0 +1,11 @@
+MiSans
+======
+
+The default Evernight interface font is MiSans Regular, bundled at
+assets/evernight/font/misans-regular.ttf so the client renders identically on
+every machine without requiring a system font.
+
+MiSans is published by Xiaomi and is free to use. Source:
+https://hyperos.mi.com/font/en/misans/
+
+The font file is distributed unmodified.

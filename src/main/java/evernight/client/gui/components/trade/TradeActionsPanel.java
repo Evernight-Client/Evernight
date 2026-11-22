@@ -1,0 +1,63 @@
+package evernight.client.gui.components.trade;
+
+import evernight.client.ClientAccess;
+import evernight.client.ClientContext;
+import evernight.client.gui.panels.Panel;
+import evernight.client.gui.screens.trade.TradeEditorScreen;
+import evernight.client.gui.screens.trade.TradeManagerScreen;
+import evernight.client.render.hud.TradePanelRequest;
+import evernight.client.render.text.Translations;
+import evernight.client.utils.core.ElapsedTimer;
+import evernight.client.utils.inventory.TradeDefinition;
+import evernight.client.gui.components.base.ActionButtonComponent;
+import evernight.client.gui.components.base.ButtonComponent;
+
+public class TradeActionsPanel extends Panel implements ClientAccess {
+    private final ElapsedTimer deleteConfirmationTimer = new ElapsedTimer();
+    private final TradeManagerScreen managerScreen;
+    private final TradeDefinition trade;
+
+    public TradeActionsPanel(TradeManagerScreen screen, TradeDefinition selectedTrade) {
+        super("Trade");
+        this.setX(this.getX() + this.getWidth() + 4);
+        this.managerScreen = screen;
+        this.trade = selectedTrade;
+        this.registerChild(new ButtonComponent(this,
+                () -> Translations.ui("hud.TradePrefix") + selectedTrade.getName()
+        ));
+        this.registerChild(
+                new ActionButtonComponent(this, "Edit", this::openEditor)
+        );
+        this.registerChild(new ActionButtonComponent(this, this::getDeleteButtonLabel, this::deleteIfConfirmed)
+        );
+        this.registerChild(
+                new ActionButtonComponent(this, "Cancel", this::showCreatePanel)
+        );
+    }
+
+    private void openEditor() {
+        TradeDefinition registeredTrade = ClientContext.tradeRegistry.findFirst(
+                candidate -> candidate.getName()
+                        .equals(this.trade.getName())).orElse(null);
+        TradeEditorScreen editorScreen = new TradeEditorScreen(registeredTrade);
+        editorScreen.setParentScreen(this.managerScreen);
+        ClientAccess.evernightMinecraft.setScreen(editorScreen);
+    }
+
+    private void deleteIfConfirmed() {
+        if (!this.deleteConfirmationTimer.hasElapsedAndReset(1000L)) {
+            ClientContext.tradeRegistry.reregisterByName(this.trade.name());
+            this.showCreatePanel();
+        }
+    }
+
+    private void showCreatePanel() {
+        this.managerScreen.requestPanelChange(TradePanelRequest.forCreate());
+    }
+
+    private String getDeleteButtonLabel() {
+        return this.deleteConfirmationTimer.hasElapsed(1000L)
+                ? Translations.ui("gui.Delete")
+                : Translations.ui("gui.Are you sure?");
+    }
+}

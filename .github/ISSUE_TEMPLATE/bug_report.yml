@@ -1,0 +1,59 @@
+name: Bug 报告
+description: 报告客户端崩溃、功能异常或与预期不符的行为
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请先搜索已有 issue。涉及崩溃时附上 `logs/latest.log` 或 `crash-reports` 中的相关片段，并确认问题在**只有 Evernight + Fabric API** 时仍能复现。
+  - type: input
+    id: version
+    attributes:
+      label: Evernight 版本
+      placeholder: 例如 4.0.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 运行环境
+      placeholder: Minecraft 1.21.11 / Fabric Loader 0.20.1 / Windows 11 / Java 21
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 截图
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: mods
+    attributes:
+      label: 其他已安装模组
+      description: 用于判断是否与 Baritone、ViaFabricPlus、Sodium 等集成有关
+    validations:
+      required: false

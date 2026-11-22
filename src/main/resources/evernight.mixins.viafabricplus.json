@@ -1,0 +1,22 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "evernight.mixin.mods.viafabricplus",
+  "compatibilityLevel": "JAVA_21",
+  "priority": 1000,
+  "mixinPriority": 1000,
+  "mixins": [
+    "ClientVehicleStorageMixin",
+    "ProtocolTranslatorMixin",
+    "ProtocolVersionMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0,
+    "defaultGroup": "default",
+    "maxShiftBy": 0
+  },
+  "overwrites": {
+    "conformAccessModifiers": false,
+    "requireOverwriteAnnotations": false
+  }
+}

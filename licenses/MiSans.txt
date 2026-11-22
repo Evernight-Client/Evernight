@@ -1,0 +1,22 @@
+MiSans
+======
+
+Evernight 内置 MiSans Regular，路径 assets/evernight/font/misans-regular.ttf，
+用于让界面在不同机器上保持一致的字体渲染。
+
+- 字体：MiSans（Regular）
+- 版权：小米科技（Xiaomi）
+- 官方站点：https://hyperos.mi.com/font/
+- 许可协议：MiSans 字体知识产权许可协议
+  - 中文 FAQ：https://hyperos.mi.com/font/faq
+  - English FAQ：https://hyperos.mi.com/font/en/faq/
+
+按官方 FAQ 的说明：
+
+- 允许个人与企业免费使用，包括商业项目，不限平台。
+- 允许作为嵌入式字体使用，但应在软件中特别注明使用了 MiSans 字体。
+  本项目的注明位置：README.md、同目录的 THIRD-PARTY-NOTICES.md、本文件，以及
+  assets/evernight/font/misans-notice.txt（随 jar 分发）。
+- 许可为不可转让、非独占、免版税、可撤销；不得单独销售该字体，也不得修改后以原名称发布。
+
+字体文件按原样分发，未作修改。具体条款以小米官方协议原文为准。

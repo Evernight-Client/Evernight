@@ -1,0 +1,20 @@
+## 改动说明
+
+<!-- 改了什么、为什么改 -->
+
+## 验证
+
+- [ ] `gradlew.bat build` 通过
+- [ ] 动过语言表：`python .github/skills/evernight-dev/scripts/check-lang.py` 0 error
+- [ ] 动过 `evernight/addon`：同步更新 `docs/addons.md` 与插件 skill，并说明兼容性
+
+> 游戏内行为、界面观感与交互手感请由维护者人工验收，PR 中不要声称已验证。
+
+## 兼容性
+
+- [ ] 未改配置键 / 预设格式 / 模块名
+- [ ] 改了（请说明迁移方式）：
+
+## 截图 / 日志
+
+<!-- 可选 -->

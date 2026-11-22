@@ -1,0 +1,65 @@
+package evernight.client.modules.movement.Warp;
+
+import evernight.client.ClientAccess;
+import evernight.client.events.core.EventHandler;
+import evernight.client.events.player.LocalPlayerTickEvent;
+import evernight.client.events.network.PacketEvent;
+import evernight.client.settings.options.WarpRechargeChoice;
+import net.minecraft.network.protocol.common.ServerboundPongPacket;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class WarpRechargeController implements ClientAccess {
+    protected final Queue<ServerboundPongPacket> pendingPongs = new LinkedList<>();
+    private final WarpModule warp;
+
+    public WarpRechargeController(WarpModule warp) {
+        ClientAccess.eventBus.subscribe(this);
+        this.warp = warp;
+    }
+
+    @EventHandler
+    private void onLocalPlayerTickEvent(LocalPlayerTickEvent event) {
+        if (this.warp.hasDisplacement() || this.warp.modeSetting.getValue() != WarpModule.ModeChoice.PLAIN) {
+            return;
+        }
+        int maximumCharge = this.warp.chargeSetting.getValue();
+        int increasedCharge = this.warp.plainCharge + this.warp.chargeSpeedSetting.getValue();
+        this.warp.plainCharge = Math.min(maximumCharge, increasedCharge);
+    }
+
+    @EventHandler
+    private void onConnectionSendPacketEvent(PacketEvent.Send event) {
+        if (this.isWorldUnavailable()) {
+            return;
+        }
+        if (this.warp.isToggled() && this.warp.modeSetting.getValue() == WarpModule.ModeChoice.ALTERNATIVE
+                && event.getPacket() instanceof ServerboundPongPacket pong) {
+            if (!this.warp.hasMovementInputOrDisplacement()) {
+                int pendingCount = this.pendingPongs.size();
+                Integer chargeLimit = this.warp.chargeSetting.getValue();
+                if (pendingCount < chargeLimit) {
+                    event.cancel();
+                    this.pendingPongs.add(pong);
+                }
+            }
+            if (!this.pendingPongs.isEmpty()) {
+                event.cancel();
+            }
+        }
+        if (this.warp.modeSetting.getValue() != WarpModule.ModeChoice.PLAIN
+                || !(event.getPacket() instanceof ServerboundMovePlayerPacket)) {
+            return;
+        }
+        if (!this.warp.hasDisplacement() || this.warp.plainCharge == 0) {
+            return;
+        }
+        if (!this.warp.isToggled() && this.warp.rechargeSetting.getValue() == WarpRechargeChoice.HOLD) {
+            return;
+        }
+        int decreasedCharge = this.warp.plainCharge - 1;
+        this.warp.plainCharge = Math.max(0, decreasedCharge);
+    }
+}

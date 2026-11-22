@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "evernight",
+  "version": "${version}",
+  "name": "Evernight",
+  "authors": [
+    "Cypphi",
+    "wxh1024"
+  ],
+  "contributors": [
+    "Evernight contributors"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Evernight-Client/Evernight",
+    "sources": "https://github.com/Evernight-Client/Evernight",
+    "issues": "https://github.com/Evernight-Client/Evernight/issues",
+    "discord": "https://discord.com/invite/W2cEqSf8eK"
+  },
+  "icon": "assets/evernight/icon.png",
+  "description": "Evernight: a Fabric client for Minecraft 1.21.11 with modules, HUD, commands, presets and an addon system.",
+  "license": "GPL-3.0-only",
+  "environment": "client",
+  "accessWidener": "evernight.accesswidener",
+  "entrypoints": {
+    "main": [
+      "evernight.client.EvernightClient"
+    ],
+    "client": [
+      "evernight.client.EvernightClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "baritone": "1.21.11",
+    "viafabricplus": "4.4.9",
+    "entityculling": "*",
+    "sodium": "*",
+    "lithium": "*",
+    "immediatelyfast": "*",
+    "xaerominimap": "*"
+  },
+  "mixins": [
+    "evernight.mixins.client.json",
+    "evernight.mixins.entity.json",
+    "evernight.mixins.gui.json",
+    "evernight.mixins.item.json",
+    "evernight.mixins.network.json",
+    "evernight.mixins.render.json",
+    "evernight.mixins.world.json",
+    "evernight.mixins.baritone.json",
+    "evernight.mixins.immediatelyfast.json",
+    "evernight.mixins.lithium.json",
+    "evernight.mixins.viafabricplus.json",
+    "evernight.mixins.xaero.json",
+    "evernight.mixins.xaeroplus.json"
+  ]
+}

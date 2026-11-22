@@ -1,0 +1,188 @@
+package evernight.client.utils.inventory;
+
+import evernight.client.ClientAccess;
+import evernight.client.ClientContext;
+import evernight.client.managers.registry.ModuleRegistry;
+import evernight.client.modules.client.AntiCheat.AntiCheatModule;
+import evernight.client.modules.combat.AutoMine.AutoMineModule;
+import evernight.client.modules.combat.AutoMine.AutoMineTargetSelector;
+import evernight.client.modules.combat.AutoTrap.AutoTrapModule;
+import evernight.client.settings.core.Setting;
+import evernight.client.utils.combat.BoundingBoxUtils;
+import evernight.client.utils.entity.PlayerStateUtils;
+import evernight.client.utils.world.BlockInteractionUtils;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
+
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
+
+public final class AutoMineHeadProvider extends AutoMineProviderBase {
+    private static AutoTrapModule autoTrap;
+    private static AntiCheatModule antiCheat;
+
+    static {
+        autoTrap = ClientContext.getModule(AutoTrapModule.class);
+        antiCheat = ClientContext.getModule(AntiCheatModule.class);
+    }
+
+    public AutoMineHeadProvider(AutoMineModule module) {
+        super(module);
+    }
+
+    public static void bindModules(ModuleRegistry registry) {
+        autoTrap = registry.getModule(AutoTrapModule.class);
+        antiCheat = registry.getModule(AntiCheatModule.class);
+    }
+
+    private boolean isAlternateHeadModeEnabled() {
+        return antiCheat.is2b2tEnabled();
+    }
+
+    @Override
+    public void collectCandidates(AutoMineCandidates candidates) {
+        AutoMineTargetSelector targetSelector = this.autoMine.targetSelector;
+        Player target = targetSelector.selectTarget();
+        if (target == null || this.hasNoCollisionBelow(target)) {
+            return;
+        }
+        Setting<Boolean> inCrawlSetting = this.autoMine.inCrawlSetting;
+        Boolean inCrawl = inCrawlSetting.getValue();
+        if (!inCrawl && target.isVisuallyCrawling()) {
+            return;
+        }
+        Set<BlockPos> occupiedPositions = PlayerStateUtils.getOccupiedBlockPositions(target);
+        AABB targetBounds = target.getBoundingBox();
+        boolean extraBreak = this.autoMine.isExtraBreakEnabled();
+        AABB floorBounds = targetBounds.setMaxY(targetBounds.minY);
+        boolean intersectsBedrock = BlockPos.betweenClosedStream(floorBounds).anyMatch(position -> {
+            return BlockInteractionUtils.getBlock(position) == Blocks.BEDROCK;
+        });
+        AABB insetBounds = targetBounds.deflate(0.05D, 0.05D, 0.05D);
+        if (!BlockPos.betweenClosedStream(insetBounds).filter(position -> {
+            return BlockInteractionUtils.getBlock(position).getExplosionResistance() >= 6e+02F
+                    && !this.isAlternateHeadModeEnabled() && BlockInteractionUtils.getBlock(position) != Blocks.AIR;
+        }).toList().isEmpty()) {
+            return;
+        }
+        AABB upperBounds = targetBounds.setMaxY(targetBounds.maxY + 0.5D);
+        Optional<BlockPos> upperResult = BlockPos.betweenClosedStream(upperBounds)
+                .map(BlockPos::immutable).filter(this::isHeadCandidateValid).max(Comparator.comparing(position -> {
+                    return this.isAlreadyMining(position);
+                }));
+        BlockPos primaryPosition = upperResult.orElse(null);
+        Optional<BlockPos> headResult = PlayerStateUtils.getSurroundPositions(target).stream()
+                .map(BlockPos::immutable).map(BlockPos::above).filter(this::isHeadCandidateValid)
+                .max(Comparator.comparing(position -> {
+                    return this.getCandidatePriority(position, candidates);
+                }));
+        BlockPos secondaryPosition = headResult.orElse(null);
+        if (this.isAlternateHeadModeEnabled() && intersectsBedrock) {
+            secondaryPosition = null;
+        }
+        if (primaryPosition == null && secondaryPosition != null && !this.isAlternateHeadModeEnabled()) {
+            primaryPosition = secondaryPosition;
+            secondaryPosition = null;
+        }
+        if (primaryPosition == null) {
+            return;
+        }
+        BlockPos selectedPrimary = primaryPosition;
+        BlockPos selectedSecondary = secondaryPosition;
+        if (this.isAlternateHeadModeEnabled()) {
+            int alternatePriority;
+            if (intersectsBedrock) {
+                if (extraBreak) {
+                    alternatePriority = 900;
+                } else {
+                    alternatePriority = 1000;
+                }
+            } else {
+                alternatePriority = extraBreak ? 850 : 950;
+            }
+            Consumer<AutoMineCandidates> alternateUpdate = output -> {
+                if (!extraBreak) {
+                    output.setPrimaryPosition(selectedPrimary);
+                } else if (selectedSecondary != null) {
+                    output.setSecondaryPosition(selectedPrimary);
+                    output.setPrimaryPosition(selectedSecondary);
+                } else {
+                    output.setPrimaryPosition(selectedPrimary);
+                }
+            };
+            candidates.offer(alternatePriority, alternateUpdate);
+            return;
+        }
+        int normalPriority = 599;
+        BlockPos priorityPosition = primaryPosition;
+        if (this.isAlreadyMining(priorityPosition)) {
+            normalPriority = 650;
+        }
+        Setting<Boolean> trapOverrideSetting = this.autoMine.trapOverrideSetting;
+        if (trapOverrideSetting.getValue()) {
+            if (autoTrap.isToggled()) {
+                normalPriority = 650;
+            }
+        }
+        if (target.isVisuallyCrawling() && occupiedPositions.size() == 1) {
+            ClientLevel level = ClientAccess.evernightMinecraft.level;
+            BlockPos selfPosition = ClientAccess.evernightMinecraft.player.blockPosition();
+            if (level.getBlockState(selfPosition).isAir()) {
+                Consumer<AutoMineCandidates> crawlUpdate = output -> output.setSecondaryPosition(selectedPrimary);
+                candidates.offer(650, crawlUpdate);
+                return;
+            }
+        }
+        Consumer<AutoMineCandidates> normalUpdate = output -> output.setPrimaryPosition(selectedPrimary);
+        candidates.offer(normalPriority, normalUpdate);
+    }
+
+    private boolean isHeadCandidateValid(BlockPos position) {
+        if (this.intersectsPlayer(position)) {
+            return false;
+        }
+        boolean baseAllowed = BlockInteractionUtils.getBlock(position) == Blocks.OBSIDIAN || this.isAlternateHeadModeEnabled();
+        ClientLevel level = ClientAccess.evernightMinecraft.level;
+        BlockPos abovePosition = position.above();
+        boolean aboveAllowed = level.isEmptyBlock(abovePosition) || this.isAlternateHeadModeEnabled();
+        if ((!this.canStartMiningPosition(position) || !baseAllowed) && !this.isAlreadyMining(position)) {
+            return false;
+        }
+        return aboveAllowed;
+    }
+
+    private boolean intersectsPlayer(BlockPos position) {
+        AABB blockBounds = new AABB(position);
+        ClientLevel level = ClientAccess.evernightMinecraft.level;
+        Iterator<AbstractClientPlayer> players = level.players().iterator();
+        while (players.hasNext()) {
+            AABB playerBounds = players.next().getBoundingBox();
+            if (BoundingBoxUtils.hasVolumeOverlap(playerBounds, blockBounds)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int getCandidatePriority(BlockPos position, AutoMineCandidates candidates) {
+        if (this.isAlreadyMining(position)) {
+            return 2;
+        }
+        if (!position.equals(candidates.getSecondaryPosition()) && !position.equals(candidates.getPrimaryPosition())) {
+            return 0;
+        }
+        return 1;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.autoMine.headSetting.getValue();
+    }
+}

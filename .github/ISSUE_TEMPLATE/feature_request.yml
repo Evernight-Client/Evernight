@@ -1,0 +1,25 @@
+name: 功能建议
+description: 提出新模块、新设置或体验改进
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 想解决的问题
+      placeholder: 目前在什么场景下不方便？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的方案
+      placeholder: 描述希望客户端怎么表现；如果涉及新模块，请说明分类与主要设置。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 备选方案 / 其他客户端怎么做
+    validations:
+      required: false

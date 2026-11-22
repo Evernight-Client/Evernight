@@ -1,0 +1,122 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+    id 'idea'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1'
+        content { includeGroup 'me.djtheredstoner' }
+    }
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+    maven {
+        url = 'https://maven.2b2t.vc/releases'
+        content { includeGroup 'com.github.rfresh2' }
+    }
+}
+
+configurations {
+    viaDistribution { transitive = false }
+    entityCullingDistribution { transitive = false }
+}
+
+def nestedLibraries = { configuration, patterns ->
+    files(providers.provider {
+        zipTree(configuration.singleFile).matching(patterns).files
+    })
+}
+
+def viaFabricPlusModules = nestedLibraries(configurations.viaDistribution) {
+    include 'META-INF/jars/viafabricplus-*.jar'
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    modCompileOnly('maven.modrinth:viafabricplus:YzQYJEjP') { exclude group: 'dev.kastle.webrtc' }
+    modLocalRuntime('maven.modrinth:viafabricplus:YzQYJEjP') { exclude group: 'dev.kastle.webrtc' }
+    modCompileOnly 'maven.modrinth:lithium:Ow7wA0kG'
+    modCompileOnly 'maven.modrinth:immediatelyfast:QwkfUKSj'
+    modCompileOnly 'maven.modrinth:sodium:RB7CDjTS'
+    modCompileOnly 'maven.modrinth:xaeros-minimap:62EynHPJ'
+    modCompileOnly 'maven.modrinth:entityculling:CTabrwB1'
+    modLocalRuntime 'maven.modrinth:entityculling:CTabrwB1'
+    modLocalRuntime 'me.djtheredstoner:DevAuth-fabric:1.2.2'
+    compileOnly 'org.jetbrains:annotations:26.0.2'
+
+    modCompileOnly 'com.github.rfresh2:baritone-fabric:1.21.11-SNAPSHOT'
+    modLocalRuntime 'com.github.rfresh2:baritone-fabric:1.21.11-SNAPSHOT'
+    viaDistribution 'maven.modrinth:viafabricplus:YzQYJEjP'
+    entityCullingDistribution 'maven.modrinth:entityculling:CTabrwB1'
+
+    implementation nestedLibraries(configurations.viaDistribution) {
+        include 'META-INF/jars/*.jar'
+        exclude 'META-INF/jars/fabric-*.jar', 'META-INF/jars/gson-2*.jar',
+            'META-INF/jars/viafabricplus-*.jar', 'META-INF/jars/webrtc-*.jar'
+    }
+    modCompileOnly viaFabricPlusModules
+    modLocalRuntime viaFabricPlusModules
+    modLocalRuntime nestedLibraries(configurations.entityCullingDistribution) {
+        include 'META-INF/jars/*.jar'
+    }
+}
+
+loom {
+    accessWidenerPath = file('src/main/resources/evernight.accesswidener')
+    runs {
+        client {
+            client()
+            name = 'Evernight Client'
+            runDir = 'run'
+            ideConfigGenerated = true
+        }
+    }
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') { expand version: project.version }
+
+    // 许可与第三方声明随 jar 一起分发，满足 GPL-3.0 与各组件许可证的随附要求。
+    from('LICENSE') { into 'META-INF' }
+    from('licenses') { into 'META-INF/licenses' }
+}
+
+java {
+    withSourcesJar()
+}
+
+def targetJavaVersion = 21
+tasks.withType(JavaCompile).configureEach {
+    options.release = targetJavaVersion
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-proc:none']
+    options.fork = true
+    options.forkOptions.memoryMaximumSize = providers.environmentVariable('CI').isPresent() ? '384m' : '4g'
+}
+
+tasks.named('remapJar') {
+    def serviceOptions = tinyRemapperServiceOptions.get()
+    serviceOptions.classpath.setFrom(sourceSets.main.compileClasspath)
+    tinyRemapperServiceOptions.set(serviceOptions)
+}
+
+tasks.named('runClient') {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}

@@ -1,0 +1,43 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "evernight.mixin.minecraft.entity",
+  "compatibilityLevel": "JAVA_21",
+  "priority": 1000,
+  "mixinPriority": 1000,
+  "mixins": [
+    "AbstractBoatMixin",
+    "AbstractClientPlayerMixin",
+    "AvatarMixin",
+    "EndCrystalMixin",
+    "EntityAccessor",
+    "EntityMixin",
+    "FireworkRocketEntityAccessor",
+    "FireworkRocketEntityMixin",
+    "FishingHookMixin",
+    "InputAccessor",
+    "InterpolationHandlerMixin",
+    "KeyboardInputMixin",
+    "LightningBoltMixin",
+    "LivingEntityAccessor",
+    "LivingEntityMixin",
+    "LocalPlayerAccessor",
+    "LocalPlayerMixin",
+    "LocalPlayerMovementMixin",
+    "MobEffectInstanceMixin",
+    "MobMixin",
+    "PlayerMixin",
+    "PositionMoveRotationAccessor",
+    "RemotePlayerMixin",
+    "ZombifiedPiglinMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0,
+    "defaultGroup": "default",
+    "maxShiftBy": 0
+  },
+  "overwrites": {
+    "conformAccessModifiers": false,
+    "requireOverwriteAnnotations": false
+  }
+}

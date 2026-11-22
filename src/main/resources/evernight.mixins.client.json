@@ -1,0 +1,45 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "evernight.mixin.minecraft.client",
+  "compatibilityLevel": "JAVA_21",
+  "priority": 1000,
+  "mixinPriority": 1000,
+  "mixins": [
+    "AbstractSoundInstanceAccessor",
+    "BoolArgumentTypeMixin",
+    "CrashReportMixin",
+    "DeltaTrackerTimerMixin",
+    "ElytraOnPlayerSoundInstanceMixin",
+    "FallbackResourceManagerMixin",
+    "FramerateLimitTrackerMixin",
+    "GameNarratorMixin",
+    "InputConstantsTypeAccessor",
+    "KeyMappingAccessor",
+    "KeyMappingMixin",
+    "KeyboardHandlerMixin",
+    "MainMixin",
+    "MinecraftAccessor",
+    "MinecraftMixin",
+    "MouseHandlerMixin",
+    "MultiPackResourceManagerMixin",
+    "OptionInstanceMixin",
+    "Options2Mixin",
+    "OptionsMixin",
+    "ScreenshotMixin",
+    "SoundEngineMixin",
+    "StringDecomposerMixin",
+    "UserAccessor",
+    "WindowMixin",
+    "YggdrasilUserApiServiceMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0,
+    "defaultGroup": "default",
+    "maxShiftBy": 0
+  },
+  "overwrites": {
+    "conformAccessModifiers": false,
+    "requireOverwriteAnnotations": false
+  }
+}
