@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import evernight.client.ClientContext;
 import evernight.client.events.network.ClientPacketListenerSendChatEvent;
 import evernight.client.events.core.EventHandler;
+import evernight.client.integrations.baritone.BaritoneBridge;
 import evernight.client.modules.Module;
 import evernight.client.modules.ModuleCategory;
 import evernight.client.render.text.Translations;
@@ -100,12 +101,12 @@ public final class CoordinateHiderModule extends Module {
 
         BooleanSetting baritoneGroup = new BooleanSetting("BaritoneOptions", true);
         baritoneGroup.markAsGroup();
-        baritoneGroup.addVisibilityPredicate(ignored -> isModLoaded("baritone"));
+        baritoneGroup.addVisibilityPredicate(ignored -> BaritoneBridge.isBaritoneLoaded());
         this.baritoneGroupSetting = this.add(baritoneGroup);
 
         BooleanSetting hideBaritoneCoords = new BooleanSetting("HideBaritoneCoords", false);
         hideBaritoneCoords.dependsOn(this.baritoneGroupSetting);
-        hideBaritoneCoords.addVisibilityPredicate(ignored -> isModLoaded("baritone"));
+        hideBaritoneCoords.addVisibilityPredicate(ignored -> BaritoneBridge.isBaritoneLoaded());
         this.hideBaritoneCoordsSetting = this.add(hideBaritoneCoords);
     }
 

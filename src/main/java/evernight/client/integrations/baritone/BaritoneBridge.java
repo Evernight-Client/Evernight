@@ -1,6 +1,7 @@
 package evernight.client.integrations.baritone;
 
 import evernight.client.NamedFeature;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -9,6 +10,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.function.Predicate;
 
 public interface BaritoneBridge {
+    /**
+     * Baritone ships under different mod ids depending on the distribution: Meteor's build is
+     * {@code baritone-meteor} while the rfresh2 fork keeps {@code baritone}. Both provide the same
+     * {@code baritone.*} packages and API.
+     *
+     * @return whether any supported Baritone distribution is installed
+     */
+    static boolean isBaritoneLoaded() {
+        FabricLoader fabric = FabricLoader.getInstance();
+        return fabric.isModLoaded("baritone") || fabric.isModLoaded("baritone-meteor");
+    }
+
     void pathElytraTo(BlockPos position);
 
     void setGoal(BlockPos position);

@@ -62,7 +62,7 @@ Evernight 将战斗、移动、渲染、玩家、杂项、漏洞利用、HUD 与
 
 ### 集成
 
-- **Baritone**（rfresh2 分支，模组 id 为 `baritone`）：提供 `Baritone`、`ObstaclePasser` 模块与 `;baritone` 指令；未安装 Baritone 时自动禁用桥接。
+- **Baritone**（Meteor 分支 `baritone-meteor` 或 rfresh2 分支 `baritone`）：提供 `Baritone`、`ObstaclePasser` 模块与 `;baritone` 指令；未安装 Baritone 时自动禁用桥接。
 - **ViaFabricPlus**：协议版本兼容层，可连接更低版本服务器。
 - **Xaero's Minimap**：在「Client → 路径点设置」里开启「路径点同步」后，客户端路径点与 Xaero 的 `Evernight Waypoints` 集双向同步；关闭时清空该集。同一模块里可选择路径点按服务器名或按 IP/域名区分。
 - **EntityCulling**：避免 ESP、描边等渲染被遮挡剔除。
@@ -97,7 +97,7 @@ Evernight 将战斗、移动、渲染、玩家、杂项、漏洞利用、HUD 与
 1. 为 Minecraft 1.21.11 安装 Fabric Loader。
 2. 将 Fabric API 与 `evernight-<version>.jar` 放入 `.minecraft/mods`。
 3. 启动游戏。首次启动会在游戏目录创建 `evernight/` 配置文件夹。
-4. 按需安装 Baritone（rfresh2 分支）、ViaFabricPlus、Xaero's Minimap 或 EntityCulling，以启用对应集成。
+4. 按需安装 Baritone（Meteor 或 rfresh2 分支）、ViaFabricPlus、Xaero's Minimap 或 EntityCulling，以启用对应集成。
 
 > 构建好的发行版可加 QQ 群 **949374129** 获取；也可以按[从源码构建](#从源码构建)自行编译。
 

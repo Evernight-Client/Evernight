@@ -7,6 +7,7 @@ import evernight.client.EvernightClient;
 import evernight.client.events.core.ClientInitializationEvent;
 import evernight.client.input.ClientKeybinds;
 import evernight.client.integrations.baritone.BaritoneAdapter;
+import evernight.client.integrations.baritone.BaritoneBridge;
 import evernight.client.integrations.baritone.DisabledBaritoneBridge;
 import evernight.client.integrations.xaero.DisabledWaypointAdapter;
 import evernight.client.integrations.xaero.XaeroWaypointAdapter;
@@ -80,7 +81,7 @@ public final class ClientInitializer {
             return;
         }
         // Constructors publish services in dependency order before modules bind to them.
-        ClientContext.baritoneBridge = FabricLoader.getInstance().isModLoaded("baritone")
+        ClientContext.baritoneBridge = BaritoneBridge.isBaritoneLoaded()
                 ? new BaritoneAdapter() : new DisabledBaritoneBridge();
         ClientContext.waypointAdapter = FabricLoader.getInstance().isModLoaded("xaerominimap")
                 ? new XaeroWaypointAdapter() : new DisabledWaypointAdapter();

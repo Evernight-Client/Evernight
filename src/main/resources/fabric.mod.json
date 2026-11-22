@@ -37,6 +37,7 @@
   },
   "suggests": {
     "baritone": "1.21.11",
+    "baritone-meteor": "1.21.11",
     "viafabricplus": "*",
     "entityculling": "*",
     "sodium": "*",

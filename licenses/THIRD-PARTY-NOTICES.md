@@ -56,7 +56,7 @@ MIT 与 GPL-3.0 兼容，合并后的整体按 GPL-3.0-only 分发；上游的�
 | 依赖 | 许可证 | 用途 | 打包 |
 | --- | --- | --- | --- |
 | Fabric Loader / Fabric API | Apache-2.0 | 运行环境 | 否 |
-| Baritone（rfresh2 分支） | LGPL-3.0 | 自动挖矿/挖沙、`;baritone` | 否（1 个 mixin） |
+| Baritone（Meteor / rfresh2 分支） | LGPL-3.0 | 自动挖矿/挖沙、`;baritone` | 否（1 个 mixin） |
 | ViaFabricPlus | GPL-3.0 | 协议版本兼容 | 否（3 个 mixin） |
 | Lithium | LGPL-3.0-only | 兼容 | 否（1 个 mixin） |
 | ImmediatelyFast | LGPL-3.0 | 兼容 | 否（1 个 mixin） |
