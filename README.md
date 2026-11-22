@@ -99,6 +99,8 @@ Evernight 将战斗、移动、渲染、玩家、杂项、漏洞利用、HUD 与
 3. 启动游戏。首次启动会在游戏目录创建 `evernight/` 配置文件夹。
 4. 按需安装 Baritone（rfresh2 分支）、ViaFabricPlus、Xaero's Minimap 或 EntityCulling，以启用对应集成。
 
+> 构建好的发行版可加 QQ 群 **949374129** 获取；也可以按[从源码构建](#从源码构建)自行编译。
+
 ## 快速上手
 
 - **打开界面**：默认按 `Right Shift` 打开 ClickGUI。按键在「选项 → 控制 → 按键」的「杂项」分类中，名称为 `key.evernight.click_gui`，可随时修改。
