@@ -209,21 +209,37 @@ public class WebhookNotifsModule extends Module {
             return;
         }
         manager.setMode(this.modeSetting.getValue());
-        try {
-            manager.setUrl(this.urlSetting.getValue());
-        } catch (IllegalArgumentException invalidUrl) {
-            // Keep the previously valid webhook until the edited text parses again.
+        // Credential settings are excluded from the module config and are mirrored from the
+        // WebhookManager at startup. If a command triggers this callback before that mirror ran
+        // (or after a module reload), the settings still hold their blank constructor values.
+        // Writing those blanks back would silently wipe the persisted credentials and break
+        // delivery, so only push non-blank values and otherwise keep what the manager already has.
+        String url = this.urlSetting.getValue();
+        if (!url.isBlank()) {
+            try {
+                manager.setUrl(url);
+            } catch (IllegalArgumentException invalidUrl) {
+                // Keep the previously valid webhook until the edited text parses again.
+            }
         }
-        try {
-            manager.setTelegram(this.telegramTokenSetting.getValue(), this.telegramChatIdSetting.getValue());
-        } catch (IllegalArgumentException invalidTelegramCredentials) {
-            // Keep the previously valid Telegram credentials.
+        String telegramToken = this.telegramTokenSetting.getValue();
+        String telegramChatId = this.telegramChatIdSetting.getValue();
+        if (!telegramToken.isBlank() && !telegramChatId.isBlank()) {
+            try {
+                manager.setTelegram(telegramToken, telegramChatId);
+            } catch (IllegalArgumentException invalidTelegramCredentials) {
+                // Keep the previously valid Telegram credentials.
+            }
         }
-        try {
-            manager.setQq(this.qqAppIdSetting.getValue(), this.qqSecretSetting.getValue(),
-                    this.qqOpenIdSetting.getValue());
-        } catch (IllegalArgumentException invalidQqCredentials) {
-            // Keep the previously valid QQ credentials.
+        String qqAppId = this.qqAppIdSetting.getValue();
+        String qqSecret = this.qqSecretSetting.getValue();
+        String qqOpenId = this.qqOpenIdSetting.getValue();
+        if (!qqAppId.isBlank() && !qqSecret.isBlank() && !qqOpenId.isBlank()) {
+            try {
+                manager.setQq(qqAppId, qqSecret, qqOpenId);
+            } catch (IllegalArgumentException invalidQqCredentials) {
+                // Keep the previously valid QQ credentials.
+            }
         }
         manager.ensureQqGateway();
     }

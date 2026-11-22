@@ -47,7 +47,7 @@ public final class ClientKeybinds {
             clickGui = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                     CLICK_GUI_KEY,
                     InputConstants.Type.KEYSYM,
-                    GLFW.GLFW_KEY_RIGHT_SHIFT,
+                    GLFW.GLFW_KEY_Y,
                     KeyMapping.Category.MISC
             ));
         } catch (RuntimeException registrationFailure) {
