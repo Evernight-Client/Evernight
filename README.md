@@ -45,7 +45,7 @@ Evernight 将战斗、移动、渲染、玩家、杂项、漏洞利用、HUD 与
 
 ### 界面
 
-- **ClickGUI**（默认 `Right Shift`）：按分类展示模块与设置，支持搜索与 Tab 补全。
+- **ClickGUI**（默认 `Y`）：按分类展示模块与设置，支持搜索与 Tab 补全。
 - **HUD 编辑器**：在 `Client → HUD → HudEditor` 中开启，可拖动 20 个 HUD 组件的锚点、方向与边距。
 - **其他界面**：通知与确认框、预设导入确认、声音选择、交易编辑器、潜影盒预览、地图预览、视角模型编辑器。
 
@@ -103,7 +103,7 @@ Evernight 将战斗、移动、渲染、玩家、杂项、漏洞利用、HUD 与
 
 ## 快速上手
 
-- **打开界面**：默认按 `Right Shift` 打开 ClickGUI。按键在「选项 → 控制 → 按键」的「杂项」分类中，名称为 `key.evernight.click_gui`，可随时修改。
+- **打开界面**：默认按 `Y` 打开 ClickGUI。按键在「选项 → 控制 → 按键」的「杂项」分类中，名称为 `key.evernight.click_gui`，可随时修改。
 - **执行指令**：在聊天框输入 `;help` 查看指令列表；`;toggle <模块>` 开关模块。
 - **切换语言**：`Client → UI → Language`，支持 English 与简体中文。
 - **管理预设**：`Client → Settings → Presets` 打开预设界面，或使用 `;preset` 指令。
