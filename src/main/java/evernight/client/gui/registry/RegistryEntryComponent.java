@@ -11,7 +11,10 @@ import evernight.client.utils.core.ClampedInterpolatedFloat;
 import evernight.client.utils.core.FloatAnimation;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.locale.Language;
 import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -19,6 +22,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.level.block.Block;
 
 import java.util.Locale;
 
@@ -35,7 +39,9 @@ class RegistryEntryComponent<E> extends ButtonComponent {
     private boolean visible;
 
     public RegistryEntryComponent(RegistrySetScreen<E> screen, Panel panel, Identifier identifier, E entry, boolean availableEntry) {
-        super(panel, createLabel(identifier));
+        // Registry labels are localised names/user data, not evernight.ui keys: translating them would
+        // render "evernight.ui.Gold Block" instead of "Gold Block".
+        super(panel, createLabel(identifier, entry), false);
         this.screen = screen;
         this.entry = entry;
         this.availableEntry = availableEntry;
@@ -62,10 +68,36 @@ class RegistryEntryComponent<E> extends ButtonComponent {
         }
     }
 
-    private static String createLabel(Identifier identifier) {
-        return FontRenderer.capitalizeWords(
-                identifier.toShortLanguageKey().replace("_", " ")
-        );
+    /**
+     * Resolves the display label for one registry entry. Items, blocks, entity types, effects, potions
+     * and sounds use their vanilla localised names; other registry types fall back to a humanised
+     * identifier. Never return a translation key here: the label is drawn verbatim.
+     */
+    private static String createLabel(Identifier identifier, Object entry) {
+        if (entry instanceof Item item) {
+            return item.getName().getString();
+        }
+        if (entry instanceof Block block) {
+            return block.getName().getString();
+        }
+        if (entry instanceof EntityType<?> entityType) {
+            return entityType.getDescription().getString();
+        }
+        if (entry instanceof MobEffect effect) {
+            return effect.getDisplayName().getString();
+        }
+        if (entry instanceof Potion potion) {
+            Holder<Potion> potionHolder = BuiltInRegistries.POTION.wrapAsHolder(potion);
+            return PotionContents.createItemStack(Items.POTION, potionHolder).getHoverName().getString();
+        }
+        if (entry instanceof SoundEvent sound) {
+            String subtitleKey = "subtitles." + sound.location().getNamespace()
+                    + "." + sound.location().getPath();
+            if (Language.getInstance().has(subtitleKey)) {
+                return Language.getInstance().getOrDefault(subtitleKey);
+            }
+        }
+        return FontRenderer.capitalizeWords(identifier.toShortLanguageKey().replace("_", " "));
     }
 
     @Override

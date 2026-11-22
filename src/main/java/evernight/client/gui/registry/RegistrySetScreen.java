@@ -90,7 +90,7 @@ public class RegistrySetScreen<E> extends ClientScreen {
         this.getPanels().add(this.extraPanel);
         this.extraPanel.registerChild(this.searchComponent);
         this.extraPanel.registerChild(new ActionButtonComponent(this.extraPanel,
-                "Clear",
+                "gui.Clear",
                 () -> this.registrySetting.getValue().clear()));
     }
 
