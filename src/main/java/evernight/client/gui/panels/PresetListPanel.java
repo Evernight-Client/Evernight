@@ -45,7 +45,7 @@ public class PresetListPanel extends Panel {
             super(panel, preset.getName(), () -> {
                         screen.getPresetPanel().editPreset(preset);
                         screen.getPresetPanel().updateLayout();
-                    }
+                    }, false
             );
             this.preset = preset;
             this.screen = screen;

@@ -28,8 +28,8 @@ public class TradeListPanel extends Panel {
         this.getChildren().clear();
         for (Object registeredEntry : ClientContext.tradeRegistry.getRegistry()) {
             TradeDefinition registeredTrade = (TradeDefinition) registeredEntry;
-            this.registerChild(
-                    new ActionButtonComponent(this, registeredTrade.name(), () -> this.selectTrade(registeredTrade)));
+            this.registerChild(new ActionButtonComponent(this, registeredTrade.name(),
+                    () -> this.selectTrade(registeredTrade), false));
         }
         this.updateLayout();
     }

@@ -20,7 +20,7 @@ public class CreateTradePanel extends Panel implements ClientAccess {
         this.managerScreen = screen;
         this.registerChild(new StringSettingComponent(this, CloseState.ALWAYS_OPEN, this.nameSetting));
         this.registerChild(
-                new ActionButtonComponent(this, "Create", this::createTrade)
+                new ActionButtonComponent(this, "gui.Create", this::createTrade)
         );
     }
 

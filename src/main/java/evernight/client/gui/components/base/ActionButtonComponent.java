@@ -10,11 +10,25 @@ public class ActionButtonComponent extends ButtonComponent {
     private final Runnable action;
 
     public ActionButtonComponent(Panel parentPanel, String label, Runnable action) {
-        this(parentPanel, () -> label, action);
+        this(parentPanel, () -> label, action, true);
     }
 
     public ActionButtonComponent(Panel parentPanel, Supplier<String> labelSupplier, Runnable action) {
-        super(parentPanel, labelSupplier);
+        this(parentPanel, labelSupplier, action, true);
+    }
+
+    /**
+     * @param translateLabel {@code false} when the label is already-localised text or user data (a
+     *                       trade/preset name, a registry entry, ...) instead of an
+     *                       {@code evernight.ui.*} key
+     */
+    public ActionButtonComponent(Panel parentPanel, String label, Runnable action, boolean translateLabel) {
+        this(parentPanel, () -> label, action, translateLabel);
+    }
+
+    public ActionButtonComponent(Panel parentPanel, Supplier<String> labelSupplier, Runnable action,
+                                 boolean translateLabel) {
+        super(parentPanel, labelSupplier, translateLabel);
         this.action = action;
         this.setHoverOffsetEnabled(true);
     }

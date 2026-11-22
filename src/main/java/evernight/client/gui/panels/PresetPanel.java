@@ -91,10 +91,10 @@ public class PresetPanel extends Panel {
                 this.addChild(new EnumSettingComponent<>(this, CloseState.ALWAYS_OPEN, this.categorySetting));
                 this.addChild(new StringSettingComponent(this, CloseState.ALWAYS_OPEN, this.saveNameSetting));
                 this.addChild(
-                        new ActionButtonComponent(this, "Refresh", this::requestListRefresh)
+                        new ActionButtonComponent(this, "gui.Refresh", this::requestListRefresh)
                 );
                 this.addChild(new ActionButtonComponent(this,
-                        "Undo",
+                        "gui.Undo",
                         () -> {
                             try {
                                 ClientContext.configurationManager.getPresetUndoState().undo();
@@ -107,10 +107,10 @@ public class PresetPanel extends Panel {
                 break;
             case EDIT:
                 this.addChild(new ButtonComponent(this,
-                        () -> Translations.ui("hud.PresetLabel") + this.selectedPreset.getName()
+                        () -> Translations.ui("hud.PresetLabel") + this.selectedPreset.getName(), false
                 ));
                 this.addChild(new ActionButtonComponent(this,
-                        "Load",
+                        "gui.Load",
                         () -> {
                             PresetUndoAction action = PresetUndoAction.beforeLoad(this.selectedPreset.getName());
                             if (this.getSelectedCategoryPresets().applyPreset(this.selectedPreset.getName())) {
@@ -119,7 +119,7 @@ public class PresetPanel extends Panel {
                         }
                 ));
                 this.addChild(new ActionButtonComponent(this,
-                        "Save",
+                        "gui.Save",
                         () -> {
                             try {
                                 PresetUndoAction action = PresetUndoAction.beforeSave(
@@ -132,7 +132,7 @@ public class PresetPanel extends Panel {
                         }
                 ));
                 this.addChild(new ActionButtonComponent(this,
-                        "Delete",
+                        "gui.Delete",
                         () -> {
                             PresetUndoAction action = PresetUndoAction.beforeDelete(
                                     this.getSelectedCategoryPresets(), this.selectedPreset.getName());
@@ -143,10 +143,10 @@ public class PresetPanel extends Panel {
                         }
                 ));
                 this.addChild(
-                        new ActionButtonComponent(this, "Open", this::openPresetLocation)
+                        new ActionButtonComponent(this, "gui.Open", this::openPresetLocation)
                 );
                 this.addChild(new ActionButtonComponent(this,
-                        "Back",
+                        "gui.Back",
                         () -> this.setMode(PresetPanelMode.NEW)));
         }
         this.requestListRefresh();

@@ -16,12 +16,12 @@ public class TradeEditorScreen extends ClientScreen {
 
     public TradeEditorScreen(String tradeName) {
         TradeDefinition trade = ClientContext.tradeRegistry.createDefault(tradeName);
-        this.editorPanel = new TradeEditorPanel(this, trade, "Create");
+        this.editorPanel = new TradeEditorPanel(this, trade, "gui.Create");
         this.getPanels().add(this.editorPanel);
     }
 
     public TradeEditorScreen(TradeDefinition trade) {
-        this.editorPanel = new TradeEditorPanel(this, trade, "Edit");
+        this.editorPanel = new TradeEditorPanel(this, trade, "gui.Edit");
         this.getPanels().add(this.editorPanel);
     }
 

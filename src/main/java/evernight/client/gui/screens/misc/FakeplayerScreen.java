@@ -60,32 +60,34 @@ public final class FakeplayerScreen extends ClientScreen {
         this.module.toggle();
     }
 
+    // These suppliers return evernight.ui keys, not resolved text: the button translates them on every
+    // frame, so already-localised strings would be looked up again and rendered as keys.
     private String featureLabel() {
         return this.module.isToggled()
-                ? Translations.ui("modules.Fakeplayer.FeatureOn")
-                : Translations.ui("modules.Fakeplayer.FeatureOff");
+                ? "modules.Fakeplayer.FeatureOn"
+                : "modules.Fakeplayer.FeatureOff";
     }
 
     private String killLabel() {
-        return Translations.ui("modules.Fakeplayer.Kill");
+        return "modules.Fakeplayer.Kill";
     }
 
     private String recordLabel() {
         return this.manager().isRecording()
-                ? Translations.ui("modules.Fakeplayer.StopRecording")
-                : Translations.ui("modules.Fakeplayer.Record");
+                ? "modules.Fakeplayer.StopRecording"
+                : "modules.Fakeplayer.Record";
     }
 
     private String playbackLabel() {
         return this.manager().isPlaying()
-                ? Translations.ui("modules.Fakeplayer.StopPlayback")
-                : Translations.ui("modules.Fakeplayer.Play");
+                ? "modules.Fakeplayer.StopPlayback"
+                : "modules.Fakeplayer.Play";
     }
 
     private String logoutSpotLabel() {
         return this.manager().isLogoutSpotActive()
-                ? Translations.ui("modules.Fakeplayer.ClearLogoutSpot")
-                : Translations.ui("modules.Fakeplayer.LogoutSpot");
+                ? "modules.Fakeplayer.ClearLogoutSpot"
+                : "modules.Fakeplayer.LogoutSpot";
     }
 
     private String dummyStatus() {

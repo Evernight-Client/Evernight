@@ -23,13 +23,13 @@ public class ModuleImportConfirmationScreen extends ClientScreen {
         this.moduleJson = importedJson;
         Panel confirmationPanel = new Panel("Confirmation");
         ButtonComponent moduleLabel = new ButtonComponent(confirmationPanel,
-                () -> Translations.ui("hud.ModulePrefix") + targetModule.getDisplayName()
+                () -> Translations.ui("hud.ModulePrefix") + targetModule.getDisplayName(), false
         );
         ActionButtonComponent importButton = new ActionButtonComponent(
-                confirmationPanel, "Import", this::importModule
+                confirmationPanel, "gui.Import", this::importModule
         );
         ActionButtonComponent cancelButton = new ActionButtonComponent(
-                confirmationPanel, "Cancel", this::closeWithTransition
+                confirmationPanel, "gui.Cancel", this::closeWithTransition
         );
         GuiElement[] children = {moduleLabel, importButton, cancelButton};
         confirmationPanel.addChildren(children);

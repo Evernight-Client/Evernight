@@ -23,15 +23,15 @@ public class TradeActionsPanel extends Panel implements ClientAccess {
         this.managerScreen = screen;
         this.trade = selectedTrade;
         this.registerChild(new ButtonComponent(this,
-                () -> Translations.ui("hud.TradePrefix") + selectedTrade.getName()
+                () -> Translations.ui("hud.TradePrefix") + selectedTrade.getName(), false
         ));
         this.registerChild(
-                new ActionButtonComponent(this, "Edit", this::openEditor)
+                new ActionButtonComponent(this, "gui.Edit", this::openEditor)
         );
         this.registerChild(new ActionButtonComponent(this, this::getDeleteButtonLabel, this::deleteIfConfirmed)
         );
         this.registerChild(
-                new ActionButtonComponent(this, "Cancel", this::showCreatePanel)
+                new ActionButtonComponent(this, "gui.Cancel", this::showCreatePanel)
         );
     }
 
@@ -57,7 +57,7 @@ public class TradeActionsPanel extends Panel implements ClientAccess {
 
     private String getDeleteButtonLabel() {
         return this.deleteConfirmationTimer.hasElapsed(1000L)
-                ? Translations.ui("gui.Delete")
-                : Translations.ui("gui.Are you sure?");
+                ? "gui.Delete"
+                : "gui.Are you sure?";
     }
 }

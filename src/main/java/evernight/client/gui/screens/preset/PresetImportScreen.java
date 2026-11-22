@@ -36,21 +36,21 @@ public final class PresetImportScreen extends ClientScreen {
         this.importPanel = new Panel("Preset", () -> this.getCategoryTitle(this.detectedCategory));
         this.sourceFile = sourcePath;
         this.importPanel.getChildren().add(new ButtonComponent(this.importPanel,
-                () -> Translations.ui("hud.PresetPrefix") + this.getPresetName(sourcePath)
+                () -> Translations.ui("hud.PresetPrefix") + this.getPresetName(sourcePath), false
         ));
         if (this.detectedCategory != null) {
             this.importPanel.registerChild(new ActionButtonComponent(this.importPanel,
-                    Translations.ui("gui.Import"),
-                    () -> this.importPreset(sourcePath, this.detectedCategory)));
+                    () -> Translations.ui("gui.Import"),
+                    () -> this.importPreset(sourcePath, this.detectedCategory), false));
         } else {
             for (PresetCategory category : PresetCategory.values()) {
                 this.importPanel.registerChild(new ActionButtonComponent(this.importPanel,
-                        category.getDisplayName(), () -> this.importPreset(sourcePath, category)));
+                        category::getDisplayName, () -> this.importPreset(sourcePath, category), false));
             }
         }
         this.importPanel.registerChild(new ActionButtonComponent(this.importPanel,
-                Translations.ui("gui.Cancel"),
-                this::closeWithTransition));
+                () -> Translations.ui("gui.Cancel"),
+                this::closeWithTransition, false));
         this.getPanels().add(this.importPanel);
     }
 
