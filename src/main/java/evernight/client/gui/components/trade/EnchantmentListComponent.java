@@ -2,10 +2,11 @@ package evernight.client.gui.components.trade;
 
 import evernight.client.ClientAccess;
 import evernight.client.gui.panels.Panel;
+import evernight.client.render.font.FontRenderer;
 import evernight.client.utils.inventory.EnchantmentUtils;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
+import net.minecraft.locale.Language;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
@@ -38,9 +39,13 @@ public class EnchantmentListComponent extends AbstractItemListComponent<Enchantm
             Identifier enchantmentId = enchantmentKey.identifier();
             Enchantment enchantment = registry.getValue(enchantmentId);
             int maxLevel = enchantment.getMaxLevel();
+            String enchantmentName = enchantment.description().getString();
+            if (enchantmentName.startsWith("enchantment.")) {
+                // A modded enchantment without a language entry falls back to its raw key.
+                enchantmentName = FontRenderer.capitalizeWords(enchantmentId.getPath().replace("_", " "));
+            }
             for (int level = 1; level <= maxLevel; level++) {
-                this.entries
-                        .add(new EnchantmentListEntry(enchantmentKey, level, enchantment.description().getString()));
+                this.entries.add(new EnchantmentListEntry(enchantmentKey, level, enchantmentName));
             }
         }
         this.entries.removeIf(this.filter.negate());
@@ -48,9 +53,10 @@ public class EnchantmentListComponent extends AbstractItemListComponent<Enchantm
 
     @Override
     public String getEntryLabel(EnchantmentListEntry entry) {
-        String levelName = Component.translatable(
-                "enchantment.level." + entry.level()
-        ).getString();
+        String levelKey = "enchantment.level." + entry.level();
+        Language language = Language.getInstance();
+        String levelName = language.has(levelKey) ? language.getOrDefault(levelKey)
+                : Integer.toString(entry.level());
         Enchantment enchantment = (Enchantment) EnchantmentUtils.getHolder(entry.enchantmentKey()).value();
         if (enchantment.getMaxLevel() == 1) {
             return entry.name();
