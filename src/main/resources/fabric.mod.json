@@ -30,14 +30,14 @@
     ]
   },
   "depends": {
-    "fabricloader": ">=0.19.5",
+    "fabricloader": "*",
     "minecraft": "1.21.11",
     "java": ">=21",
     "fabric-api": "*"
   },
   "suggests": {
     "baritone": "1.21.11",
-    "viafabricplus": "4.4.9",
+    "viafabricplus": "*",
     "entityculling": "*",
     "sodium": "*",
     "lithium": "*",
