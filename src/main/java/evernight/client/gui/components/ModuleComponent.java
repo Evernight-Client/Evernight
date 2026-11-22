@@ -39,6 +39,7 @@ import evernight.client.gui.components.setting.EnumSettingComponent;
 import evernight.client.gui.components.setting.KeybindComponent;
 import evernight.client.gui.components.setting.NumericSettingComponent;
 import evernight.client.gui.components.setting.RegistrySetSettingComponent;
+import evernight.client.gui.components.setting.StringSetSettingComponent;
 import evernight.client.gui.components.setting.SettingComponent;
 import evernight.client.gui.components.setting.SoundSettingComponent;
 import evernight.client.gui.components.setting.StringSettingComponent;
@@ -195,6 +196,7 @@ public class ModuleComponent extends AbstractComponent implements CloseState {
             case evernight.client.settings.types.NumberSetting<?> value -> new NumericSettingComponent<>(panel, this, value);
             case evernight.client.settings.types.ColorSetting value -> new ColorSettingComponent(panel, this, value);
             case evernight.client.settings.types.StringSetting value -> new StringSettingComponent(panel, this, value);
+            case evernight.client.settings.types.StringSetSetting value -> new StringSetSettingComponent(panel, this, value);
             case evernight.client.settings.types.EnumSetting<?> value -> new EnumSettingComponent<>(panel, this, value);
             case evernight.client.settings.types.IdentifierSetting value -> new SoundSettingComponent(panel, this, value);
             default -> null;

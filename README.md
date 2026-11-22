@@ -35,13 +35,15 @@ Evernight 将战斗、移动、渲染、玩家、杂项、漏洞利用、HUD 与
 | Combat（战斗） | 35 | Aura、AutoCrystal、AnchorAura、AutoMace、AutoPot、AutoArmor、AntiPhase |
 | Render（渲染） | 34 | ESP、Chams、Tracers、HoleESP、NameTags、Search、Xray、Shader、Skybox |
 | Player（玩家） | 28 | AutoFarm、AutoCraft、AutoTrade、ChestStealer、Scaffold、Nuker、InventoryTweaks、Freecam |
-| Misc（杂项） | 29 | AutoReconnect、ChatFilter、ExtraScreenshot、KillEffects、Spammer、StashFinder、VisualRange、WebhookNotifs |
+| Misc（杂项） | 30 | AutoReconnect、ChatFilter、InfoBlocker、ExtraScreenshot、KillEffects、Spammer、StashFinder、VisualRange、WebhookNotifs |
 | Movement（移动） | 25 | Speed、Flight、ElytraFly、Velocity、Step、NoFall、Jesus、LongJump、FakeLag |
 | Exploit（漏洞利用） | 19 | NewChunks、Phase、Reach、Timer、PingSpoof、Trident、XCarry、GrimDisabler |
 | Client（客户端） | 10 | UI、HUD、Fonts、Colors、Notifications、Settings、Discord、Capes、AntiCheat、Baritone |
 | HUD | 20 | Watermark、ModuleList、Armor、Effects、Totems、TextRadar、Music、PlayerModel、Inventory |
 
-每个模块都可以单独开关、绑定按键并调整设置；设置类型覆盖布尔、数值、枚举、颜色、字符串与注册表集合，并支持按条件显隐。模块名（小写）可以直接作为指令使用（例如 `;aura`），也可以为指令设置别名。
+每个模块都可以单独开关、绑定按键并调整设置；设置类型覆盖布尔、数值、枚举、颜色、字符串、字符串集合与注册表集合，并支持按条件显隐。模块名（小写）可以直接作为指令使用（例如 `;aura`），也可以为指令设置别名。
+
+**信息屏蔽器（InfoBlocker）** 是 Misc 分类下的模块：命中关键词的聊天消息会在进入聊天栏之前被直接丢弃，用于压制特定词造成的刷屏卡顿。词条在 ClickGUI 里点开设置项即可增删（点条目删除、输入后回车或点添加新增），默认屏蔽 `lotus` 与 `莲花`，私聊消息默认不受影响。
 
 ### 界面
 
