@@ -84,7 +84,7 @@ public class DirectionModule extends HudWidgetModule {
             case 7 -> "SouthEast";
             default -> throw new IllegalStateException("Invalid index.");
         };
-        return Translations.ui(direction);
+        return Translations.ui("hud." + direction);
     }
 
     private String getAxisLabel(int sector) {
