@@ -23,6 +23,7 @@ description: 开发 Evernight 插件（Addon）的完整工作流：evernight-ad
 
 | 要做的事 | 读 |
 | --- | --- |
+| 开箱即用的工程模板 | [evernight-addon-template](https://github.com/Evernight-Client/evernight-addon-template) |
 | 插件工程骨架、完整示例 | `docs/addons.md`、`references/example-addon.md` |
 | AddonContext / AddonManager 精确签名 | `references/api.md` |
 | 模块基类、设置类型、HUD、注册表 | `.github/skills/evernight-dev/references/module-settings.md` |
@@ -71,7 +72,7 @@ public final class ExampleAddon extends EvernightAddon {
 }
 ```
 
-依赖本体的开发 jar：`modImplementation files("libs/evernight-4.0.0-dev.jar")`（`build/devlibs/` 下生成，**不要**用 `build/libs/` 的生产 jar）。Gradle 需 JDK 25（Loom 1.18.4），编译目标 21。
+依赖本体的发行 jar：`modImplementation files("libs/evernight-<version>.jar")`（GitHub Release 的 `evernight-<version>.jar`；Loom 会把 intermediary 重映射成开发用的 named）。**不要**把 `build/devlibs/*-dev.jar` 交给 `mod*` 配置：它的 access widener 头是 `named`，会报 `Namespace mismatch`。Gradle 需 JDK 25（Loom 1.18.4），编译目标 21。
 
 ## 4. AddonContext 速查
 
@@ -129,7 +130,7 @@ public final class ExampleModule extends AddonModule {
 ## 7. 构建与联调
 
 ```bash
-gradlew.bat build                       # 本体，产出 build/devlibs/evernight-<version>-dev.jar
+gradlew.bat build                       # 本体，产出 build/libs/evernight-<version>.jar
 gradlew.bat compileJava                 # 只改 Java
 gradlew.bat build                       # 改资源/语言表
 python .github/skills/evernight-dev/scripts/check-lang.py
@@ -142,7 +143,7 @@ python .github/skills/evernight-dev/scripts/check-lang.py
 | 现象 | 检查 |
 | --- | --- |
 | 完全没有加载 | 入口键拼写、入口类是否 public 且无参构造、`environment` 是否 client |
-| `NoClassDefFoundError: evernight/...` | 依赖了生产 jar；换 `-dev.jar` |
+| `NoClassDefFoundError: evernight/...` | 运行环境没有安装对应版本的 Evernight，或 `depends.evernight` 版本不匹配 |
 | 插件 FAILED，日志有 `Module name is already registered` | 模块名重名；改名后重试 |
 | ClickGUI 有模块但无法开关 | 模块构造器抛异常/未注册；看 `Addon <id> failed` 堆栈 |
 | 语言不生效 | 资源路径的命名空间是否等于 `fabric.mod.json` 的 id；两份 JSON 键集是否一致 |

@@ -9,7 +9,7 @@ example-addon/
 ├── build.gradle
 ├── gradle.properties
 ├── settings.gradle
-├── libs/evernight-4.0.0-dev.jar
+├── libs/evernight-1.0.1.jar
 └── src/main/
     ├── java/com/example/exampleaddon/
     │   ├── ExampleAddon.java
@@ -55,8 +55,8 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:0.20.1"
     modImplementation "net.fabricmc.fabric-api:fabric-api:0.141.6+1.21.11"
 
-    // 由 Evernight 的 gradlew build 生成
-    modImplementation files("libs/evernight-4.0.0-dev.jar")
+    // 本体发行 jar（GitHub Release）；Loom 会把它重映射到开发用的 named
+    modImplementation files("libs/evernight-1.0.1.jar")
 }
 
 java {
@@ -222,10 +222,8 @@ public final class ExampleCommand extends Command {
 ## 构建
 
 ```bash
-# 先在 Evernight 仓库生成 dev jar
-gradlew.bat build
-
-# 再在插件工程
+# 准备本体发行 jar：GitHub Release 的 evernight-1.0.1.jar，或本体构建产物 build/libs/evernight-1.0.1.jar
+# 放进插件工程的 libs/ 后构建
 gradlew.bat build
 ```
 

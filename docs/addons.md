@@ -5,6 +5,7 @@ Evernight 的插件系统参考 Meteor Client：插件是**独立的 Fabric 客�
 - 插件 API 源码：`src/main/java/evernight/addon/`
 - 模块/设置/事件/渲染等本体 API：见 `.github/skills/evernight-dev/references/`
 - 本文示例的完整文件：`.github/skills/evernight-addon-dev/references/example-addon.md`
+- 开箱即用的工程模板：[Evernight-Client/evernight-addon-template](https://github.com/Evernight-Client/evernight-addon-template)（示例插件、语言表校验与 agent skill 一并提供）
 
 ## 1. 加载流程
 
@@ -51,7 +52,7 @@ Evernight 的插件系统参考 Meteor Client：插件是**独立的 Fabric 客�
 
 ### 2.2 `build.gradle`
 
-以 Evernight 本体的 `build.gradle` / `settings.gradle` 为模板（同样的 Loom、Minecraft 与映射版本），把对本体的依赖换成开发期 jar：
+以 Evernight 本体的 `build.gradle` / `settings.gradle` 为模板（同样的 Loom、Minecraft 与映射版本），把对本体的依赖换成发行 jar：
 
 ```gradle
 dependencies {
@@ -60,12 +61,12 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:0.20.1"
     modImplementation "net.fabricmc.fabric-api:fabric-api:0.141.6+1.21.11"
 
-    // 本体构建产物：build/devlibs/evernight-<version>-dev.jar
-    modImplementation files("libs/evernight-1.0-dev.jar")
+    // 本体发行 jar：GitHub Release 的 evernight-<version>.jar
+    modImplementation files("libs/evernight-1.0.1.jar")
 }
 ```
 
-不要依赖 `build/libs/evernight-<version>.jar`（那是 remap 后的生产 jar，开发环境无法直接使用）。本体发布到 Maven 之前，本地文件依赖是最简单的方式。
+`modImplementation` 声明的是 mod 依赖：Loom 会在构建时把这份 intermediary jar 重映射成开发用的 named 命名空间，插件代码因此可以直接继承 `EvernightAddon` 并使用本体 API。不要把 `build/devlibs/evernight-<version>-dev.jar` 交给 `mod*` 配置——它的 access widener 头是 `named`，Loom 会按 intermediary 处理 mod 依赖，构建时报 `Namespace mismatch, expected intermediary got named`。本体尚未发布到 Maven，用 GitHub Release 的 jar 或本地构建的 `build/libs/evernight-<version>.jar` 做文件依赖即可。
 
 插件工程与本体使用同一套 Loom 1.18.4，因此 **Gradle 需要 JDK 25**（`options.release = 21` 保证插件仍编译为 Java 21 字节码）。
 
@@ -219,7 +220,7 @@ public final class ExampleCommand extends Command {
 
 ## 6. 调试与验收
 
-1. 先构建本体：`gradlew.bat build`，确认 `build/devlibs/evernight-<version>-dev.jar` 存在。
+1. 先准备本体 jar：用 GitHub Release 的 `evernight-<version>.jar`，或本地 `gradlew.bat build` 产出的 `build/libs/evernight-<version>.jar`，放进插件工程的 `libs/`。
 2. 构建插件，把插件 jar 放进开发运行目录 `run/mods/`（或正式游戏的 `.minecraft/mods/`）。
 3. 启动游戏，日志中应出现 `Loaded addon <名称> <版本> (<id>)`；失败会打印 `Addon <id> failed to initialize` 与堆栈。
 4. 游戏内执行 `;addons` 查看已加载插件、版本与模块数；没有插件时该指令不存在。
@@ -230,7 +231,7 @@ public final class ExampleCommand extends Command {
 | 现象 | 原因 |
 | --- | --- |
 | 日志没有插件记录 | `fabric.mod.json` 的入口键不是 `evernight-addon`，或入口类不是 `EvernightAddon` 子类 |
-| `NoClassDefFoundError: evernight/...` | 开发时误用了 remap 的生产 jar，改用 `-dev.jar` |
+| `NoClassDefFoundError: evernight/...` | 运行环境没有安装对应版本的 Evernight，或 `depends.evernight` 版本不匹配 |
 | 模块名冲突导致 `FAILED` | 模块名与本体/其他插件重名；模块名是全局键，换一个 |
 | 语言不生效 | 资源路径必须是 `assets/<fabric.mod.json 的 id>/lang/en_us.json`，且 JSON 键与另一语言一致 |
 | 设置不保存 | 设置没有通过 `this.add(...)` 注册，或 `setExcludedFromConfig(true)` |

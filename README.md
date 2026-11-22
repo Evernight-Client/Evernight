@@ -153,6 +153,7 @@ Evernight 提供与 Meteor Client 类似的插件机制：插件是独立的 Fab
 
 - 插件 API：`src/main/java/evernight/addon/`（`EvernightAddon`、`AddonContext`、`AddonManager`）。
 - 开发指南：[docs/addons.md](docs/addons.md)，包含工程骨架、完整示例、构建与排错。
+- 工程模板：[evernight-addon-template](https://github.com/Evernight-Client/evernight-addon-template)，含示例插件、语言表校验与 agent skill。
 - 插件可复用本体 8 个模块分类、全部设置类型、事件总线、HUD 组件与渲染工具；单个插件初始化失败不会影响客户端或其他插件。
 - 没有插件时不会注册 `;addons` 指令；有插件时可在游戏内查看版本与模块数。
 

@@ -26,7 +26,7 @@ gradlew.bat build
 python .github/skills/evernight-dev/scripts/check-lang.py
 ```
 
-构建产物：`build/libs/evernight-<version>.jar`（生产）与 `build/devlibs/evernight-<version>-dev.jar`（插件开发依赖）。
+构建产物：`build/libs/evernight-<version>.jar`（生产/插件依赖）与 `build/devlibs/evernight-<version>-dev.jar`（本体联调调试用；不要交给插件的 `mod*` 配置）。
 
 ## 代码约定
 
