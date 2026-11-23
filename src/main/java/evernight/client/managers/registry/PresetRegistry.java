@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import evernight.client.ClientAccess;
 import evernight.client.config.preset.PresetData;
 import evernight.client.settings.options.PresetCategory;
+import evernight.client.settings.options.PresetPrivacyFilter;
 import evernight.client.utils.core.FileUtils;
 
 import java.io.File;
@@ -162,6 +163,16 @@ public final class PresetRegistry extends Registry<PresetData> implements Client
                             String jsonText = FileUtils.readUtf8(file.toPath());
                             JsonObject contents = JsonParser.parseString(jsonText).getAsJsonObject();
                             if (contents != null) {
+                                // Old preset files may still contain credential-bearing modules;
+                                // scrub them so sharing the presets folder cannot leak them.
+                                if (this.category != PresetCategory.MACRO
+                                        && PresetPrivacyFilter.INSTANCE.removeExcludedModules(contents)) {
+                                    try {
+                                        FileUtils.writeUtf8(file.toPath(), ClientAccess.gson.toJson(contents));
+                                    } catch (IOException scrubFailure) {
+                                        LOGGER.warn("Could not scrub preset {}", file.getName(), scrubFailure);
+                                    }
+                                }
                                 Collection<PresetData> loadedPresets = this.entries;
                                 loadedPresets.add(new PresetData(file.getName().replace(".json", ""), contents));
                             }
