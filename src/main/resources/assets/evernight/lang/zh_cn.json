@@ -702,7 +702,7 @@
   "evernight.descriptions.settings.CoordinateHider.WorldMapCoords": "把世界地图上的光标坐标与路径点坐标替换为 xxx",
   "evernight.descriptions.settings.CoordinateHider.WorldMapWaypoints": "隐藏世界地图上的路径点标记",
   "evernight.descriptions.settings.CustomDeathText.Message": "自定义模式下死亡界面显示的消息",
-  "evernight.descriptions.settings.ExtraScreenshot.ClientId": "用于 Imgur 上传的凭据。可填写你自己的 Imgur 客户端 ID，或 Bearer 访问令牌。\n<yellow>留空则禁用上传",
+  "evernight.descriptions.settings.ExtraScreenshot.ClientId": "用于 Imgur 上传的凭据。可填写你自己的 Imgur 客户端 ID，或 Bearer 访问令牌。凭据单独保存在 screenshot.json，不会写进 modules.json 或预设。\n<yellow>留空则禁用上传",
   "evernight.descriptions.settings.ExtraScreenshot.Path": "截图后播放的音效",
   "evernight.descriptions.settings.ExtraScreenshot.Sound": "截图后播放音效",
   "evernight.descriptions.settings.ExtraTab.Highlight": "Tab 列表名字高亮设置的总开关",

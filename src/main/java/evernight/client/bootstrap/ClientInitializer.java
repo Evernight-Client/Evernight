@@ -47,6 +47,7 @@ import evernight.client.managers.registry.GlintRegistry;
 import evernight.client.managers.registry.HudModuleRegistry;
 import evernight.client.managers.registry.KitRegistry;
 import evernight.client.managers.registry.MacroRegistry;
+import evernight.client.managers.config.ScreenshotCredentialStore;
 import evernight.client.managers.registry.ModuleRegistry;
 import evernight.client.managers.registry.SocialRegistry;
 import evernight.client.managers.registry.StashRegistry;
@@ -106,6 +107,7 @@ public final class ClientInitializer {
         ClientContext.featureBoxRenderer = new FeatureBoxRenderer();
         ClientContext.taskScheduler = new TaskScheduler();
         ClientContext.moduleRegistry = new ModuleRegistry();
+        ClientContext.screenshotCredentialStore = new ScreenshotCredentialStore();
         ClientContext.hudModuleRegistry = new HudModuleRegistry();
         ClientContext.tradeRegistry = new TradeRegistry();
         ClientContext.fakeplayerManager = new FakeplayerManager();
@@ -152,7 +154,12 @@ public final class ClientInitializer {
             configuration.registerConfigurable(configurable);
         }
         CustomItemRegistries.initialize();
-        configuration.load();
+        ClientContext.configurationLoading = true;
+        try {
+            configuration.load();
+        } finally {
+            ClientContext.configurationLoading = false;
+        }
         this.clientInitialized = true;
         EvernightClient.LOGGER.info("Evernight client initialization completed.");
     }

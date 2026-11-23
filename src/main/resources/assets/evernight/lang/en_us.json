@@ -702,7 +702,7 @@
   "evernight.descriptions.settings.CoordinateHider.WorldMapCoords": "Replaces cursor and waypoint coordinates in the world map with xxx.",
   "evernight.descriptions.settings.CoordinateHider.WorldMapWaypoints": "Hides waypoint markers on the world map.",
   "evernight.descriptions.settings.CustomDeathText.Message": "Custom message shown on the death screen in Custom mode.",
-  "evernight.descriptions.settings.ExtraScreenshot.ClientId": "Credential used for Imgur uploads. Paste your own Imgur client ID, or a Bearer access token.\n<yellow>An empty value disables uploads.",
+  "evernight.descriptions.settings.ExtraScreenshot.ClientId": "Credential used for Imgur uploads. Paste your own Imgur client ID, or a Bearer access token. Stored separately in screenshot.json, so modules.json and presets never include it.\n<yellow>An empty value disables uploads.",
   "evernight.descriptions.settings.ExtraScreenshot.Path": "Sound played after taking a screenshot.",
   "evernight.descriptions.settings.ExtraScreenshot.Sound": "Plays a sound after taking a screenshot.",
   "evernight.descriptions.settings.ExtraTab.Highlight": "Groups the name highlighting options for the TAB list.",

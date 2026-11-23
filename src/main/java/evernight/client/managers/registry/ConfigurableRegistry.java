@@ -12,6 +12,7 @@ public final class ConfigurableRegistry implements Iterable<JsonConfigurable> {
 
     public ConfigurableRegistry() {
         this.register(ClientContext.webhookManager);
+        this.register(ClientContext.screenshotCredentialStore);
         this.register(ClientContext.moduleRegistry);
         this.register(ClientContext.socialRegistry);
         this.register(ClientContext.waypointRegistry);
