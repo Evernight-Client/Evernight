@@ -6,5 +6,6 @@
 4. `evernight/addon` 是公开插件 API，改签名要同步 `docs/addons.md`、插件 skill 与语言表。
 5. 任务功能需求完成之后提交 不要一个大提交 把不同的分为多个提交提交前需构建测试
 6. 开发前需加载项目 skill
+7. 遇到歧义决策未知主动提问
 
 细则见 `.github/skills/evernight-dev/`；写插件见 `.github/skills/evernight-addon-dev/` 与 `docs/addons.md`。
