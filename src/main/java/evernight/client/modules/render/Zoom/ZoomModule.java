@@ -7,6 +7,7 @@ import evernight.client.events.input.MouseHandlerOnScrollEvent;
 import evernight.client.events.bus.EventBus;
 import evernight.client.modules.Module;
 import evernight.client.modules.ModuleCategory;
+import evernight.client.render.util.GameOptionsOverrides;
 import evernight.client.settings.types.BooleanSetting;
 import evernight.client.settings.types.NumberSetting;
 import evernight.client.settings.core.Setting;
@@ -69,30 +70,49 @@ public class ZoomModule extends Module {
             this.disable();
             return;
         }
-        EventBus bus = ClientAccess.eventBus;
-        ZoomOptionsUpdater updater = this.optionsUpdater;
-        bus.subscribe(updater);
         if (!this.fovUpdateActive) {
             Options options = ClientAccess.evernightMinecraft.options;
             OptionInstance fov = options.fov();
             this.baselineFov = ((Integer) fov.get());
+            this.savedSmoothCamera = options.smoothCamera;
+            this.fovUpdateActive = true;
+            EventBus bus = ClientAccess.eventBus;
+            bus.subscribe(this.optionsUpdater);
         }
         FloatAnimation animation = this.zoomAnimation;
         long duration = this.getSmoothingDuration(200);
         animation.setTarget(1.0F, duration);
-        this.savedSmoothCamera = ClientAccess.evernightMinecraft.options.smoothCamera;
     }
 
     @Override
     public void onDisable() {
-        ClientAccess.eventBus.unsubscribe(this.optionsUpdater);
+        long duration = this.getSmoothingDuration(100);
         FloatAnimation primaryAnimation = this.zoomAnimation;
-        long primaryDuration = this.getSmoothingDuration(100);
-        primaryAnimation.setTarget(0.0F, primaryDuration);
+        primaryAnimation.setTarget(0.0F, duration);
         FloatAnimation scroll = this.scrollAnimation;
-        long scrollDuration = this.getSmoothingDuration(100);
-        scroll.setTarget(0.0F, scrollDuration);
-        ClientAccess.evernightMinecraft.options.smoothCamera = this.savedSmoothCamera;
+        scroll.setTarget(0.0F, duration);
+        // Without smoothing there is nothing to animate, and without a world the updater must not
+        // keep the zoomed FOV around, so restore the captured values right away in both cases.
+        if (duration == 0L || this.isWorldUnavailable()) {
+            this.restoreFovOverride();
+        }
+    }
+
+    /**
+     * Puts the FOV and smooth-camera option back to the values captured when zoom started, then
+     * releases the run-tick updater. Safe to call repeatedly; does nothing when no override is active.
+     */
+    protected void restoreFovOverride() {
+        if (!this.fovUpdateActive) {
+            return;
+        }
+        Options options = ClientAccess.evernightMinecraft.options;
+        OptionInstance fov = options.fov();
+        Integer baselineValue = this.baselineFov;
+        GameOptionsOverrides.forceSetOptionValue(fov, baselineValue);
+        options.smoothCamera = this.savedSmoothCamera;
+        ClientAccess.eventBus.unsubscribe(this.optionsUpdater);
+        this.fovUpdateActive = false;
     }
 
     private int getSmoothingDuration(int duration) {
