@@ -67,6 +67,8 @@ public class SpammerModule extends Module {
         this.messagesSetting.setChangeCallback(this::onMessagesChanged);
         // Reload the file right before the editor opens, so it never edits a stale snapshot.
         this.messagesSetting.withPrepareAction(() -> this.loadMessages(false));
+        // Resetting module settings must not clear the message file.
+        this.messagesSetting.withResetAction(() -> this.loadMessages(false));
         this.pathSetting.setChangeCallback(() -> this.loadMessages(true));
         this.refreshSetting.setChangeCallback(() -> {
             if (this.refreshSetting.getValue()) {

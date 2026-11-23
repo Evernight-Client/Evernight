@@ -159,6 +159,8 @@ public class KillEffectsModule extends Module {
         this.killSayMessagesSetting.setChangeCallback(this.killSayMessages::onSettingChanged);
         // Reload the file right before the editor opens, so it never edits a stale snapshot.
         this.killSayMessagesSetting.withPrepareAction(() -> this.killSayMessages.reloadMessages(false));
+        // Resetting module settings must not clear the killsay file.
+        this.killSayMessagesSetting.withResetAction(() -> this.killSayMessages.reloadMessages(false));
         this.killSaySetting.setChangeCallback(() -> this.killSayMessages.reloadMessages(false));
         this.pathSetting.setChangeCallback(() -> this.killSayMessages.reloadMessages(true));
         this.refreshSetting.setChangeCallback(() -> {

@@ -230,8 +230,8 @@ this.fadeTimeSetting = this.add(new NumberSetting<>("FadeTime", 1.0F, 0.1F, 1.0F
 | `IdentifierSetting` | `(String, NamedIdentifier)` :11；带 Predicate :15 | `NamedIdentifier` | 存 `{name, category}`；`parseValue` 接受 `name` 或 `category:name`；常用于音效 id。 |
 | `SetSetting<E>`（abstract） | `@SafeVarargs (String, E... defaults)` :27；带 Predicate :33 | `Set<E>` | 子类必须实现 `parseEntry(String)`、`formatEntry(E)`、`getAvailableEntries()`；`addEntry/removeEntry/containsEntry` :115/:55/:77。 |
 | `StringSetSetting` | `(String, String... defaults)` :14；带 Predicate :18 | `Set<String>` | `parseEntry/formatEntry` 统一转小写；`getAvailableEntries` 为空，靠用户输入。 |
-| `StringListSetting` | `(String, String... defaults)` :19 | `List<String>` | 有序、保留原文本；`addEntry/setEntry/removeEntry/moveEntry/replaceEntries/clearEntries` 改完会触发 changeCallback；ClickGUI 行打开 `StringListScreen`，`withPrepareAction(Runnable)` 可在打开前重新加载文件；需要「文件是唯一数据源」时配合 `setExcludedFromConfig(true)`。 |
-| `ActionSetting` | `(String, Runnable)` :21 | `Boolean` | 点击执行动作的界面行（如打开交易管理器），不保存值、自动 `setExcludedFromConfig(true)`；`withInfo(Supplier<String>)` 在右侧显示动态文本。 |
+| `StringListSetting` | `(String, String... defaults)` :23 | `List<String>` | 有序、保留原文本；`addEntry/setEntry/removeEntry/moveEntry/replaceEntries/clearEntries` 改完会触发 changeCallback；ClickGUI 行打开 `StringListScreen`，`withPrepareAction(Runnable)` 可在打开前重新加载文件；需要「文件是唯一数据源」时配合 `setExcludedFromConfig(true)`，并用 `withResetAction(Runnable)` 避免重置设置时清空文件。 |
+| `ActionSetting` | `(String, Runnable)` :20 | `Boolean` | 点击执行动作的界面行（如打开交易管理器），不保存值、自动 `setExcludedFromConfig(true)`；`withInfo(Supplier<String>)` 在右侧显示动态文本。 |
 | `RegistrySetSetting<E>` | `(String, Registry<E>, E... defaults)` :20；带 Predicate :26 | `Set<E>` | 序列化为注册表 id 字符串；`getRegistry()` :74、`modifyEntries(Consumer<Set<E>>)` :59；真实用法 `new RegistrySetSetting<>("Blocks", BuiltInRegistries.BLOCK, Blocks.OBSIDIAN, Blocks.ENDER_CHEST)`。 |
 | `CyclingTextSetting`（接口） | — | — | 只由 `NumberSetting`、`EnumSetting` 实现：提供 `matchesText/setValueFromText`，把多段引号参数按当前值循环（用于 `;module <name> <setting> <value>` 命令，`ModuleCommand.java:210` 调 `parseValue`）。 |
 

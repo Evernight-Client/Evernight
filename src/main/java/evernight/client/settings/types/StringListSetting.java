@@ -18,6 +18,7 @@ import java.util.List;
  */
 public final class StringListSetting extends Setting<List<String>> {
     private Runnable prepareAction;
+    private Runnable resetAction;
 
     public StringListSetting(String name, String... defaultEntries) {
         super(name, new ArrayList<>(List.of(defaultEntries)));
@@ -39,8 +40,21 @@ public final class StringListSetting extends Setting<List<String>> {
         }
     }
 
+    /**
+     * Replaces the default reset behaviour. File-backed lists use it to reload their file instead of
+     * clearing the list (and therefore the file) when the player resets all module settings.
+     */
+    public StringListSetting withResetAction(Runnable resetAction) {
+        this.resetAction = resetAction;
+        return this;
+    }
+
     @Override
     public void reset() {
+        if (this.resetAction != null) {
+            this.resetAction.run();
+            return;
+        }
         this.replaceEntries(this.getDefaultValue());
     }
 
