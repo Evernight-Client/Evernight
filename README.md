@@ -10,9 +10,12 @@ Evernight 将战斗、移动、渲染、玩家、自动、杂项、漏洞利用�
 
 > 运行环境：Minecraft 1.21.11 · Fabric Loader 0.19.5+ · Fabric API · Java 21+
 
+> 完整使用教程（安装、界面、指令、模块速查、配置与预设、插件开发）见 **[Evernight Wiki](https://github.com/Evernight-Client/Evernight/wiki)**。
+
 ## 目录
 
 - [功能特性](#功能特性)
+- [使用教程（Wiki）](#使用教程wiki)
 - [环境要求](#环境要求)
 - [安装](#安装)
 - [快速上手](#快速上手)
@@ -28,17 +31,17 @@ Evernight 将战斗、移动、渲染、玩家、自动、杂项、漏洞利用�
 
 ### 模块
 
-约 200 个模块，分为 9 个分类：
+210 个模块，分为 9 个分类（其中 20 个是 HUD 组件）：
 
-| 分类 | 模块数（约） | 代表模块 |
+| 分类 | 模块数 | 代表模块 |
 | --- | --- | --- |
-| Combat（战斗） | 34 | Aura、AutoCrystal、AnchorAura、AutoMace、AutoPot、AutoArmor、AntiPhase |
-| Render（渲染） | 34 | ESP、Chams、Tracers、HoleESP、NameTags、Search、Xray、Shader、Skybox |
-| Player（玩家） | 15 | ChestStealer、Scaffold、Nuker、InventoryTweaks、Freecam |
-| Auto（自动） | 14 | AutoFarm、AutoCraft、AutoFish、AutoTrade、AutoMining、AutoClicker |
-| Misc（杂项） | 29 | AutoReconnect、ChatFilter、ExtraScreenshot、KillEffects、Spammer、StashFinder、VisualRange、WebhookNotifs |
+| Combat（战斗） | 37 | Aura、AutoCrystal、AnchorAura、AutoMace、AutoPot、AutoArmor、AntiPhase |
+| Render（渲染） | 35 | ESP、Chams、Tracers、HoleESP、NameTags、Search、Xray、Shader、Skybox |
+| Player（玩家） | 18 | ChestStealer、Scaffold、Nuker、InventoryTweaks、Freecam |
+| Auto（自动） | 14 | AutoFarm、AutoCraft、AutoFish、AutoTrade、AutoMining、AutoGrindstone |
+| Misc（杂项） | 31 | AutoReconnect、ChatFilter、ExtraScreenshot、KillEffects、Spammer、StashFinder、VisualRange、WebhookNotifs |
 | Movement（移动） | 25 | Speed、Flight、ElytraFly、Velocity、Step、NoFall、Jesus、LongJump、FakeLag |
-| Exploit（漏洞利用） | 19 | NewChunks、Phase、Reach、Timer、PingSpoof、Trident、XCarry、GrimDisabler |
+| Exploit（漏洞利用） | 20 | NewChunks、Phase、Reach、Timer、PingSpoof、Trident、XCarry |
 | Client（客户端） | 10 | UI、HUD、Fonts、Colors、Notifications、Settings、Discord、Capes、AntiCheat、Baritone |
 | HUD | 20 | Watermark、ModuleList、Armor、Effects、Totems、TextRadar、Music、PlayerModel、Inventory |
 
@@ -104,6 +107,21 @@ Evernight 将战斗、移动、渲染、玩家、自动、杂项、漏洞利用�
 
 > 构建好的发行版可加 QQ 群 **949374129** 获取；也可以按[从源码构建](#从源码构建)自行编译。
 
+## 使用教程（Wiki）
+
+仓库的 [Wiki](https://github.com/Evernight-Client/Evernight/wiki) 是按源码整理的中文教程，比本文件更详细：
+
+| 想了解 | 页面 |
+| --- | --- |
+| 安装、首次启动、可选集成 | [安装与运行](https://github.com/Evernight-Client/Evernight/wiki/%E5%AE%89%E8%A3%85%E4%B8%8E%E8%BF%90%E8%A1%8C) |
+| 五分钟配好客户端 | [快速上手](https://github.com/Evernight-Client/Evernight/wiki/%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B) |
+| ClickGUI / HUD 编辑器操作 | [界面与操作](https://github.com/Evernight-Client/Evernight/wiki/%E7%95%8C%E9%9D%A2%E4%B8%8E%E6%93%8D%E4%BD%9C) |
+| 每条指令的完整语法 | [指令参考](https://github.com/Evernight-Client/Evernight/wiki/%E6%8C%87%E4%BB%A4%E5%8F%82%E8%80%83) |
+| 210 个模块的说明与设置键 | [模块总览](https://github.com/Evernight-Client/Evernight/wiki/%E6%A8%A1%E5%9D%97%E6%80%BB%E8%A7%88) |
+| 配置文件、预设、宏 | [设置与配置](https://github.com/Evernight-Client/Evernight/wiki/%E8%AE%BE%E7%BD%AE%E4%B8%8E%E9%85%8D%E7%BD%AE) · [预设与导入导出](https://github.com/Evernight-Client/Evernight/wiki/%E9%A2%84%E8%AE%BE%E4%B8%8E%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA) · [宏、别名与快捷键](https://github.com/Evernight-Client/Evernight/wiki/%E5%AE%8F-%E5%88%AB%E5%90%8D%E4%B8%8E%E5%BF%AB%E6%8D%B7%E9%94%AE) |
+| 排错 | [常见问题](https://github.com/Evernight-Client/Evernight/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98) |
+| 写插件 | [插件开发](https://github.com/Evernight-Client/Evernight/wiki/%E6%8F%92%E4%BB%B6%E5%BC%80%E5%8F%91) · [docs/addons.md](docs/addons.md) |
+
 ## 快速上手
 
 - **打开界面**：默认按 `Y` 打开 ClickGUI。按键在「选项 → 控制 → 按键」的「杂项」分类中，名称为 `key.evernight.click_gui`，可随时修改。
@@ -138,17 +156,26 @@ evernight/
 | `prefix <字符>` | 修改指令前缀 |
 | `alloff` | 关闭所有模块 |
 | `panic` | 紧急关闭全部模块 |
-| `preset` | 预设管理（`save` / `load` / `list` / `export` / `import` / `restore` / `undo`） |
+| `preset <分类>` | 预设管理（`save` / `load` / `list` / `export` / `import` / `restore` / `undo`），分类为 Modules / Binds / Hud / Colors / Visuals / Macro / All |
 | `alias` | 指令别名（`set` / `remove`） |
 | `macro` | 宏的录制、编辑与导入导出 |
-| `friend` / `enemy` | 好友与敌人名单（`add` / `remove` / `list` / `sync`） |
-| `waypoints` | 路径点（`add` / `remove` / `rename` / `list` / `toggle`） |
-| `kit` | 套装（`load` / `rename`） |
+| `friend` / `enemy` | 好友与敌人名单（`add` / `remove` / `list`；`sync` 仅限 `friend`，可从 Future / RusherHack / Meteor 导入） |
+| `waypoints` | 路径点（`add` / `remove <服务器> <名称>` / `rename` / `list` / `toggle`） |
+| `kit` | 套装（`save` / `load` / `remove` / `rename`） |
 | `trade` | 交易模板（`new` / `edit` / `delete` / `enchant` / `list`） |
-| `webhook` | 通知推送（`get` / `set` / `telegram` / `chatid` / `clear`） |
-| `folder` | 打开配置子目录（`spammer` / `killsay` / `textures` / `sounds` / `shaders`） |
+| `webhook` | 通知推送（`get` / `mode` / `set` / `telegram` / `qq` / `openid` / `chatid` / `clear`） |
+| `folder` | 打开配置子目录（`spammer` / `killsay` / `textures` / `sounds` / `shaders` / `presets`） |
+| `drawn` | 控制模块是否显示在 ClickGUI（`<模块>` / `all` / `<分类>`） |
+| `defaults` | 恢复出厂：重置全部设置、清空按键并关闭模块（先存预设） |
+| `action` | 静默切换物品并执行动作（`swap` / `alternative` / `armor` / `offhand` / `attack` / `interact` / `jump` / `takeoff`） |
+| `color` | 方块颜色表（`blocks set <方块> <#RRGGBB>` / `blocks clear`） |
+| `glint` | 附魔光效列表（`<模式> <物品>` / `<模式> clear`） |
+| `highlight` | 高亮坐标（`<坐标>` / `<坐标> track`） |
+| `chatfilter` | 聊天过滤条目（`add <编号> <文本>` / `remove` / `list`） |
 | `reload` | 重新加载配置 |
 | `fakeplayer` | 假玩家（`record` / `play` / `logout` / `kill`） |
+
+完整指令（含 `clip`、`wait`、`yaw`、`pitch`、`angle`、`session`、`queue`、`autopreset` 等）用 `;help` 查看，或参考 [指令参考](https://github.com/Evernight-Client/Evernight/wiki/%E6%8C%87%E4%BB%A4%E5%8F%82%E8%80%83)。
 
 ## 插件（Addon）
 
@@ -220,7 +247,7 @@ Evernight 以 [GNU General Public License v3.0](LICENSE)（`GPL-3.0-only`）发�
 
 ## 反馈
 
-问题与建议请提交到 [GitHub Issues](https://github.com/Evernight-Client/Evernight/issues)。
+问题与建议请提交到 [GitHub Issues](https://github.com/Evernight-Client/Evernight/issues)；使用上的疑问先看 [Wiki](https://github.com/Evernight-Client/Evernight/wiki) 与 [常见问题](https://github.com/Evernight-Client/Evernight/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)。
 
 <p align="center">
   <a href="https://github.com/deepseek-ai/deepseek-harness"><img src="https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white" alt="powered by dsh" height="20"></a>
