@@ -181,8 +181,8 @@ public abstract class Setting<T> extends NamedFeature implements ValueProvider<T
 
     /**
      * Overrides the label lookup with a full language key, used by addon modules so their settings
-     * resolve {@code addons.<id>.names.settings.<Name>} instead of the client namespace. Missing keys
-     * fall back to the regular client label.
+     * resolve {@code addons.<id>.names.settings.<Name>} instead of the client namespace. Like every
+     * display lookup, a missing key falls back to English and finally to the full key.
      */
     public Setting<T> setDisplayNameKey(String displayNameKey) {
         this.displayNameKey = displayNameKey;
@@ -194,10 +194,7 @@ public abstract class Setting<T> extends NamedFeature implements ValueProvider<T
      */
     public String getDisplayName() {
         if (this.displayNameKey != null) {
-            String localized = Translations.find(this.displayNameKey);
-            if (localized != null) {
-                return localized;
-            }
+            return Translations.get(this.displayNameKey);
         }
         return Translations.setting(this.getName());
     }

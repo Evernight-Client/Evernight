@@ -25,8 +25,8 @@ import java.util.Locale;
  * </ul>
  *
  * <p>Every lookup runs against the live table, so switching languages updates the UI without a
- * restart. English text is not duplicated in Java: missing keys fall back to the key itself (or to
- * the stable identifier for module, setting and enum lookups).
+ * restart. English text is not duplicated in Java: the lookup chain is active language, then English,
+ * then the full key itself. Code must not invent display text as a fallback.
  */
 public final class Translations {
     /**
@@ -49,9 +49,10 @@ public final class Translations {
     }
 
     /**
-     * Looks up a full key without any fallback, returning {@code null} when it is missing. Used by
-     * addon-namespaced display names so they can fall back to their English identifier instead of
-     * leaking the key into the UI.
+     * Looks up a full key with the regular active-language-then-English fallback, returning
+     * {@code null} only when neither language defines it. Prefer {@link #get(String)} for display
+     * text so an entirely missing key stays visible; this optional variant remains for callers that
+     * need to distinguish "missing" from "translated".
      */
     public static String find(String key) {
         LanguageTable languageTable = table();
@@ -85,46 +86,54 @@ public final class Translations {
      * {@link evernight.client.modules.Module#getName()}.
      */
     public static String module(String name) {
-        return getOrDefault(PREFIX + "names.modules." + name, name);
+        return get(PREFIX + "names.modules." + name);
     }
 
     public static String setting(String name) {
-        return getOrDefault(PREFIX + "names.settings." + name, name);
+        return get(PREFIX + "names.settings." + name);
     }
 
     public static String value(String name) {
-        return getOrDefault(PREFIX + "names.values." + name, name);
+        return get(PREFIX + "names.values." + name);
     }
 
     public static String category(String name) {
-        return getOrDefault(PREFIX + "names.categories." + name, name);
+        return get(PREFIX + "names.categories." + name);
     }
 
     public static String panel(String name) {
-        return getOrDefault(PREFIX + "names.panels." + name, name);
+        return get(PREFIX + "names.panels." + name);
     }
 
     /**
-     * Display-only sound name. Sound files and config keys keep using the raw identifier, so user
-     * sound packs that have no translation simply fall back to their file name.
+     * Display-only sound name. Sound files and config keys keep using the raw identifier; like every
+     * other display lookup, a missing translation falls back to English and finally to the full key.
      */
     public static String sound(String name) {
-        return getOrDefault(PREFIX + "names.sounds." + name, name);
+        return get(PREFIX + "names.sounds." + name);
     }
 
     public static String moduleDescription(String moduleName) {
-        return getOrDefault(PREFIX + "descriptions.modules." + moduleName, "");
+        return get(PREFIX + "descriptions.modules." + moduleName);
     }
 
     /**
      * Looks up a setting tooltip, preferring the module-specific key and falling back to a shared
-     * key that only contains the setting name. Returns {@code null} when neither key exists.
+     * key that only contains the setting name. When both are missing (in the active language and in
+     * English), returns the specific full key so the gap stays visible instead of hiding the tooltip.
      */
     public static String settingDescription(String moduleName, String settingName) {
-        String specific = getOrDefault(PREFIX + "descriptions.settings." + moduleName + "." + settingName, null);
-        if (specific != null) {
-            return specific;
+        String specificKey = PREFIX + "descriptions.settings." + moduleName + "." + settingName;
+        LanguageTable languageTable = table();
+        if (languageTable != null && languageTable.hasTranslation(specificKey)) {
+            return languageTable.getTranslation(specificKey);
         }
-        return getOrDefault(PREFIX + "descriptions.settings." + settingName, null);
+        String sharedKey = PREFIX + "descriptions.settings." + settingName;
+        if (languageTable != null && languageTable.hasTranslation(sharedKey)) {
+            return languageTable.getTranslation(sharedKey);
+        }
+        // Both candidates are missing: show the most specific key so the gap is visible instead of
+        // silently hiding the tooltip or inventing English text in code.
+        return specificKey;
     }
 }

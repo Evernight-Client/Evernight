@@ -115,14 +115,14 @@ public final class ExampleModule extends AddonModule {
 }
 ```
 
-- `AddonModule` 自动解析 `addons.<id>.names.modules.*`、`addons.<id>.descriptions.modules.*` 与 `addons.<id>.names.settings.*`；缺键回退英文标识。不需要本地化时可直接继承 `Module`。
+- `AddonModule` 自动解析 `addons.<id>.names.modules.*`、`addons.<id>.descriptions.modules.*` 与 `addons.<id>.names.settings.*`；查找顺序为「当前语言 → 英文 → 完整键」，所以只写 `en_us.json` 时中文界面会显示英文，两份都缺才显示完整键。构造器的 `description` 参数仅为源码兼容保留，不再作为显示兜底；不需要本地化时请直接继承 `Module`。
 - 分类：内置分类（`ModuleCategory.COMBAT` … `HUD`）可直接复用；需要新分类时在 `onInitialize` 里调用 `context.registerCategory("Automation")`，把返回的 `ModuleCategory` 传给 `AddonModule` 构造器：
   ```java
   ModuleCategory automation = context.registerCategory("Automation");
   context.registerModule(new ExampleModule(automation));
   ```
 - 自定义分类的限制：只能 `onInitialize` 注册（ClickGUI 首次打开时才按 `ModuleCategory.values()` 建面板）；名字是稳定英文标识，全局唯一（含内置分类、大小写不敏感），建议只用字母数字，发布后不要改名；空白或重名抛 `IllegalStateException`，插件记为 `FAILED`。分类注册要放在使用它的模块之前。
-- 分类显示名走 `addons.<id>.names.categories.<Name>`（如 `addons.exampleaddon.names.categories.Automation`），`en_us.json` 与 `zh_cn.json` 两份都要写；缺键显示完整键，不会自造英文名。
+- 分类显示名走 `addons.<id>.names.categories.<Name>`（如 `addons.exampleaddon.names.categories.Automation`），`en_us.json` 与 `zh_cn.json` 两份都要写；中文缺键回退英文，两份都缺才显示完整键，不要在 Java 里自造显示名。
 - 设置链式方法返回 `Setting<T>`；先建变量再 `this.add(...)`，不要声明成 `NumberSetting`。
 - HUD 组件继承 `HudWidgetModule`、构造器里 `setRenderer(...)`，再用 `registerHudModule`。
 - 辅助对象订阅事件用 `context.subscribe(obj)`，关闭时自动退订；模块不要重复订阅。
@@ -130,7 +130,7 @@ public final class ExampleModule extends AddonModule {
 ## 6. 指令 / 语言 / 配置
 
 - 指令继承 `Command`，`exec(LiteralArgumentBuilder root)` 里 `root.executes(action)`；别名用 `setAliases(...)`。
-- 语言：`assets/<id>/lang/en_us.json` + `zh_cn.json`，所有键放 `addons.<id>.*`（**禁止** `evernight.` 前缀）；`AddonModule` 自动读取模块名/描述/设置标签，私有文案用 `Translations.get("addons.<id>.key")`。
+- 语言：`assets/<id>/lang/en_us.json` + `zh_cn.json`，所有键放 `addons.<id>.*`（**禁止** `evernight.` 前缀）；`AddonModule` 自动读取模块名/描述/设置标签，私有文案用 `Translations.get("addons.<id>.key")`。查找链是当前语言 → 英文 → 完整键：可以只提供 `en_us.json` 让中文界面回退英文，但推荐两份都写；两份都缺会显示完整键。
 - 模块状态自动进 `modules.json`，HUD 进 `hud.json`；额外状态实现 `JsonConfigurable` 后 `context.registerConfig(...)`，文件名带插件 id。
 - 关闭时不要自己反注册模块；只清理线程/连接/监听器。
 

@@ -18,19 +18,23 @@ import evernight.client.settings.core.Setting;
  *     {@link #add(Setting)}</li>
  * </ul>
  *
- * <p>Missing keys fall back to the English module/setting identifier, so a partially translated addon
- * still renders readably. Addons that do not need localization may keep extending {@link Module}
+ * <p>Lookups follow the client-wide fallback chain: the active language, then English, then the full
+ * key. Java code never supplies display text, so addons must add every key to both the English and
+ * Chinese language files. Addons that do not need localization may keep extending {@link Module}
  * directly and pass the addon id to {@link AddonContext#registerModule(Module)} as usual.
  */
 public abstract class AddonModule extends Module {
     private final String addonId;
-    private final String fallbackDescription;
 
+    /**
+     * @param description retained for source compatibility; display text now always comes from
+     *                    {@code addons.<id>.descriptions.modules.<Name>} and is never taken from Java
+     *                    code. Add the key to both language files.
+     */
     protected AddonModule(String addonId, String name, String description, ModuleCategory category,
                           String... aliases) {
         super(name, category, aliases);
         this.addonId = addonId;
-        this.fallbackDescription = description;
     }
 
     public String getAddonId() {
@@ -46,14 +50,12 @@ public abstract class AddonModule extends Module {
 
     @Override
     public String getDisplayName() {
-        String localized = Translations.find(this.translationKey("names.modules." + this.getName()));
-        return localized != null ? localized : this.getName();
+        return Translations.get(this.translationKey("names.modules." + this.getName()));
     }
 
     @Override
     public String getDescription() {
-        String localized = Translations.find(this.translationKey("descriptions.modules." + this.getName()));
-        return localized != null ? localized : this.fallbackDescription;
+        return Translations.get(this.translationKey("descriptions.modules." + this.getName()));
     }
 
     @Override

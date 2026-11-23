@@ -203,7 +203,9 @@ public final class AddonContext {
      *
      * <p>The stream is read, not closed. Keys share the global namespace, so prefix addon-only text
      * with the addon id (for example {@code addons.myaddon.greeting}); module/setting display names use
-     * the regular {@code names.modules.<Module>} / {@code names.settings.<Setting>} keys.
+     * the regular {@code names.modules.<Module>} / {@code names.settings.<Setting>} keys. Providing only
+     * {@code en_us} is supported: other languages fall back to English, then to the full key when both
+     * are missing. Provide both files to avoid showing English in the Chinese UI.
      */
     public void registerLanguage(String languageCode, InputStream input) {
         LanguageTable table = ClientContext.languageTable;

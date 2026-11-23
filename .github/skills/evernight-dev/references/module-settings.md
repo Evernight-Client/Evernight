@@ -92,7 +92,7 @@ this.onEnable();
 
 ### 3.1 内置分类与插件分类
 
-`ModuleCategory` 已从枚举改为 final class，实现 `NamedEntry`。对象只保存稳定英文名与语言键：`getName()` 返回稳定名，`getDisplayName()` 每次调用都走 `Translations.get(键)`，缺键显示完整键而不是自造英文名（内置键为 `evernight.names.categories.<Name>`）。
+`ModuleCategory` 已从枚举改为 final class，实现 `NamedEntry`。对象只保存稳定英文名与语言键：`getName()` 返回稳定名，`getDisplayName()` 每次调用都走 `Translations.get(键)`，查找链为当前语言 → 英文 → 完整键，不在 Java 里自造英文名（内置键为 `evernight.names.categories.<Name>`）。
 
 | 内置常量 | `getName()` | JSON 键（`evernight.names.categories.*`） |
 | --- | --- | --- |
@@ -108,7 +108,7 @@ this.onEnable();
 
 `values()` 返回不可变列表：内置分类按上表顺序在前，插件分类按注册顺序追加；`ordinal()` 就是该顺序（内置固定 0-8），`findByName(String)` 大小写不敏感。ClickGUI 遍历 `values()` 建面板（`ClickGuiScreen`），`ClientScreen.resetPanelPositions()` 用 `ordinal()` 排序；分类不写配置/预设，模块按对象身份（`==`）比较。
 
-插件不能直接 `new` 分类，也不能改内置列表；只能在 `onInitialize` 里用 `AddonContext#registerCategory(String)` 注册，显示键为 `addons.<id>.names.categories.<Name>`，两份语言文件都要写，缺键显示完整键。普通模块开发继续直接使用 `ModuleCategory.MISC` 等常量；内置分类共 9 个（`COMBAT` 到 `HUD`，其中 `AUTO` 位于 `PLAYER` 与 `EXPLOIT` 之间）。详见 `.github/skills/evernight-addon-dev/SKILL.md`。
+插件不能直接 `new` 分类，也不能改内置列表；只能在 `onInitialize` 里用 `AddonContext#registerCategory(String)` 注册，显示键为 `addons.<id>.names.categories.<Name>`，两份语言文件都要写；中文缺键回退英文，两份都缺显示完整键。普通模块开发继续直接使用 `ModuleCategory.MISC` 等常量；内置分类共 9 个（`COMBAT` 到 `HUD`，其中 `AUTO` 位于 `PLAYER` 与 `EXPLOIT` 之间）。详见 `.github/skills/evernight-addon-dev/SKILL.md`。
 
 ### 3.2 PermanentModule
 

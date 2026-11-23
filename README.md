@@ -201,7 +201,7 @@ CONTRIBUTING.md         贡献流程与代码约定
 
 ## 参与开发
 
-- 玩家可见文本统一通过 `Translations` 读取，`en_us.json` 与 `zh_cn.json` 的键集合必须一致；本体键以 `evernight.` 开头，插件键使用 `addons.<id>.*`。
+- 玩家可见文本统一通过 `Translations` 读取，`en_us.json` 与 `zh_cn.json` 的键集合必须一致；本体键以 `evernight.` 开头，插件键使用 `addons.<id>.*`。查找链固定为「当前语言 → 英文 → 完整键」：中文缺键回退英文，两份都缺才显示完整键，Java 里不写死显示文本。
 - 模块名、设置 `configName`、指令名与配置键属于稳定标识，保持英文，不要用翻译名替换。
 - `evernight/addon` 是对外插件 API，修改公开签名时同步更新 `docs/addons.md` 与插件 skill。
 - 提交前至少编译一次；改动资源或语言表时执行完整构建。更多约定见 [AGENTS.md](AGENTS.md) 与 [CONTRIBUTING.md](CONTRIBUTING.md)。

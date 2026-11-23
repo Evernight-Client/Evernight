@@ -21,12 +21,24 @@ import java.util.Map;
  * files through {@link #registerOverlay(String, String, InputStream)}: overlays are kept per language
  * code and re-applied whenever the player switches languages, so addon text survives the reload that
  * {@link #load(InputStream)} performs.
+ *
+ * <p>Lookups follow one fallback chain: the active language first, then English, then
+ * {@code null} (the caller decides what an entirely missing key should display). English base entries
+ * and English overlays are always kept in memory, so a partially translated addon or a language file
+ * with a missing key still shows readable English instead of a raw key. Callers that want a visible
+ * placeholder should fall back to the key itself; see {@link Translations#get(String)}.
  */
 public final class LanguageTable {
     private static final String DEFAULT_LANGUAGE = "en_us";
 
-    private final Map<String, String> translations = new HashMap<>();
+    /** Base English entries, kept even while another language is active. */
+    private final Map<String, String> englishBase = new HashMap<>();
+    /** Base entries of the currently active language. */
+    private final Map<String, String> activeBase = new HashMap<>();
+    /** sourceId -> languageCode -> entries */
     private final Map<String, Map<String, Map<String, String>>> overlays = new HashMap<>();
+    /** Resolved view: English fallback entries first, active-language entries override them. */
+    private final Map<String, String> translations = new HashMap<>();
     private String activeLanguage = DEFAULT_LANGUAGE;
 
     public LanguageTable() {
@@ -52,24 +64,31 @@ public final class LanguageTable {
     }
 
     /**
-     * Replaces the base table and re-applies the overlays registered for {@link #getActiveLanguage()}.
+     * Loads the base table for {@link #getActiveLanguage()} and rebuilds the resolved view. An English
+     * load also refreshes the fallback table.
      */
     public void load(InputStream input) {
         try {
             Map<String, String> parsed = parse(IOUtils.toString(input, StandardCharsets.UTF_8));
-            this.translations.clear();
-            this.translations.putAll(parsed);
-            this.applyOverlays();
+            if (DEFAULT_LANGUAGE.equals(this.activeLanguage)) {
+                this.englishBase.clear();
+                this.englishBase.putAll(parsed);
+            }
+            this.activeBase.clear();
+            this.activeBase.putAll(parsed);
+            this.rebuild();
         } catch (Throwable ignoredFailure) {
         }
     }
 
     /**
-     * Switches the active language and loads the base table for it. Addon overlays for that language are
+     * Switches the active language and loads the base table for it. English keeps serving as the
+     * fallback for keys the active language does not define, and addon overlays for both languages are
      * merged on top.
      */
     public void load(InputStream input, String languageCode) {
-        this.activeLanguage = languageCode;
+        this.activeLanguage = languageCode == null || languageCode.isBlank()
+                ? DEFAULT_LANGUAGE : languageCode;
         this.load(input);
     }
 
@@ -96,13 +115,26 @@ public final class LanguageTable {
         Map<String, Map<String, String>> languageOverlays =
                 this.overlays.computeIfAbsent(languageCode, ignored -> new HashMap<>());
         languageOverlays.put(sourceId, parsed);
-        if (languageCode.equals(this.activeLanguage)) {
-            this.translations.putAll(parsed);
+        this.rebuild();
+    }
+
+    /**
+     * Rebuilds the resolved view as: English base, English overlays, active base, active overlays.
+     * Active-language values therefore override English, and every English-only key remains readable.
+     * When English is active the English pass and the active pass describe the same data.
+     */
+    private void rebuild() {
+        this.translations.clear();
+        this.translations.putAll(this.englishBase);
+        this.applyOverlays(DEFAULT_LANGUAGE);
+        if (!DEFAULT_LANGUAGE.equals(this.activeLanguage)) {
+            this.translations.putAll(this.activeBase);
+            this.applyOverlays(this.activeLanguage);
         }
     }
 
-    private void applyOverlays() {
-        Map<String, Map<String, String>> languageOverlays = this.overlays.get(this.activeLanguage);
+    private void applyOverlays(String languageCode) {
+        Map<String, Map<String, String>> languageOverlays = this.overlays.get(languageCode);
         if (languageOverlays == null) {
             return;
         }
@@ -119,6 +151,12 @@ public final class LanguageTable {
         }
     }
 
+    /**
+     * Looks up a key with the active-language-then-English fallback chain.
+     *
+     * @return the translated text, or {@code null} when neither the active language nor English
+     *         defines the key
+     */
     public String getTranslation(String key) {
         return this.translations.get(key);
     }
