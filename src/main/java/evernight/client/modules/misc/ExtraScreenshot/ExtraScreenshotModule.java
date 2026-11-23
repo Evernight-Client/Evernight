@@ -1,5 +1,6 @@
 package evernight.client.modules.misc.ExtraScreenshot;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.blaze3d.platform.NativeImage;
 import evernight.client.ClientAccess;
@@ -7,6 +8,7 @@ import evernight.client.ClientContext;
 import evernight.client.audio.BuiltinSound;
 import evernight.client.audio.SoundClip;
 import evernight.client.managers.audio.SoundManager;
+import evernight.client.managers.config.ScreenshotCredentialStore;
 import evernight.client.modules.Module;
 import evernight.client.modules.ModuleCategory;
 import evernight.client.render.font.FontRenderer;
@@ -36,6 +38,7 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.function.Predicate;
 import evernight.client.settings.core.NamedEntry;
 import evernight.client.settings.core.Setting;
@@ -48,11 +51,6 @@ import evernight.client.utils.network.HttpRequests;
 
 public class ExtraScreenshotModule extends Module {
     private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
-    /**
-     * Built-in fallback credential so uploads keep working out of the box; players can replace it
-     * with their own Imgur client ID (or access token) through the {@code ClientId} setting.
-     */
-    private static final String defaultImgurClientId = "e7c0b6a4c926098";
     private static final long uploadCooldownMillis = 1500L;
     private static final HttpClient uploadClient = HttpClient.newHttpClient();
     public final Setting<ModeChoice> modeSetting;
@@ -63,6 +61,7 @@ public class ExtraScreenshotModule extends Module {
     private final Setting<Float> volumeSetting;
     private final ElapsedTimer uploadTimer;
     private int cooldownMessageIndex;
+    private boolean syncingCredential;
 
     public ExtraScreenshotModule() {
         super("ExtraScreenshot", ModuleCategory.MISC);
@@ -70,7 +69,11 @@ public class ExtraScreenshotModule extends Module {
         Predicate<Object> deleteFile = ignored -> this.modeSetting.getValue() != ModeChoice.NONE;
         this.deleteFileSetting = this.add(new BooleanSetting("DeleteFile", false, deleteFile));
         Predicate<Object> clientIdVisible = ignored -> this.modeSetting.getValue() == ModeChoice.IMGUR;
-        this.clientIdSetting = this.add(new StringSetting("ClientId", defaultImgurClientId, clientIdVisible));
+        this.clientIdSetting = this.add(new StringSetting("ClientId",
+                ScreenshotCredentialStore.DEFAULT_IMGUR_CLIENT_ID, clientIdVisible));
+        // The credential is persisted in screenshot.json, never in modules.json or presets.
+        this.clientIdSetting.setExcludedFromConfig(true);
+        this.clientIdSetting.setChangeCallback(this::pushClientIdToStore);
         BooleanSetting sound = new BooleanSetting("Sound", false);
         sound.markVisibilityDependency();
         this.soundSetting = this.add(sound);
@@ -78,6 +81,71 @@ public class ExtraScreenshotModule extends Module {
         this.volumeSetting = this.add(new NumberSetting<>("Volume", 1.0F, 0.0F, 1.0F).dependsOn(this.soundSetting));
         this.uploadTimer = new ElapsedTimer();
         this.cooldownMessageIndex = 0;
+    }
+
+    /** Keeps screenshot.json in sync while the ClickGUI edits the credential row. */
+    private void pushClientIdToStore() {
+        if (this.syncingCredential) {
+            return;
+        }
+        ScreenshotCredentialStore store = ClientContext.screenshotCredentialStore;
+        if (store != null) {
+            store.setClientId(this.clientIdSetting.getValue());
+        }
+    }
+
+    /** Applies the standalone credential to the ClickGUI row after config load or preset import. */
+    private void syncClientIdFromStore() {
+        ScreenshotCredentialStore store = ClientContext.screenshotCredentialStore;
+        if (store == null) {
+            return;
+        }
+        String stored = store.getClientId();
+        if (Objects.equals(this.clientIdSetting.getValue(), stored)) {
+            return;
+        }
+        this.syncingCredential = true;
+        try {
+            this.clientIdSetting.setValue(stored == null ? "" : stored);
+        } finally {
+            this.syncingCredential = false;
+        }
+    }
+
+    /**
+     * Moves a {@code ClientId} written by older versions out of modules.json once, and only during
+     * the normal config load. Preset imports must never pull a credential out of someone else's
+     * preset, so {@link ClientContext#configurationLoading} gates this migration.
+     */
+    private void migrateLegacyClientId(JsonElement json) {
+        ScreenshotCredentialStore store = ClientContext.screenshotCredentialStore;
+        if (store == null || store.isLoadedFromFile() || !ClientContext.configurationLoading
+                || !(json instanceof JsonObject moduleJson)) {
+            return;
+        }
+        JsonElement settings = moduleJson.get("settings");
+        if (!(settings instanceof JsonObject settingsJson)) {
+            return;
+        }
+        JsonElement legacy = settingsJson.get("ClientId");
+        if (legacy == null || legacy.isJsonNull()) {
+            return;
+        }
+        String legacyClientId = legacy.getAsString();
+        store.setClientId(legacyClientId);
+        this.syncingCredential = true;
+        try {
+            this.clientIdSetting.setValue(legacyClientId);
+        } finally {
+            this.syncingCredential = false;
+        }
+    }
+
+    @Override
+    public void fromJson(JsonElement json) {
+        super.fromJson(json);
+        this.migrateLegacyClientId(json);
+        this.syncClientIdFromStore();
     }
 
     private void playScreenshotSound() {
@@ -207,6 +275,7 @@ public class ExtraScreenshotModule extends Module {
 
     @Override
     public void onEnable() {
+        this.syncClientIdFromStore();
         this.cooldownMessageIndex = 0;
     }
 

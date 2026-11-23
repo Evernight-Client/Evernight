@@ -18,6 +18,7 @@ import evernight.client.utils.world.MapDataCache;
 import java.util.Objects;
 import evernight.client.managers.audio.SoundManager;
 import evernight.client.managers.config.ConfigurationManager;
+import evernight.client.managers.config.ScreenshotCredentialStore;
 import evernight.client.managers.player.CrystalInteractionManager;
 import evernight.client.managers.player.FakeplayerManager;
 import evernight.client.managers.player.InputOverrideManager;
@@ -72,6 +73,7 @@ public final class ClientContext {
     public static TaskScheduler taskScheduler;
     public static HudModuleRegistry hudModuleRegistry;
     public static WebhookManager webhookManager;
+    public static ScreenshotCredentialStore screenshotCredentialStore;
     public static WorldStateManager worldStateManager;
     public static CrystalInteractionManager crystalInteractionManager;
     public static MapDataCache mapDataCache;
@@ -86,6 +88,8 @@ public final class ClientContext {
     public static AutoPresetRegistry autoPresetRegistry;
     public static InputOverrideManager inputOverrides;
     public static LanguageTable languageTable;
+    /** True while {@code ConfigurationManager.load()} is reading the config files. */
+    public static boolean configurationLoading;
     public static SwingInteractionManager swingManager;
     public static BaritoneBridge baritoneBridge;
     public static WaypointAdapter waypointAdapter;

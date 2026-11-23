@@ -230,6 +230,8 @@ this.fadeTimeSetting = this.add(new NumberSetting<>("FadeTime", 1.0F, 0.1F, 1.0F
 | `IdentifierSetting` | `(String, NamedIdentifier)` :11；带 Predicate :15 | `NamedIdentifier` | 存 `{name, category}`；`parseValue` 接受 `name` 或 `category:name`；常用于音效 id。 |
 | `SetSetting<E>`（abstract） | `@SafeVarargs (String, E... defaults)` :27；带 Predicate :33 | `Set<E>` | 子类必须实现 `parseEntry(String)`、`formatEntry(E)`、`getAvailableEntries()`；`addEntry/removeEntry/containsEntry` :115/:55/:77。 |
 | `StringSetSetting` | `(String, String... defaults)` :14；带 Predicate :18 | `Set<String>` | `parseEntry/formatEntry` 统一转小写；`getAvailableEntries` 为空，靠用户输入。 |
+| `StringListSetting` | `(String, String... defaults)` :23 | `List<String>` | 有序、保留原文本；`addEntry/setEntry/removeEntry/moveEntry/replaceEntries/clearEntries` 改完会触发 changeCallback；ClickGUI 行打开 `StringListScreen`，`withPrepareAction(Runnable)` 可在打开前重新加载文件；需要「文件是唯一数据源」时配合 `setExcludedFromConfig(true)`，并用 `withResetAction(Runnable)` 避免重置设置时清空文件。 |
+| `ActionSetting` | `(String, Runnable)` :20 | `Boolean` | 点击执行动作的界面行（如打开交易管理器），不保存值、自动 `setExcludedFromConfig(true)`；`withInfo(Supplier<String>)` 在右侧显示动态文本。 |
 | `RegistrySetSetting<E>` | `(String, Registry<E>, E... defaults)` :20；带 Predicate :26 | `Set<E>` | 序列化为注册表 id 字符串；`getRegistry()` :74、`modifyEntries(Consumer<Set<E>>)` :59；真实用法 `new RegistrySetSetting<>("Blocks", BuiltInRegistries.BLOCK, Blocks.OBSIDIAN, Blocks.ENDER_CHEST)`。 |
 | `CyclingTextSetting`（接口） | — | — | 只由 `NumberSetting`、`EnumSetting` 实现：提供 `matchesText/setValueFromText`，把多段引号参数按当前值循环（用于 `;module <name> <setting> <value>` 命令，`ModuleCommand.java:210` 调 `parseValue`）。 |
 
@@ -332,6 +334,7 @@ if (event.isCancelled()) {
 
 - 根目录：`<gameDir>/evernight`（`ConfigurationManager.ROOT_DIRECTORY`，:31；旧目录 `mio-fabric` 由 `ClientDataDirectory.migrateLegacy`（:19）在启动时复制迁移）。
 - 每个 `JsonConfigurable` 一个文件，文件名 = `getConfigName()`：模块配置是 `evernight/modules.json`（`ModuleRegistry.java:475`），HUD 是 `evernight/hud.json`（`HudModuleRegistry.java:131`）。
+- 凭据单独落盘：`ExtraScreenshot` 的 `ClientId` 走 `evernight/screenshot.json`（`ScreenshotCredentialStore`），模块设置本身 `setExcludedFromConfig(true)`，所以 `modules.json`、预设和模块剪贴板预设都不会带出该凭据。
 - 写盘时机：`ConfigurationManager.save()`（:136，遍历 `ConfigurableRegistry`），由 `mixin/MinecraftMixin.java:65-71` 在 `Minecraft.destroy` 时调用；读盘在 `initializeClient` 的 `configuration.load()`。
 - 模块 JSON 的键：模块键 = `Module#getConfigName()`；内部 `settings` 键 = `Setting#getConfigName()`；另有 `enabled/key/state/mouse/drawn`（见 2.4）。**键一旦发布不可改名**，改名等于丢玩家配置。
 - 新增模块不需要手动注册配置文件：`ModuleRegistry` 已在 `ConfigurableRegistry` 中，`toJson/fromJson` 自动遍历所有模块（跳过 `HudWidgetModule`，它们归 `hud.json`）。

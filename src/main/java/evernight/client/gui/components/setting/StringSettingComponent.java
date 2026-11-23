@@ -91,6 +91,13 @@ public class StringSettingComponent extends SettingComponent<String> {
         }
     }
 
+    /** Replaces the buffer and enters edit mode with the caret at the end, used to edit a list entry. */
+    public void setText(String text) {
+        this.editing = true;
+        this.editingText = text == null ? "" : text;
+        this.cursorIndex = this.editingText.length();
+    }
+
     @Override
     public void render(PoseStack poseStack, double mouseX, double mouseY) {
         if (this.isUnavailable()) {

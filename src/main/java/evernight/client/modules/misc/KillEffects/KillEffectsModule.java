@@ -49,6 +49,7 @@ import evernight.client.settings.types.EnumSetting;
 import evernight.client.settings.types.IdentifierSetting;
 import evernight.client.settings.types.NumberSetting;
 import evernight.client.settings.types.RegistrySetSetting;
+import evernight.client.settings.types.StringListSetting;
 import evernight.client.settings.types.StringSetting;
 
 public class KillEffectsModule extends Module {
@@ -57,6 +58,7 @@ public class KillEffectsModule extends Module {
     protected final Setting<Boolean> killSaySetting;
     protected final Setting<Float> delaySetting;
     protected final Setting<String> pathSetting;
+    protected final StringListSetting killSayMessagesSetting;
     protected final Setting<Boolean> onlyEnemiesSetting;
     protected final Setting<Boolean> randomSetting;
     protected final Setting<Boolean> refreshSetting;
@@ -108,6 +110,11 @@ public class KillEffectsModule extends Module {
         this.delaySetting = this.add(delayDefinition.dependsOn(registeredKillSay));
         StringSetting pathDefinition = new StringSetting(("Path"), ("killsay.txt"));
         this.pathSetting = this.add(pathDefinition.dependsOn(registeredKillSay));
+        StringListSetting messagesDefinition = new StringListSetting("Messages");
+        // The killsay text file stays the source of truth, so the in-memory list is not persisted.
+        messagesDefinition.setExcludedFromConfig(true);
+        messagesDefinition.dependsOn(registeredKillSay);
+        this.killSayMessagesSetting = this.add(messagesDefinition);
         Boolean onlyEnemiesDefault = false;
         BooleanSetting onlyEnemiesDefinition = new BooleanSetting(("OnlyEnemies"), onlyEnemiesDefault);
         this.onlyEnemiesSetting = this.add(onlyEnemiesDefinition.dependsOn(registeredKillSay));
@@ -149,23 +156,18 @@ public class KillEffectsModule extends Module {
         this.killStreak = 0;
         Setting<?> callbackOption = this.killStreakVolumeSetting;
         callbackOption.setConfigName(("KillStreakVolume"));
-        this.killSaySetting.setChangeCallback(() -> {
-            KillSayMessages messagesSnapshot = this.killSayMessages;
-            boolean force = false;
-            messagesSnapshot.reloadMessages(force);
-        });
-        this.pathSetting.setChangeCallback(() -> {
-            KillSayMessages messagesSnapshot = this.killSayMessages;
-            boolean force = true;
-            messagesSnapshot.reloadMessages(force);
-        });
+        this.killSayMessagesSetting.setChangeCallback(this.killSayMessages::onSettingChanged);
+        // Reload the file right before the editor opens, so it never edits a stale snapshot.
+        this.killSayMessagesSetting.withPrepareAction(() -> this.killSayMessages.reloadMessages(false));
+        // Resetting module settings must not clear the killsay file.
+        this.killSayMessagesSetting.withResetAction(() -> this.killSayMessages.reloadMessages(false));
+        this.killSaySetting.setChangeCallback(() -> this.killSayMessages.reloadMessages(false));
+        this.pathSetting.setChangeCallback(() -> this.killSayMessages.reloadMessages(true));
         this.refreshSetting.setChangeCallback(() -> {
             Setting<Boolean> refreshOption = this.refreshSetting;
             Boolean refresh = refreshOption.getValue();
             if (refresh) {
-                KillSayMessages messagesSnapshot = this.killSayMessages;
-                boolean force = true;
-                messagesSnapshot.reloadMessages(force);
+                this.killSayMessages.reloadMessages(true);
                 this.refreshSetting.setValue(false);
             }
         });
