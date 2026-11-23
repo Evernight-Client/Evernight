@@ -54,6 +54,23 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
     private boolean searchCursorVisible;
     private boolean keepSearchOnNextReset;
     private String searchCompletion;
+    private static final float TILING_PAN_STEP = 16.0F;
+    private static final float TILING_KEY_STEP = 24.0F;
+    private static final int TILING_START_X = 10;
+    private static final int TILING_START_Y = 5;
+    private static final int TILING_GAP = 3;
+    /** Share of the remaining distance covered per frame: gives the pan a damped follow-up. */
+    private static final float PAN_DAMPING = 0.30F;
+    private static final float SCALE_DAMPING = 0.25F;
+    private static final float MIN_SCALE = 0.1F;
+    private static final float MAX_SCALE = 2.0F;
+    private static final float SCALE_STEP = 0.05F;
+    private float panX;
+    private float panY;
+    private float panTargetX;
+    private float panTargetY;
+    private float scaleTarget = 1.2F;
+    private boolean tilingLayoutActive;
 
     public ClickGuiScreen() {
         int panelX = 10;
@@ -65,6 +82,166 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
                 panelX += categoryPanel.getWidth() + 3;
             }
         }
+    }
+
+    @Override
+    protected boolean isPanelDraggingAllowed() {
+        return !UIModule.INSTANCE.tilingSetting.getValue();
+    }
+
+    /**
+     * Lays the category panels out as one horizontal strip shifted by the current pan offset.
+     *
+     * <p>Called before the panels are drawn and after every pan change; without tiling it does nothing
+     * and the panels keep their dragged positions.
+     */
+    public void applyTilingLayout() {
+        boolean tilingEnabled = UIModule.INSTANCE.tilingSetting.getValue();
+        if (tilingEnabled && !this.tilingLayoutActive) {
+            // Entering the layout starts from the first panel instead of whatever pan was left over.
+            this.panX = 0.0F;
+            this.panY = 0.0F;
+            this.panTargetX = 0.0F;
+            this.panTargetY = 0.0F;
+        }
+        this.tilingLayoutActive = tilingEnabled;
+        if (!tilingEnabled) {
+            return;
+        }
+        int cursorX = TILING_START_X;
+        for (Panel panel : this.panels) {
+            panel.setX(Math.round(cursorX - this.panX));
+            panel.setY(Math.round(TILING_START_Y - this.panY));
+            cursorX += panel.getWidth() + TILING_GAP;
+        }
+    }
+
+    /**
+     * Arrow keys pan the strip as well, so the layout can be driven without the wheel. Ignored while a
+     * text field owns the keyboard, otherwise the search box and editing settings would eat the arrows.
+     */
+    private boolean handleTilingKey(int keyCode) {
+        if (!UIModule.INSTANCE.tilingSetting.getValue()) {
+            return false;
+        }
+        if (this.searchBox.isFocused() || this.getEditingSetting() != null) {
+            return false;
+        }
+        switch (keyCode) {
+            case GLFW.GLFW_KEY_UP -> this.panTargetY -= TILING_KEY_STEP;
+            case GLFW.GLFW_KEY_DOWN -> this.panTargetY += TILING_KEY_STEP;
+            case GLFW.GLFW_KEY_LEFT -> this.panTargetX -= TILING_KEY_STEP;
+            case GLFW.GLFW_KEY_RIGHT -> this.panTargetX += TILING_KEY_STEP;
+            default -> {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isMouseOverAnyPanel(double mouseX, double mouseY) {
+        for (Panel panel : this.panels) {
+            if (panel.isMouseOver(mouseX, mouseY)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Damped follow-up of the pan and zoom targets. Called once per frame so wheel and arrow input feel
+     * continuous instead of jumping, and the strip keeps gliding for a few frames after the input stops.
+     */
+    private void updateTilingAnimation() {
+        this.panX += (this.panTargetX - this.panX) * PAN_DAMPING;
+        this.panY += (this.panTargetY - this.panY) * PAN_DAMPING;
+        if (Math.abs(this.panTargetX - this.panX) < 0.05F) {
+            this.panX = this.panTargetX;
+        }
+        if (Math.abs(this.panTargetY - this.panY) < 0.05F) {
+            this.panY = this.panTargetY;
+        }
+        float nextScale = this.guiScale + (this.scaleTarget - this.guiScale) * SCALE_DAMPING;
+        if (Math.abs(this.scaleTarget - nextScale) < 0.0005F) {
+            nextScale = this.scaleTarget;
+        }
+        this.guiScale = nextScale;
+    }
+
+    /**
+     * Restores the generated layout: neutral pan and zoom, panels back to their default row and every
+     * expanded module collapsed.
+     */
+    public void resetGuiLayout() {
+        this.panX = 0.0F;
+        this.panY = 0.0F;
+        this.panTargetX = 0.0F;
+        this.panTargetY = 0.0F;
+        float defaultScale = UIModule.INSTANCE.scaleSetting.getDefaultValue();
+        this.scaleTarget = defaultScale;
+        this.guiScale = defaultScale;
+        UIModule.INSTANCE.scaleSetting.setValue(defaultScale);
+        int panelX = TILING_START_X;
+        for (Panel panel : this.panels) {
+            panel.setX(panelX);
+            panel.setY(TILING_START_Y);
+            panelX += panel.getWidth() + TILING_GAP;
+        }
+        for (Object openComponent : this.openModuleComponents) {
+            ((ModuleComponent) openComponent).setOpen(false);
+        }
+        this.openModuleComponents.clear();
+        this.applyTilingLayout();
+    }
+
+    /**
+     * Wheel pans the strip vertically, Shift + wheel pans it horizontally and Ctrl + wheel resizes the
+     * whole GUI. Only active while the tiling layout is enabled; otherwise the panels scroll as usual.
+     */
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+        if (verticalAmount != 0.0 && isControlDown()) {
+            this.zoomGui(verticalAmount > 0.0 ? SCALE_STEP : -SCALE_STEP);
+            return true;
+        }
+        if (UIModule.INSTANCE.tilingSetting.getValue() && verticalAmount != 0.0) {
+            double scale = GuiScaleUtils.calculateScaleMultiplier(this.guiScale);
+            if (this.isMouseOverAnyPanel(mouseX / scale, mouseY / scale)) {
+                // Keep the panels' own content scrolling usable: the wheel scrolls the panel under the
+                // cursor, and only the empty canvas pans the strip.
+                return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+            }
+            float step = (float) (-verticalAmount * TILING_PAN_STEP);
+            if (isShiftDown()) {
+                this.panTargetX += step;
+            } else {
+                this.panTargetY += step;
+            }
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+    }
+
+    /**
+     * Ctrl + wheel zoom: the scale setting is adjusted in small steps and applied to the open screen.
+     */
+    /**
+     * Ctrl + wheel zoom: the target is limited to the supported range, the persisted setting follows the
+     * target and the screen eases towards it in {@link #updateTilingAnimation()}.
+     */
+    private void zoomGui(float delta) {
+        float nextScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, this.scaleTarget + delta));
+        if (nextScale == this.scaleTarget) {
+            return;
+        }
+        this.scaleTarget = nextScale;
+        UIModule.INSTANCE.scaleSetting.setValue(nextScale);
+    }
+
+    private static boolean isShiftDown() {
+        long window = ClientAccess.evernightMinecraft.getWindow().handle();
+        return GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
+                || GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS;
     }
 
     private static boolean isControlDown() {
@@ -195,6 +372,8 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
     @Override
     public void renderContents(
             GuiGraphics graphics, PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        this.updateTilingAnimation();
+        this.applyTilingLayout();
         this.searchFocusAnimation.setTarget(this.searchBox.isFocused(), 300L);
         this.drawSearchDimmer(poseStack);
         int fontHeight = FontRenderer.INSTANCE.getHeight();
@@ -264,6 +443,8 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
                 }
         );
         this.addRenderableWidget(this.searchBox);
+        this.scaleTarget = this.guiScale;
+        this.applyTilingLayout();
     }
 
     @Override
@@ -276,6 +457,14 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
             this.closeWithTransition();
             return true;
         } else {
+            if (event.key() == GLFW.GLFW_KEY_F1 && isShiftDown()) {
+                // Shift + F1: put the ClickGUI back to its generated layout.
+                this.resetGuiLayout();
+                return true;
+            }
+            if (this.handleTilingKey(event.key())) {
+                return true;
+            }
             this.handleSearchKey(event.key());
             this.handlePresetPaste(event.key());
             return true;

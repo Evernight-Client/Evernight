@@ -47,6 +47,7 @@ public final class UIModule extends Module {
     public final Setting<Float> animSpeedSetting;
     public final Setting<Float> scaleSetting;
     public final Setting<Boolean> snowSetting;
+    public final Setting<Boolean> tilingSetting;
     public final Setting<Boolean> settingsSetting;
     public final Setting<Boolean> elementsSetting;
     public final Setting<Boolean> aeroSetting;
@@ -83,8 +84,11 @@ public final class UIModule extends Module {
         this.resetSetting = this.add(new BooleanSetting(("Reset"), true));
         this.styleSetting = this.add(new EnumSetting<>(("Style"), UIModule.StyleChoice.PLAIN));
         this.animSpeedSetting = this.add(new NumberSetting<>("AnimSpeed", 1.0F, 0.5F, 2.5F));
-        this.scaleSetting = this.add(new NumberSetting<>("Scale", 1.0F, 0.1F, 2.0F));
+        // The scale is driven by Ctrl + wheel inside the ClickGUI; the setting stays as the persisted
+        // value but is not rendered as a row anymore.
+        this.scaleSetting = this.add(new NumberSetting<>("Scale", 1.2F, 0.1F, 2.0F, ignored -> false));
         this.snowSetting = this.add(new BooleanSetting("Snow", true));
+        this.tilingSetting = this.add(new BooleanSetting("Tiling", true));
         this.languageSetting = this.add(new EnumSetting<>("Language", UIModule.LanguageChoice.ENGLISH));
         this.settingsSetting = this.add(new BooleanSetting("Settings", true));
         BooleanSetting elementsOption = new BooleanSetting("Elements", true);
@@ -168,7 +172,7 @@ public final class UIModule extends Module {
                 this.resetSetting.setValue(true);
                 if (ClientContext.clickGui != null) {
                     ClickGuiScreen screen = ClientContext.getClickGui();
-                    screen.resetPanelPositions();
+                    screen.resetGuiLayout();
                 }
             }
         };
@@ -272,7 +276,7 @@ public final class UIModule extends Module {
             return;
         }
         ClickGuiScreen screen = ClientContext.getClickGui();
-        screen.resetPanelPositions();
+        screen.resetGuiLayout();
         this.resetSetting.setValue(true);
         this.panelResetPending.set(false);
     }

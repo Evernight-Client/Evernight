@@ -195,7 +195,8 @@ public class ClientScreen extends Screen implements ClientAccess {
         Panel draggedPanel = null;
         for (int panelIndex = this.panels.size() - 1; panelIndex >= 0; panelIndex--) {
             Panel panel = this.panels.get(panelIndex);
-            if (panel.isMouseOverHeader(event.x(), event.y()) && event.button() == 0 && draggedPanel == null) {
+            if (this.isPanelDraggingAllowed() && panel.isMouseOverHeader(event.x(), event.y())
+                    && event.button() == 0 && draggedPanel == null) {
                 draggedPanel = panel;
                 panel.setDragging(true);
                 panel.dragOffsetX = (int) (event.x() - panel.getX());
@@ -232,6 +233,14 @@ public class ClientScreen extends Screen implements ClientAccess {
     }
 
     public void onMouseRelease(double mouseX, double mouseY, int button) {
+    }
+
+    /**
+     * Whether panels may be dragged by their header. Tiling layouts lay the panels out themselves and
+     * override this to disable free dragging.
+     */
+    protected boolean isPanelDraggingAllowed() {
+        return true;
     }
 
     public ArrayList<Panel> getPanels() {
