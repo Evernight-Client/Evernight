@@ -46,7 +46,7 @@ public class AutoTameModule extends Module {
     private final ElapsedTimer interactionTimer;
 
     public AutoTameModule() {
-        super("AutoTame", ModuleCategory.PLAYER);
+        super("AutoTame", ModuleCategory.AUTO);
         AutoTameModule.ActionChoice actionDefault = AutoTameModule.ActionChoice.TAME;
         this.actionSetting = this.add(new EnumSetting<>("Action", actionDefault));
         this.rangeSetting = this.add(new NumberSetting<>("Range", 3.0F, 1.0F, 6.0F).withUnit("m"));

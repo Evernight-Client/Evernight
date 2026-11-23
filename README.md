@@ -6,7 +6,7 @@
 
 <p align="center">面向 Minecraft 1.21.11 的 Fabric 客户端</p>
 
-Evernight 将战斗、移动、渲染、玩家、杂项、漏洞利用、HUD 与客户端功能收进同一套模块框架：模块共用设置、按键、预设、配置与通知体系，界面、指令与语言表遵循同一套命名约定。插件（Addon）可以独立编译，通过 `evernight-addon` 入口挂接同一套框架。
+Evernight 将战斗、移动、渲染、玩家、自动、杂项、漏洞利用、HUD 与客户端功能收进同一套模块框架：模块共用设置、按键、预设、配置与通知体系，界面、指令与语言表遵循同一套命名约定。插件（Addon）可以独立编译，通过 `evernight-addon` 入口挂接同一套框架。
 
 > 运行环境：Minecraft 1.21.11 · Fabric Loader 0.19.5+ · Fabric API · Java 21+
 
@@ -28,13 +28,14 @@ Evernight 将战斗、移动、渲染、玩家、杂项、漏洞利用、HUD 与
 
 ### 模块
 
-约 200 个模块，分为 8 个分类：
+约 200 个模块，分为 9 个分类：
 
 | 分类 | 模块数（约） | 代表模块 |
 | --- | --- | --- |
-| Combat（战斗） | 35 | Aura、AutoCrystal、AnchorAura、AutoMace、AutoPot、AutoArmor、AntiPhase |
+| Combat（战斗） | 34 | Aura、AutoCrystal、AnchorAura、AutoMace、AutoPot、AutoArmor、AntiPhase |
 | Render（渲染） | 34 | ESP、Chams、Tracers、HoleESP、NameTags、Search、Xray、Shader、Skybox |
-| Player（玩家） | 28 | AutoFarm、AutoCraft、AutoTrade、ChestStealer、Scaffold、Nuker、InventoryTweaks、Freecam |
+| Player（玩家） | 15 | ChestStealer、Scaffold、Nuker、InventoryTweaks、Freecam |
+| Auto（自动） | 14 | AutoFarm、AutoCraft、AutoFish、AutoTrade、AutoMining、AutoClicker |
 | Misc（杂项） | 30 | AutoReconnect、ChatFilter、InfoBlocker、ExtraScreenshot、KillEffects、Spammer、StashFinder、VisualRange、WebhookNotifs |
 | Movement（移动） | 25 | Speed、Flight、ElytraFly、Velocity、Step、NoFall、Jesus、LongJump、FakeLag |
 | Exploit（漏洞利用） | 19 | NewChunks、Phase、Reach、Timer、PingSpoof、Trident、XCarry、GrimDisabler |

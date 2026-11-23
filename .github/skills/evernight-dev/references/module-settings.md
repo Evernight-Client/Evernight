@@ -101,13 +101,14 @@ this.onEnable();
 | `RENDER` | `"Render"` | `Render` |
 | `MOVEMENT` | `"Movement"` | `Movement` |
 | `PLAYER` | `"Player"` | `Player` |
+| `AUTO` | `"Auto"` | `Auto` |
 | `EXPLOIT` | `"Exploit"` | `Exploit` |
 | `CLIENT` | `"Client"` | `Client` |
 | `HUD` | `"HUD"` | `HUD` |
 
-`values()` 返回不可变列表：内置分类按上表顺序在前，插件分类按注册顺序追加；`ordinal()` 就是该顺序（内置固定 0-7），`findByName(String)` 大小写不敏感。ClickGUI 遍历 `values()` 建面板（`ClickGuiScreen`），`ClientScreen.resetPanelPositions()` 用 `ordinal()` 排序；分类不写配置/预设，模块按对象身份（`==`）比较。
+`values()` 返回不可变列表：内置分类按上表顺序在前，插件分类按注册顺序追加；`ordinal()` 就是该顺序（内置固定 0-8），`findByName(String)` 大小写不敏感。ClickGUI 遍历 `values()` 建面板（`ClickGuiScreen`），`ClientScreen.resetPanelPositions()` 用 `ordinal()` 排序；分类不写配置/预设，模块按对象身份（`==`）比较。
 
-插件不能直接 `new` 分类，也不能改内置列表；只能在 `onInitialize` 里用 `AddonContext#registerCategory(String)` 注册，显示键为 `addons.<id>.names.categories.<Name>`，两份语言文件都要写，缺键显示完整键。普通模块开发继续直接使用 `ModuleCategory.MISC` 等常量；本次不新增内置分类。详见 `.github/skills/evernight-addon-dev/SKILL.md`。
+插件不能直接 `new` 分类，也不能改内置列表；只能在 `onInitialize` 里用 `AddonContext#registerCategory(String)` 注册，显示键为 `addons.<id>.names.categories.<Name>`，两份语言文件都要写，缺键显示完整键。普通模块开发继续直接使用 `ModuleCategory.MISC` 等常量；内置分类共 9 个（`COMBAT` 到 `HUD`，其中 `AUTO` 位于 `PLAYER` 与 `EXPLOIT` 之间）。详见 `.github/skills/evernight-addon-dev/SKILL.md`。
 
 ### 3.2 PermanentModule
 

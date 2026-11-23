@@ -51,7 +51,7 @@ public final class AutoGrindstoneModule extends Module {
 
     public AutoGrindstoneModule() {
         super("AutoGrindstone",
-                ModuleCategory.PLAYER);
+                ModuleCategory.AUTO);
         this.delaySetting = this.add(new NumberSetting<>("Delay", 100, 0, 1000).withUnit("ms"));
         this.dropSetting = this.add(new BooleanSetting("Drop", true));
         this.closeSetting = this.add(new BooleanSetting("Close", true));

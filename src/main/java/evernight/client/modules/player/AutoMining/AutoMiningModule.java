@@ -128,7 +128,7 @@ public final class AutoMiningModule extends Module {
     private BlockPos escapeTarget;
 
     public AutoMiningModule() {
-        super("AutoMining", ModuleCategory.PLAYER, "automining", "am");
+        super("AutoMining", ModuleCategory.AUTO, "automining", "am");
         this.modeSetting = this.add(new EnumSetting<>("MiningMode", AutoMiningMode.DIAMOND));
         this.minYSetting = this.add(new NumberSetting<>("MinY", -60, -64, 320));
         this.maxYSetting = this.add(new NumberSetting<>("MaxY", 16, -64, 320));

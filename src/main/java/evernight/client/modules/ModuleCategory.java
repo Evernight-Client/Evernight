@@ -28,12 +28,13 @@ public final class ModuleCategory implements NamedEntry {
     public static final ModuleCategory RENDER = new ModuleCategory("Render");
     public static final ModuleCategory MOVEMENT = new ModuleCategory("Movement");
     public static final ModuleCategory PLAYER = new ModuleCategory("Player");
+    public static final ModuleCategory AUTO = new ModuleCategory("Auto");
     public static final ModuleCategory EXPLOIT = new ModuleCategory("Exploit");
     public static final ModuleCategory CLIENT = new ModuleCategory("Client");
     public static final ModuleCategory HUD = new ModuleCategory("HUD");
 
     private static final List<ModuleCategory> BUILT_IN =
-            List.of(COMBAT, MISC, RENDER, MOVEMENT, PLAYER, EXPLOIT, CLIENT, HUD);
+            List.of(COMBAT, MISC, RENDER, MOVEMENT, PLAYER, AUTO, EXPLOIT, CLIENT, HUD);
     private static final List<ModuleCategory> ADDON_CATEGORIES = new CopyOnWriteArrayList<>();
 
     private final String name;
@@ -141,8 +142,9 @@ public final class ModuleCategory implements NamedEntry {
     }
 
     /**
-     * Display order: built-in categories keep their historical 0-7 positions, addon categories get
-     * the next free index in registration order. Used for ClickGUI panel sorting.
+     * Display order: built-in categories keep the fixed order of {@link #BUILT_IN} (AUTO sits between
+     * PLAYER and EXPLOIT), addon categories get the next free index in registration order. Used for
+     * ClickGUI panel sorting.
      */
     public int ordinal() {
         return this.ordinal;

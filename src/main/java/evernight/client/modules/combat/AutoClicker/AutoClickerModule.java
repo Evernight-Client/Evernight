@@ -41,7 +41,7 @@ public class AutoClickerModule extends Module {
     private float delayMultiplier;
 
     public AutoClickerModule() {
-        super("AutoClicker", ModuleCategory.COMBAT);
+        super("AutoClicker", ModuleCategory.AUTO);
         this.modeSetting = this.add(new EnumSetting<>("Mode", AutoClickerModule.ModeChoice.LEFT));
         this.cpsSetting = this.add(new NumberSetting<>("CPS", 8.0F, 1.0F, 20.0F));
         this.delaySetting = this.add(new NumberSetting<>("Delay", 1.0F, 1.0F, 3.0F)

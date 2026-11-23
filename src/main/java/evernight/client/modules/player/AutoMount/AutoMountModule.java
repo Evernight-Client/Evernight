@@ -35,7 +35,7 @@ public final class AutoMountModule extends Module {
     private final ElapsedTimer mountTimer;
 
     public AutoMountModule() {
-        super("AutoMount", ModuleCategory.PLAYER);
+        super("AutoMount", ModuleCategory.AUTO);
         this.rangeSetting = this.add(new NumberSetting<>("Range", 3.0, 0.1, 6.0).withUnit("m"));
         this.delaySetting = this.add(new NumberSetting<>("Delay", 1.0F, 0.0F, 5.0F).withUnit("s"));
         Boolean defaultRotate = true;

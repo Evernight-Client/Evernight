@@ -39,7 +39,7 @@ public final class AutoTemplateModule extends Module {
     private final ElapsedTimer actionTimer = new ElapsedTimer();
 
     public AutoTemplateModule() {
-        super("AutoTemplate", ModuleCategory.PLAYER, "AutoUpgrade");
+        super("AutoTemplate", ModuleCategory.AUTO, "AutoUpgrade");
         this.templatesSetting = this.add(new RegistrySetSetting<>("Templates", BuiltInRegistries.ITEM, Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE));
         this.materialsSetting = this.add(new RegistrySetSetting<>("Materials", BuiltInRegistries.ITEM));
         this.itemsSetting = this.add(new EnumSetting<>("Items", ItemsChoice.ANY));

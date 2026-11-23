@@ -101,7 +101,7 @@ public String translationKey(String key);   // "addons." + addonId + "." + key
 ```java
 public final class ModuleCategory implements NamedEntry {
     public static final ModuleCategory COMBAT, MISC, RENDER, MOVEMENT,
-            PLAYER, EXPLOIT, CLIENT, HUD;              // 顺序固定，ordinal 0-7
+            PLAYER, AUTO, EXPLOIT, CLIENT, HUD;        // 顺序固定，ordinal 0-8
     public static List<ModuleCategory> values();       // 内置在前 + 插件按注册顺序，不可变
     public static ModuleCategory findByName(String name); // 大小写不敏感，找不到返回 null
     public static ModuleCategory register(String name, String translationKey); // 内部用，见下

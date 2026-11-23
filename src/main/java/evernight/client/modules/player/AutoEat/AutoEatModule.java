@@ -69,7 +69,7 @@ public class AutoEatModule extends Module {
     private int swappedContainerSlot;
 
     public AutoEatModule() {
-        super("AutoEat", ModuleCategory.PLAYER);
+        super("AutoEat", ModuleCategory.AUTO);
         DefaultedRegistry itemRegistry = CustomItemRegistries.foodItems;
         Item[] defaultItems = new Item[]{Items.GOLDEN_APPLE, Items.ENCHANTED_GOLDEN_APPLE};
         this.itemsSetting = this.add(new RegistrySetSetting<>("Items", itemRegistry, defaultItems));

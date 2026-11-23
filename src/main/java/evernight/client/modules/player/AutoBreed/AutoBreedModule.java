@@ -53,7 +53,7 @@ public class AutoBreedModule extends Module {
     private final List<BreedingCooldown> breedingCooldowns;
 
     public AutoBreedModule() {
-        super("AutoBreed", ModuleCategory.PLAYER);
+        super("AutoBreed", ModuleCategory.AUTO);
         this.rangeSetting = this.add(new NumberSetting<>("Range", 3.0F, 1.0F, 6.0F).withUnit("m"));
         this.frequencySetting = this.add(new NumberSetting<>("Frequency", 1, 1, 8));
         this.delaySetting = this.add(new NumberSetting<>("Delay", 0.0F, 0.0F, 5.0F).withUnit("s"));

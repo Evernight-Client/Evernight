@@ -74,7 +74,7 @@ public class AutoTradeModule extends Module {
     private int villagerId;
 
     public AutoTradeModule() {
-        super("AutoTrade", ModuleCategory.PLAYER);
+        super("AutoTrade", ModuleCategory.AUTO);
         this.delaySetting = this.add(new NumberSetting<>("Delay", 150, 25, 1500).withUnit("ms"));
         this.frequencySetting = this.add(new NumberSetting<>("Frequency", 1, 1, 6));
         Boolean closeDefault = false;

@@ -75,7 +75,7 @@ public class AutoFarmModule extends Module {
     private int actionsThisTick;
 
     public AutoFarmModule() {
-        super("AutoFarm", ModuleCategory.PLAYER);
+        super("AutoFarm", ModuleCategory.AUTO);
         AutoFarmModule.ModeChoice defaultMode = AutoFarmModule.ModeChoice.CROSSHAIR;
         this.modeSetting = this.add(new EnumSetting<>("Mode", defaultMode));
         AutoFarmModule.SwapChoice defaultSwap = AutoFarmModule.SwapChoice.NORMAL;

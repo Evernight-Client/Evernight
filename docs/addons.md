@@ -140,7 +140,7 @@ public final class ExampleModule extends AddonModule {
 
 - 模块名（`AddonModule` 的第二个构造参数）是全局唯一标识，命令别名、配置键、预设都依赖它；**发布后不要改名**。
 - `AddonModule` 自动从 `addons.<id>.names.modules.*`、`addons.<id>.descriptions.modules.*`、`addons.<id>.names.settings.*` 读取显示文本；缺键时回退英文标识。不需要本地化时可直接继承 `Module`。
-- `ModuleCategory` 已从枚举改为 final class：内置分类（`COMBAT`、`MISC`、`RENDER`、`MOVEMENT`、`PLAYER`、`EXPLOIT`、`CLIENT`、`HUD`）可以直接复用，插件也可以用 `context.registerCategory("Automation")` 注册新分类，再把返回的对象传给 `AddonModule` 构造器。
+- `ModuleCategory` 已从枚举改为 final class：内置分类（`COMBAT`、`MISC`、`RENDER`、`MOVEMENT`、`PLAYER`、`AUTO`、`EXPLOIT`、`CLIENT`、`HUD`）可以直接复用，插件也可以用 `context.registerCategory("Automation")` 注册新分类，再把返回的对象传给 `AddonModule` 构造器。
 - 分类只能在 `onInitialize` 里注册（ClickGUI 首次打开时才按 `ModuleCategory.values()` 建立面板），名字全局唯一（含内置分类，大小写不敏感），空白或重名会抛 `IllegalStateException`，插件被记为 `FAILED`。分类名是稳定标识，建议只用字母数字，发布后不要改名。
 - 插件分类的显示名走 `addons.<id>.names.categories.<Name>`（例如 `addons.exampleaddon.names.categories.Automation`），每次渲染都重新查表，切换语言即时生效。`en_us.json` 与 `zh_cn.json` 两份都必须写这个键；缺键时界面显示**完整语言键**（不会自造英文名兜底），方便发现漏翻。
 - `@EventHandler` 方法只在模块启用期间被调用；`enable()` 自动订阅，`disable()` 自动退订。

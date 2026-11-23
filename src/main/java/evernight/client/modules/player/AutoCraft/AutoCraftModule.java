@@ -96,7 +96,7 @@ public class AutoCraftModule extends Module {
     private Boolean recipeBookWasOpen;
 
     public AutoCraftModule() {
-        super("AutoCraft", ModuleCategory.PLAYER, "craftbot");
+        super("AutoCraft", ModuleCategory.AUTO, "craftbot");
         this.itemsSetting = this.add(new RegistrySetSetting<>("Items", BuiltInRegistries.ITEM, Items.GOLD_INGOT));
         this.recipeBlackListSetting = this.add(new RegistrySetSetting<>("RecipeBlackList", BuiltInRegistries.ITEM, Items.GOLD_BLOCK));
         this.delaySetting = this.add(new NumberSetting<>("Delay", 150, 0, 1500).withUnit("ms"));

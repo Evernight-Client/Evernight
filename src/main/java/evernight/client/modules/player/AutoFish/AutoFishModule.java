@@ -42,7 +42,7 @@ public class AutoFishModule extends Module {
     private boolean nearbySplashDetected;
 
     public AutoFishModule() {
-        super("AutoFish", ModuleCategory.PLAYER);
+        super("AutoFish", ModuleCategory.AUTO);
         Boolean defaultWater = false;
         this.waterSetting = this.add(new BooleanSetting("Water", defaultWater));
         this.recastDelaySetting = this.add(new NumberSetting<>("RecastDelay", 2.0F, 1.0F, 5.0F).withUnit("s"));

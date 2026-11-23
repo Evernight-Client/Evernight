@@ -46,7 +46,7 @@ public class AutoNameTagModule extends Module {
     private final ElapsedTimer nameTagTimer;
 
     public AutoNameTagModule() {
-        super("AutoNameTag", ModuleCategory.PLAYER);
+        super("AutoNameTag", ModuleCategory.AUTO);
         DefaultedRegistry entityRegistry = BuiltInRegistries.ENTITY_TYPE;
         EntityType[] defaultEntities = new EntityType[1];
         EntityType witherType = EntityType.WITHER;
