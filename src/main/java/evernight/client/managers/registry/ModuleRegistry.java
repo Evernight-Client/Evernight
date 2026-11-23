@@ -426,8 +426,6 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected HoleSnapModule");
         if (!this.registerModule(new evernight.client.modules.exploit.IllegalDisconnect.IllegalDisconnectModule()))
             throw new IllegalStateException("Registration rejected IllegalDisconnectModule");
-        if (!this.registerModule(new evernight.client.modules.misc.InfoBlocker.InfoBlockerModule()))
-            throw new IllegalStateException("Registration rejected InfoBlockerModule");
         if (!this.registerModule(new evernight.client.modules.player.InventoryCleaner.InventoryCleanerModule()))
             throw new IllegalStateException("Registration rejected InventoryCleanerModule");
         if (!this.registerModule(new evernight.client.modules.player.InventorySorter.InventorySorterModule()))

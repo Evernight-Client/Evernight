@@ -68,9 +68,10 @@ public final class StringSetScreen extends ClientScreen {
         }
         this.stringSetSetting.addEntry(this.stringSetSetting.parseEntry(text.trim()));
         this.draftSetting.setValue("");
+        // beginEditing() only snapshots the setting while the row is not already editing, so leave
+        // edit mode first to clear the buffer, then re-enter it ready for the next entry.
         this.draftComponent.editing = false;
         this.rebuildEntries();
-        // Keep the field ready for the next entry instead of dropping the edit mode.
         this.draftComponent.beginEditing();
     }
 
@@ -80,12 +81,20 @@ public final class StringSetScreen extends ClientScreen {
     }
 
     private void clearEntries() {
-        this.stringSetSetting.getValue().clear();
+        // Go through removeEntry so the setting's change callback runs, exactly like a row click.
+        for (String entry : new ArrayList<>(this.stringSetSetting.getValue())) {
+            this.stringSetSetting.removeEntry(entry);
+        }
         this.rebuildEntries();
     }
 
     @Override
     public boolean keyPressed(KeyEvent event) {
+        if (event.key() == GLFW.GLFW_KEY_ESCAPE && this.draftComponent.editing) {
+            // The first Escape only leaves the text field; the next one closes the screen.
+            this.draftComponent.keyPressed(event.key());
+            return false;
+        }
         if (event.key() == GLFW.GLFW_KEY_ENTER && this.draftComponent.editing) {
             this.addDraft();
             return true;

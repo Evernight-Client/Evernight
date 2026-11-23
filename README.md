@@ -36,7 +36,7 @@ Evernight 将战斗、移动、渲染、玩家、自动、杂项、漏洞利用�
 | Render（渲染） | 34 | ESP、Chams、Tracers、HoleESP、NameTags、Search、Xray、Shader、Skybox |
 | Player（玩家） | 15 | ChestStealer、Scaffold、Nuker、InventoryTweaks、Freecam |
 | Auto（自动） | 14 | AutoFarm、AutoCraft、AutoFish、AutoTrade、AutoMining、AutoClicker |
-| Misc（杂项） | 30 | AutoReconnect、ChatFilter、InfoBlocker、ExtraScreenshot、KillEffects、Spammer、StashFinder、VisualRange、WebhookNotifs |
+| Misc（杂项） | 29 | AutoReconnect、ChatFilter、ExtraScreenshot、KillEffects、Spammer、StashFinder、VisualRange、WebhookNotifs |
 | Movement（移动） | 25 | Speed、Flight、ElytraFly、Velocity、Step、NoFall、Jesus、LongJump、FakeLag |
 | Exploit（漏洞利用） | 19 | NewChunks、Phase、Reach、Timer、PingSpoof、Trident、XCarry、GrimDisabler |
 | Client（客户端） | 10 | UI、HUD、Fonts、Colors、Notifications、Settings、Discord、Capes、AntiCheat、Baritone |
@@ -44,7 +44,7 @@ Evernight 将战斗、移动、渲染、玩家、自动、杂项、漏洞利用�
 
 每个模块都可以单独开关、绑定按键并调整设置；设置类型覆盖布尔、数值、枚举、颜色、字符串、字符串集合与注册表集合，并支持按条件显隐。模块名（小写）可以直接作为指令使用（例如 `;aura`），也可以为指令设置别名。
 
-**信息屏蔽器（InfoBlocker）** 是 Misc 分类下的模块：命中关键词的聊天消息会在进入聊天栏之前被直接丢弃，用于压制特定词造成的刷屏卡顿。词条在 ClickGUI 里点开设置项即可增删（点条目删除、输入后回车或点添加新增），默认屏蔽 `lotus`，私聊消息默认不受影响。
+**聊天过滤（ChatFilter）** 同时支持两种过滤来源：`;chatfilter` 指令维护的「编号 + 过滤文本」列表，以及 ClickGUI 内维护的关键词列表（默认屏蔽 `lotus`）。命中的聊天消息会在进入聊天栏之前被直接丢弃，用于压制特定词造成的刷屏卡顿；指令过滤器可开启区分大小写，关键词列表始终按不区分大小写的包含匹配，`IgnorePM` 开启后私聊消息直接放行。关键词列表在 ClickGUI 里点开设置项即可增删（点条目删除、输入后回车或点添加新增），字符串集合设置都支持这种编辑方式。
 
 ### 界面
 
