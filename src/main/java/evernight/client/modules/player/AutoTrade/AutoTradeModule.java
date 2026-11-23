@@ -2,10 +2,12 @@ package evernight.client.modules.player.AutoTrade;
 
 import evernight.client.ClientAccess;
 import evernight.client.ClientContext;
+import evernight.client.gui.screens.trade.TradeManagerScreen;
 import evernight.client.managers.player.RotationManager;
 import evernight.client.managers.registry.TradeRegistry;
 import evernight.client.modules.Module;
 import evernight.client.modules.ModuleCategory;
+import evernight.client.settings.types.ActionSetting;
 import evernight.client.settings.types.BooleanSetting;
 import evernight.client.settings.types.NumberSetting;
 import evernight.client.settings.core.Setting;
@@ -102,12 +104,24 @@ public class AutoTradeModule extends Module {
         Boolean rotateDefault = true;
         BooleanSetting rotateOption = new BooleanSetting("Rotate", rotateDefault, rotateVisibility);
         this.rotateSetting = this.add(rotateOption.dependsOn(this.autoOpenSetting));
+        this.add(new ActionSetting("Trades", this::openTradeManager)
+                .withInfo(() -> String.valueOf(ClientContext.tradeRegistry.getRegistry().size())));
         this.offerCache = new VillagerOfferCache();
         this.tradeDelayTimer = new ElapsedTimer();
         this.closeQuietTimer = new ElapsedTimer();
         this.openTimer = new ElapsedTimer();
         this.cacheRefreshTimer = new ElapsedTimer();
         this.villagerId = -1;
+    }
+
+    /**
+     * Opens the existing trade manager directly from the module panel. Closing it returns to the
+     * ClickGUI, so the {@code ;trade} command is no longer required to add or edit trades.
+     */
+    private void openTradeManager() {
+        TradeManagerScreen tradeScreen = new TradeManagerScreen();
+        tradeScreen.setParentScreen(ClientContext.getClickGui());
+        ClientAccess.evernightMinecraft.setScreen(tradeScreen);
     }
 
     private Entity findVillagerToOpen() {
