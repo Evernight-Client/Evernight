@@ -343,7 +343,6 @@ if (event.isCancelled()) {
 - 目录：`<gameDir>/evernight/presets/<category.getName().toLowerCase()>`（`PresetCategory.getDirectory()`，:327）。
 - `PresetCategory` 决定 payload 字段：`toJson` 先 `writeMetadata` 写 `"client": "evernight"`、`"category": <小写分类名>`，再按分类写对应模块/设置（`MODULES/BINDS/HUD/COLORS/VISUALS/MACRO/ALL`，:35-323）。`PresetData` 是 `record PresetData(String name, JsonObject contents)`（:12），`saveToDirectory(Path)` 写 `<name>.json`（:18）。
 - `PresetRegistry`（`extends Registry<PresetData>`，:23）：`applyPreset(String)`（:33）、`savePreset(String)`（:126）、`getPreset(String)`（:50）、`loadPresets()`（:153）、`forEachPreset(Consumer<PresetData>)`（:214）；从 `ClientContext.configurationManager.getPresetRegistry(category)`（:132）获取。
-- 隐私模块过滤：`PresetPrivacyFilter`（`settings/options/PresetPrivacyFilter.java`）维护「不写入预设」的模块名单，当前排除 `ExtraScreenshot`（`ClientId` 可能是 Imgur access token）。`All/Modules/HUD/Colors/Visuals` 的 `toJson` 与 `fromJson` 都会跳过这些模块，`PresetRegistry.loadPresets()` 还会把旧预设文件里的同名模块条目清掉并回写；单模块剪贴板预设不受影响。新增含凭据/个人文本的模块时，把 `getConfigName()` 加进该名单。
 - 单模块剪贴板预设：`ModulePresetCodec.encode(Module)`（:48）把 `module.toJson()` 去掉 `key/state/mouse/enabled/drawn` 后 Base64，**并加入 `m` 字段 = `module.getConfigName()`**（:57）。`decode(String)`（:17）优先读 `m`、兼容旧字段 `module`（:38-46），按 `getConfigName()` 找模块，找不到抛 `IllegalArgumentException`；结果里的 `json` 直接喂 `module.fromJson(...)`（`PresetCommand.java:290-295`）。新增模块无需额外代码，只要不破坏 `getConfigName()` 与设置 `configName`。
 
 ## 9. 从零新增一个模块（完整清单）

@@ -35,7 +35,6 @@ public enum PresetCategory implements JsonConfigurable, NamedEntry {
             ModulePresetFilter filter = ModulePresetFilter.INSTANCE;
             JsonObject object = json.getAsJsonObject();
             filter.retainScalarSettings(object);
-            PresetPrivacyFilter.INSTANCE.removeExcludedModules(object);
             super.fromJson(json);
         }
 
@@ -47,8 +46,7 @@ public enum PresetCategory implements JsonConfigurable, NamedEntry {
             Iterator<?> modules = ((List<?>) moduleRegistry.getRegistry()).iterator();
             while (modules.hasNext()) {
                 Module module = (Module) modules.next();
-                if (!PresetPrivacyFilter.INSTANCE.isExcluded(module)
-                        && !(module instanceof HudWidgetModule) && !(module instanceof FontsModule)) {
+                if (!(module instanceof HudWidgetModule) && !(module instanceof FontsModule)) {
                     JsonObject moduleJson = new JsonObject();
                     moduleJson.addProperty("enabled", module.isToggled());
                     JsonObject settingsJson = new JsonObject();
@@ -117,7 +115,7 @@ public enum PresetCategory implements JsonConfigurable, NamedEntry {
             Iterator<?> modules = ((List<?>) moduleRegistry.getRegistry()).iterator();
             while (modules.hasNext()) {
                 Module module = (Module) modules.next();
-                if (!PresetPrivacyFilter.INSTANCE.isExcluded(module) && this.isHudModule(module)) {
+                if (this.isHudModule(module)) {
                     try {
                         JsonObject preset = json.getAsJsonObject();
                         String moduleName = module.getConfigName();
@@ -140,7 +138,7 @@ public enum PresetCategory implements JsonConfigurable, NamedEntry {
             Iterator<?> modules = ((List<?>) moduleRegistry.getRegistry()).iterator();
             while (modules.hasNext()) {
                 Module module = (Module) modules.next();
-                if (!PresetPrivacyFilter.INSTANCE.isExcluded(module) && this.isHudModule(module)) {
+                if (this.isHudModule(module)) {
                     JsonElement moduleElement = module.toJson();
                     JsonObject moduleJson = moduleElement.getAsJsonObject();
                     String[] bindingKeys = {"key", "state", "mouse"};
@@ -163,7 +161,6 @@ public enum PresetCategory implements JsonConfigurable, NamedEntry {
             JsonObject object = json.getAsJsonObject();
             Predicate<Module> includeModule = module -> false;
             filter.retainModuleSettings(object, includeModule);
-            PresetPrivacyFilter.INSTANCE.removeExcludedModules(object);
             super.fromJson(json);
         }
 
@@ -175,8 +172,7 @@ public enum PresetCategory implements JsonConfigurable, NamedEntry {
             Iterator<?> modules = ((List<?>) moduleRegistry.getRegistry()).iterator();
             while (modules.hasNext()) {
                 Module module = (Module) modules.next();
-                if (!PresetPrivacyFilter.INSTANCE.isExcluded(module)
-                        && !(module instanceof HudWidgetModule)) {
+                if (!(module instanceof HudWidgetModule)) {
                     JsonObject moduleJson = new JsonObject();
                     JsonObject settingsJson = new JsonObject();
                     Iterator<?> settings = module.getSettings().iterator();
@@ -220,7 +216,6 @@ public enum PresetCategory implements JsonConfigurable, NamedEntry {
             JsonObject object = json.getAsJsonObject();
             Predicate<Module> includeModule = this::isVisualModule;
             filter.retainModuleSettings(object, includeModule);
-            PresetPrivacyFilter.INSTANCE.removeExcludedModules(object);
             super.fromJson(json);
         }
 
@@ -232,8 +227,7 @@ public enum PresetCategory implements JsonConfigurable, NamedEntry {
             Iterator<?> modules = ((List<?>) moduleRegistry.getRegistry()).iterator();
             while (modules.hasNext()) {
                 Module module = (Module) modules.next();
-                if (!PresetPrivacyFilter.INSTANCE.isExcluded(module)
-                        && !(module instanceof HudWidgetModule)) {
+                if (!(module instanceof HudWidgetModule)) {
                     JsonObject moduleJson = new JsonObject();
                     boolean visualModule = this.isVisualModule(module);
                     boolean logoutSpots = module instanceof LogoutSpotsModule;
@@ -314,19 +308,10 @@ public enum PresetCategory implements JsonConfigurable, NamedEntry {
     },
     ALL("All") {
         @Override
-        public void fromJson(JsonElement json) {
-            JsonObject object = json.getAsJsonObject();
-            PresetPrivacyFilter.INSTANCE.removeExcludedModules(object);
-            super.fromJson(json);
-        }
-
-        @Override
         public JsonElement toJson() {
             ModuleRegistry moduleRegistry = ClientContext.moduleRegistry;
             JsonElement modulesJson = moduleRegistry.toJson();
-            JsonObject preset = modulesJson.getAsJsonObject();
-            PresetPrivacyFilter.INSTANCE.removeExcludedModules(preset);
-            return preset;
+            return modulesJson.getAsJsonObject();
         }
     };
     private final String displayName;
