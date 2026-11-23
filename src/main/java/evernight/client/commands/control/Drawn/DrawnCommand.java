@@ -16,8 +16,8 @@ import net.minecraft.network.chat.MessageSignature;
 import net.minecraft.network.chat.MutableComponent;
 
 import java.util.Iterator;
-import evernight.client.commands.arguments.EnumArgumentType;
 import evernight.client.commands.arguments.ModuleArgumentType;
+import evernight.client.commands.arguments.ModuleCategoryArgumentType;
 import evernight.client.commands.Command;
 
 public final class DrawnCommand extends Command {
@@ -70,7 +70,7 @@ public final class DrawnCommand extends Command {
         ArgumentBuilder allBranch = allLiteral.then(allStateBranch);
         root.then(allBranch);
         String categoryNodeName = "category";
-        ArgumentType categoryNodeType = new EnumArgumentType(ModuleCategory.class, "Category");
+        ArgumentType categoryNodeType = new ModuleCategoryArgumentType();
         RequiredArgumentBuilder categoryArgument = Command.argument(categoryNodeName, categoryNodeType);
         String categoryStateNodeName = "state";
         ArgumentType categoryStateNodeType = BoolArgumentType.bool();
@@ -88,7 +88,7 @@ public final class DrawnCommand extends Command {
                 }
             }
             Object[] formatArguments = new Object[2];
-            formatArguments[0] = Translations.category(category.getName());
+            formatArguments[0] = category.getDisplayName();
             formatArguments[1] = Translations.ui(drawn ? "commands.Drawn.StateShown" : "commands.Drawn.StateHidden");
             String formattedText = Translations.format("commands.Drawn.SetCategory", formatArguments);
             MutableComponent confirmation = Component.literal(formattedText);

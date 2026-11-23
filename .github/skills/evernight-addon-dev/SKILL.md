@@ -35,7 +35,7 @@ description: 开发 Evernight 插件（Addon）的完整工作流：evernight-ad
 
 1. **入口键只能是 `evernight-addon`**，入口类是 `evernight.addon.EvernightAddon` 的子类，`environment` 必须是 `client`。
 2. **模块名全局唯一**：`new Module("Name", ...)` 的 `Name` 同时是配置键、预设键、指令别名来源，发布后不能改名。重名会让整个插件初始化失败。
-3. **玩家可见文本走语言表，键只用 `addons.<mod id>.*`**：`assets/<mod id>/lang/en_us.json` 与 `zh_cn.json` 键集一致；**不要用 `evernight.` 开头**，那是本体保留命名空间。
+3. **玩家可见文本走语言表，键只用 `addons.<mod id>.*`**：`assets/<mod id>/lang/en_us.json` 与 `zh_cn.json` 键集一致；**不要用 `evernight.` 开头**，那是本体保留命名空间。新增文案/新增分类时 Java 里只写键，不要自造英文显示名；缺键按完整键显示（方便发现漏翻），两份 JSON 都要补。
 4. **只注册、不硬塞**：模块、指令、配置、语言都通过 `AddonContext` 注册；不要直接操作 `ModuleRegistry.entries`、`CommandDispatcher` 内部结构。
 5. **初始化后不改结构**：`onInitialize` 负责一次性注册；运行期动态增删模块/指令不受支持（配置与设置值可以随时改）。
 
@@ -83,6 +83,7 @@ Logger logger()                          // 前缀 Evernight/Addon/<id>
 EventBus eventBus()
 <T extends Module> T registerModule(T)   // 同时生成 ;<alias> 指令
 <T extends HudWidgetModule> T registerHudModule(T)
+ModuleCategory registerCategory(String name) // 注册插件分类，传给 AddonModule 构造器
 <T extends Command> T registerCommand(T)
 void registerConfig(JsonConfigurable)    // 额外 evernight/<name>.json
 void subscribe(Object) / unsubscribe(Object)
@@ -115,7 +116,13 @@ public final class ExampleModule extends AddonModule {
 ```
 
 - `AddonModule` 自动解析 `addons.<id>.names.modules.*`、`addons.<id>.descriptions.modules.*` 与 `addons.<id>.names.settings.*`；缺键回退英文标识。不需要本地化时可直接继承 `Module`。
-- 分类只能复用 `ModuleCategory` 现有 8 个值，插件不能新增分类。
+- 分类：内置分类（`ModuleCategory.COMBAT` … `HUD`）可直接复用；需要新分类时在 `onInitialize` 里调用 `context.registerCategory("Automation")`，把返回的 `ModuleCategory` 传给 `AddonModule` 构造器：
+  ```java
+  ModuleCategory automation = context.registerCategory("Automation");
+  context.registerModule(new ExampleModule(automation));
+  ```
+- 自定义分类的限制：只能 `onInitialize` 注册（ClickGUI 首次打开时才按 `ModuleCategory.values()` 建面板）；名字是稳定英文标识，全局唯一（含内置分类、大小写不敏感），建议只用字母数字，发布后不要改名；空白或重名抛 `IllegalStateException`，插件记为 `FAILED`。分类注册要放在使用它的模块之前。
+- 分类显示名走 `addons.<id>.names.categories.<Name>`（如 `addons.exampleaddon.names.categories.Automation`），`en_us.json` 与 `zh_cn.json` 两份都要写；缺键显示完整键，不会自造英文名。
 - 设置链式方法返回 `Setting<T>`；先建变量再 `this.add(...)`，不要声明成 `NumberSetting`。
 - HUD 组件继承 `HudWidgetModule`、构造器里 `setRenderer(...)`，再用 `registerHudModule`。
 - 辅助对象订阅事件用 `context.subscribe(obj)`，关闭时自动退订；模块不要重复订阅。

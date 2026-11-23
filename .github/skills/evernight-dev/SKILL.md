@@ -33,7 +33,7 @@ description: Evernight（Minecraft 1.21.11 Fabric 客户端）内部 API 速查�
 ## 2. 四条不可违反的规矩
 
 1. **玩家可见文本必须走语言表**：`Translations.*` 或 `NamedEntry#getDisplayName()`。
-   新增/改名模块、设置、枚举时，`en_us.json` 与 `zh_cn.json` 两份都要加键，键集合必须一致。
+   新增/改名模块、设置、枚举、插件分类时，Java 里只写语言键，不写英文显示名；`en_us.json` 与 `zh_cn.json` 两份都要加键，键集合必须一致。新增文本用 `Translations.get(完整键)`，缺键显示完整键以便发现漏翻，不要自造英文名兜底。
 2. **标识符绝不翻译**：`getName()` / `getConfigName()` / 枚举 `getName()` / 指令字面量 / 配置 JSON 键
    保持英文原拼写。显示用 `getDisplayName()`。
 3. **注册点唯一**：新模块进 `managers/ModuleRegistry` 构造器（字母序）；新 mixin 放进

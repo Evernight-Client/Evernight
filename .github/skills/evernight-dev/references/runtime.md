@@ -279,6 +279,7 @@ public final class FooCommand extends Command {
 | `SettingValueArgument` | 解析设置值，`value()` 工厂 |
 | `BooleanSettingArgument` | 布尔设置值，`bool()` |
 | `EnumArgumentType` | 枚举值（配合作者提供的枚举类） |
+| `ModuleCategoryArgumentType` | 模块分类值（内置 + 插件分类，大小写不敏感） |
 | `EnumArgumentType` / `HexColorArgument` | 颜色值（hex 或名称） |
 | `KeybindArgumentType` | 按键（键名/鼠标） |
 | `KitArgumentType` / `MacroArgumentType` / `PresetArgumentType` / `PresetCategoryArgument` | 各类注册表条目 |

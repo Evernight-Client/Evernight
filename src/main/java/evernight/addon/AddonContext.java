@@ -9,6 +9,7 @@ import evernight.client.managers.registry.CommandRegistry;
 import evernight.client.managers.registry.ModuleRegistry;
 import evernight.client.modules.HudWidgetModule;
 import evernight.client.modules.Module;
+import evernight.client.modules.ModuleCategory;
 import evernight.client.render.text.LanguageTable;
 import evernight.client.settings.core.JsonConfigurable;
 import net.fabricmc.loader.api.FabricLoader;
@@ -113,6 +114,32 @@ public final class AddonContext {
      */
     public <T extends HudWidgetModule> T registerHudModule(T module) {
         return this.registerModule(module);
+    }
+
+    /**
+     * Registers a new module category owned by this addon and returns it for the
+     * {@link AddonModule} constructor. Call this from {@code onInitialize} before registering the
+     * modules that use the category, and only from {@code onInitialize}: the ClickGUI builds its
+     * panels from {@link ModuleCategory#values()} afterwards.
+     *
+     * <p>The name is a stable English identifier that also appears in {@code ;drawn <category>} and
+     * {@code ;preset ... specific <category>}. It must be non-blank and globally unique
+     * (case-insensitively, built-in categories included); prefer alphanumerics and never rename it
+     * after release. Duplicate or blank names throw {@link IllegalStateException}, which makes
+     * {@link AddonManager} mark the addon as {@code FAILED}.
+     *
+     * <p>The display name is resolved on every call from
+     * {@code addons.<addon id>.names.categories.<name>}. Add that key to both language files
+     * ({@code en_us.json} and {@code zh_cn.json}); a missing key renders the full key so the gap is
+     * visible instead of silently inventing an English label.
+     */
+    public ModuleCategory registerCategory(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalStateException("Module category name must not be blank");
+        }
+        String categoryName = name.trim();
+        String translationKey = "addons." + this.metadata.id() + ".names.categories." + categoryName;
+        return ModuleCategory.register(categoryName, translationKey);
     }
 
     /**

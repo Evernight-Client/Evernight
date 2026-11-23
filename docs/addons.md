@@ -77,12 +77,15 @@ package com.example.exampleaddon;
 
 import evernight.addon.AddonContext;
 import evernight.addon.EvernightAddon;
+import evernight.client.modules.ModuleCategory;
 
 public final class ExampleAddon extends EvernightAddon {
     @Override
     public void onInitialize(AddonContext context) {
         // AddonManager 已经自动读取 assets/exampleaddon/lang/*.json，这里无需再调用 loadLanguageFiles()。
-        context.registerModule(new ExampleModule());
+        // 分类名是稳定标识：发布后不要改名，建议只用字母数字。
+        ModuleCategory automation = context.registerCategory("Automation");
+        context.registerModule(new ExampleModule(automation));
         context.registerCommand(new ExampleCommand());
     }
 }
@@ -109,9 +112,9 @@ public final class ExampleModule extends AddonModule {
     private final Setting<Integer> intervalSetting;
     private int ticks;
 
-    public ExampleModule() {
+    public ExampleModule(ModuleCategory category) {
         super("exampleaddon", "ExampleAddon", "Demonstrates the addon API.",
-                ModuleCategory.MISC, "exampleaddon", "exaddon");
+                category, "exampleaddon", "exaddon");
         this.announceSetting = this.add(new BooleanSetting("Announce", false));
         this.intervalSetting = this.add(
                 new NumberSetting<>("Interval", 20, 1, 200).dependsOn(this.announceSetting));
@@ -137,7 +140,9 @@ public final class ExampleModule extends AddonModule {
 
 - 模块名（`AddonModule` 的第二个构造参数）是全局唯一标识，命令别名、配置键、预设都依赖它；**发布后不要改名**。
 - `AddonModule` 自动从 `addons.<id>.names.modules.*`、`addons.<id>.descriptions.modules.*`、`addons.<id>.names.settings.*` 读取显示文本；缺键时回退英文标识。不需要本地化时可直接继承 `Module`。
-- `ModuleCategory` 目前是枚举，插件复用本体 8 个分类，不支持新增分类。
+- `ModuleCategory` 已从枚举改为 final class：内置分类（`COMBAT`、`MISC`、`RENDER`、`MOVEMENT`、`PLAYER`、`EXPLOIT`、`CLIENT`、`HUD`）可以直接复用，插件也可以用 `context.registerCategory("Automation")` 注册新分类，再把返回的对象传给 `AddonModule` 构造器。
+- 分类只能在 `onInitialize` 里注册（ClickGUI 首次打开时才按 `ModuleCategory.values()` 建立面板），名字全局唯一（含内置分类，大小写不敏感），空白或重名会抛 `IllegalStateException`，插件被记为 `FAILED`。分类名是稳定标识，建议只用字母数字，发布后不要改名。
+- 插件分类的显示名走 `addons.<id>.names.categories.<Name>`（例如 `addons.exampleaddon.names.categories.Automation`），每次渲染都重新查表，切换语言即时生效。`en_us.json` 与 `zh_cn.json` 两份都必须写这个键；缺键时界面显示**完整语言键**（不会自造英文名兜底），方便发现漏翻。
 - `@EventHandler` 方法只在模块启用期间被调用；`enable()` 自动订阅，`disable()` 自动退订。
 - 设置类型与 HUD 组件写法见 `.github/skills/evernight-dev/references/module-settings.md`。
 
@@ -174,6 +179,7 @@ public final class ExampleCommand extends Command {
 
 ```json
 {
+  "addons.exampleaddon.names.categories.Automation": "Automation",
   "addons.exampleaddon.names.modules.ExampleAddon": "Example Addon",
   "addons.exampleaddon.names.settings.Announce": "Announce",
   "addons.exampleaddon.names.settings.Interval": "Interval",
@@ -184,6 +190,8 @@ public final class ExampleCommand extends Command {
 
 `zh_cn.json` 的键必须与 `en_us.json` 完全一致。**插件的所有语言键都放在 `addons.<id>.*` 下，不要用 `evernight.` 开头**：那是本体保留命名空间，插件共用它会重新引入冲突。`AddonModule` 会按约定读取模块名、描述与设置标签；插件私有文字用 `Translations.get("addons.<id>.xxx")` 读取。语言表在切换语言时会自动重新叠加插件条目。
 
+> **新增文本/新增分类的硬规则**：玩家可见文本只存在于语言表，Java 里只写键，不写英文显示名；`en_us.json` 与 `zh_cn.json` 必须同时补键；缺键时按完整键显示（方便发现漏翻），不要自造英文名兜底。插件分类同理：`addons.<id>.names.categories.<Name>` 两份都要有。既有的 module/setting 兜底行为不在本规则范围内，新增文本一律按此执行。
+
 ## 3. AddonContext API
 
 | 方法 | 作用 |
@@ -193,6 +201,7 @@ public final class ExampleCommand extends Command {
 | `eventBus()` | 客户端事件总线 |
 | `registerModule(Module)` | 注册模块（含 HUD 组件），并生成 `;模块别名` 指令；继承 `AddonModule` 可获得命名空间化的显示文本 |
 | `registerHudModule(HudWidgetModule)` | 语义化别名，等价于上一行 |
+| `registerCategory(String name)` | 注册新的模块分类并返回 `ModuleCategory`，供 `AddonModule` 构造器使用；名字全局唯一（含内置分类、大小写不敏感），空白或重名抛 `IllegalStateException`；显示名读取 `addons.<id>.names.categories.<name>`，缺键显示完整键 |
 | `registerCommand(Command)` | 注册 Brigadier 指令 |
 | `registerConfig(JsonConfigurable)` | 注册独立 JSON 配置文件（文件名来自 `getConfigName()`） |
 | `registerLanguage(String code, InputStream)` | 手动合并语言表（一般用不上） |
@@ -200,7 +209,7 @@ public final class ExampleCommand extends Command {
 | `subscribe(Object)` / `unsubscribe(Object)` | 注册/注销辅助对象的 `@EventHandler`，关闭时自动清理 |
 | `dataDirectory()` | `evernight/addons/<id>/`，按需创建 |
 
-注册失败会抛 `IllegalStateException`（例如模块/指令重名），`AddonManager` 记录为 `FAILED` 并继续加载其他插件。**已成功的注册不会回滚**，所以建议把容易失败的注册放在 `onInitialize` 末尾。
+注册失败会抛 `IllegalStateException`（例如分类/模块/指令重名），`AddonManager` 记录为 `FAILED` 并继续加载其他插件。**已成功的注册不会回滚**：分类注册要放在使用它的模块之前，其余容易失败的注册尽量放在 `onInitialize` 末尾。
 
 模块基类有两种选择：`Module`（纯英文标识，不做本地化）或 `AddonModule`（自动把模块名、描述、设置标签解析到 `addons.<id>.*`）。绝大多数插件应使用后者。
 
@@ -224,7 +233,7 @@ public final class ExampleCommand extends Command {
 2. 构建插件，把插件 jar 放进开发运行目录 `run/mods/`（或正式游戏的 `.minecraft/mods/`）。
 3. 启动游戏，日志中应出现 `Loaded addon <名称> <版本> (<id>)`；失败会打印 `Addon <id> failed to initialize` 与堆栈。
 4. 游戏内执行 `;addons` 查看已加载插件、版本与模块数；没有插件时该指令不存在。
-5. 检查：模块出现在 ClickGUI 对应分类、设置能保存到 `modules.json`、重进游戏后状态还在、`;help` 里能看到插件指令。
+5. 检查：模块出现在 ClickGUI 对应分类（插件分类排在内置分类之后）、设置能保存到 `modules.json`、重进游戏后状态还在、`;help` 里能看到插件指令、`;drawn <分类> ...` 与 `;preset ... specific <分类>` 能解析插件分类。
 
 常见问题：
 

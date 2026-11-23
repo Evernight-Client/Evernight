@@ -90,11 +90,11 @@ this.onEnable();
 
 源码：`src/main/java/evernight/client/modules/ModuleCategory.java`、`PermanentModule.java`、`HudWidgetModule.java`、`src/main/java/evernight/client/render/hud/HudWidgetRenderer.java`、`ResizableHudWidgetRenderer.java`、`client/modules/hud/HudTextListRenderer.java`。
 
-### 3.1 8 个分类
+### 3.1 内置分类与插件分类
 
-`ModuleCategory` 实现 `NamedEntry`；`getName()` 返回英文稳定名，`getDisplayName()` 每次调用都查 `Translations.category(getName())`（:21/:30）。
+`ModuleCategory` 已从枚举改为 final class，实现 `NamedEntry`。对象只保存稳定英文名与语言键：`getName()` 返回稳定名，`getDisplayName()` 每次调用都走 `Translations.get(键)`，缺键显示完整键而不是自造英文名（内置键为 `evernight.names.categories.<Name>`）。
 
-| 枚举常量 | `getName()` | JSON 键（`evernight.names.categories.*`） |
+| 内置常量 | `getName()` | JSON 键（`evernight.names.categories.*`） |
 | --- | --- | --- |
 | `COMBAT` | `"Combat"` | `Combat` |
 | `MISC` | `"Misc"` | `Misc` |
@@ -105,7 +105,9 @@ this.onEnable();
 | `CLIENT` | `"Client"` | `Client` |
 | `HUD` | `"HUD"` | `HUD` |
 
-新增分类会自动多出一个 ClickGUI 面板（`ClickGuiScreen.java:189` 遍历 `ModuleCategory.values()`），但要同时补两份 JSON 的 `evernight.names.categories.*`；除非确有必要，复用现有 8 类。
+`values()` 返回不可变列表：内置分类按上表顺序在前，插件分类按注册顺序追加；`ordinal()` 就是该顺序（内置固定 0-7），`findByName(String)` 大小写不敏感。ClickGUI 遍历 `values()` 建面板（`ClickGuiScreen`），`ClientScreen.resetPanelPositions()` 用 `ordinal()` 排序；分类不写配置/预设，模块按对象身份（`==`）比较。
+
+插件不能直接 `new` 分类，也不能改内置列表；只能在 `onInitialize` 里用 `AddonContext#registerCategory(String)` 注册，显示键为 `addons.<id>.names.categories.<Name>`，两份语言文件都要写，缺键显示完整键。普通模块开发继续直接使用 `ModuleCategory.MISC` 等常量；本次不新增内置分类。详见 `.github/skills/evernight-addon-dev/SKILL.md`。
 
 ### 3.2 PermanentModule
 

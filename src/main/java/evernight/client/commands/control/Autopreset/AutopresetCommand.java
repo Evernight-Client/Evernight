@@ -126,7 +126,7 @@ public final class AutopresetCommand extends Command {
         boolean removed = autopresets.removePreset(serverToUpdate, categoryToRemove);
         if (removed) {
             Object[] messageArguments = new Object[1];
-            messageArguments[0] = Translations.category(category.getName());
+            messageArguments[0] = category.getDisplayName();
             String successMessage = Translations.format("commands.Autopreset.PresetRemoved", messageArguments);
             Component presetRemovedMessage = Component.literal(successMessage);
             MessageSignature presetRemovedSignature = ChatUtils.DEFAULT_SIGNATURE;

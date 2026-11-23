@@ -38,9 +38,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import evernight.client.commands.arguments.ArrayArgumentType;
-import evernight.client.commands.arguments.EnumArgumentType;
 import evernight.client.commands.arguments.FancyStringArgument;
 import evernight.client.commands.arguments.ModuleArgumentType;
+import evernight.client.commands.arguments.ModuleCategoryArgumentType;
 import evernight.client.commands.arguments.PresetArgumentType;
 import evernight.client.commands.arguments.PresetCategoryArgument;
 import evernight.client.config.legacy.LegacyBranding;
@@ -112,7 +112,7 @@ public final class PresetCommand extends Command {
         categoryArgument = (RequiredArgumentBuilder) categoryArgument.then(loadTree);
         operationLiteral = Command.literal("specific");
         operationArgument = Command.argument("preset", new PresetArgumentType());
-        ArgumentBuilder moduleCategoryBranch = Command.argument("module_category", new EnumArgumentType(ModuleCategory.class, "Category")).executes((com.mojang.brigadier.Command<Object>) context -> {
+        ArgumentBuilder moduleCategoryBranch = Command.argument("module_category", new ModuleCategoryArgumentType()).executes((com.mojang.brigadier.Command<Object>) context -> {
             ConfigurationManager configurationManager = ClientContext.configurationManager;
             return loadCategoryPreset(command, context, configurationManager);
         });
@@ -235,7 +235,7 @@ public final class PresetCommand extends Command {
         });
         configurationManager.getPresetUndoState().push(undoAction);
         String presetName = preset.getName();
-        String loadedMessage = Translations.format("commands.Preset.LoadedFor", presetName, Translations.category(moduleCategory.getName()));
+        String loadedMessage = Translations.format("commands.Preset.LoadedFor", presetName, moduleCategory.getDisplayName());
         MutableComponent loadedMessageComponent = Component.literal(loadedMessage);
         ChatUtils.printChat(loadedMessageComponent, ChatUtils.createSignature(-1));
         return 1;
