@@ -138,6 +138,8 @@ return switch (setting) {
     case evernight.client.settings.NumberSetting<?> value -> new NumericSettingComponent<>(panel, this, value);
     case evernight.client.settings.ColorSetting value -> new ColorSettingComponent(panel, this, value);
     case evernight.client.settings.StringSetting value -> new StringSettingComponent(panel, this, value);
+    case evernight.client.settings.StringListSetting value -> new StringListSettingComponent(panel, this, value);
+    case evernight.client.settings.ActionSetting value -> new ActionSettingComponent(panel, this, value);
     case evernight.client.settings.EnumSetting<?> value -> new EnumSettingComponent<>(panel, this, value);
     case evernight.client.settings.IdentifierSetting value -> new SoundSettingComponent(panel, this, value);
     default -> null;
@@ -154,7 +156,9 @@ return switch (setting) {
 | `BooleanSettingComponent(Panel, CloseState, Setting<Boolean>)` | 左键切换；`visibilityDependency` 时右键展开子设置；`groupOnly` 行不可点、显示 "..." |
 | `NumericSettingComponent<N>(Panel, CloseState, NumberSetting<N>)` | 左键拖滑条（按 Integer/浮点取整，自动 clamp 到 min/max）；右键进入文本输入，Enter 提交、Esc 取消；字符只接受 `1234567890.,-` |
 | `EnumSettingComponent<E>(Panel, CloseState, EnumSetting<E>)` | 左键切到下一个值；右键展开/收起选项列表（组件内部会调用 `panel.updateLayout()`） |
-| `StringSettingComponent(Panel, CloseState, Setting<String>)` | 左键进入编辑，Enter 提交、Esc 取消、Ctrl+V 粘贴；`getText()`、`beginEditing()`（搜索框用）、`getCursorMarker()` |
+| `StringSettingComponent(Panel, CloseState, Setting<String>)` | 左键进入编辑，Enter 提交、Esc 取消、Ctrl+V 粘贴；`getText()`、`beginEditing()`（搜索框用）、`setText(String)`（预填列表项）、`getCursorMarker()` |
+| `StringListSettingComponent(Panel, ModuleComponent, StringListSetting)` | 显示 `名称 [条目数]`；左/右键打开 `StringListScreen`（添加/保存/删除/上移/下移/清空） |
+| `ActionSettingComponent(Panel, ModuleComponent, ActionSetting)` | 显示名称与 `withInfo(...)` 动态文本；左/右键执行动作（如打开交易管理器） |
 | `ColorSettingComponent(Panel, CloseState, Setting<Color>)` | 右键点击标题行展开/收起 HSV+Alpha 取色器（左键拖色块/色相/透明度）；自带 Copy/Paste/Sync/Rainbow 控件（主题色不建 Sync）；实现 `CloseState`；`isHeaderHovered(...)`、`isClosed()` |
 | `RegistrySetSettingComponent<E>(Panel, ModuleComponent, RegistrySetSetting<E>)` | 显示 `名称 [已选数量]`；左/右键打开 `RegistrySetScreen`；构造需要 `ModuleComponent` 当 CloseState |
 | `SoundSettingComponent(Panel, CloseState, Setting<NamedIdentifier>)` | 显示 `setting.getValue().getName()`；左键打开 `SoundSelectionScreen(setting, getClickGui())` |
