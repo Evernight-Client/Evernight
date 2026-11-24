@@ -34,8 +34,10 @@ public class HudAnchorGroup implements ClientAccess, GuiElement {
     }
 
     private float getBottomMargin(boolean rightAligned) {
-        float sideOffset = rightAligned ? hud.getBottomHudOffset() : hud.getChatInputOffset();
-        return Mth.clamp(hud.getSafeY() + sideOffset, 0.0F, 16.0F);
+        // The chat input and the ClickGUI keybind legend both lift the HUD, but only the legend sits at
+        // the bottom-right, and it can be several lines tall, so it is added after the safe-zone clamp.
+        float chatMargin = Mth.clamp(hud.getSafeY() + hud.getChatInputOffset(), 0.0F, 16.0F);
+        return rightAligned ? chatMargin + hud.getClickGuiHintOffset() : chatMargin;
     }
 
     private float calculateY(

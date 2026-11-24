@@ -13,12 +13,10 @@ import evernight.client.modules.Module;
 import evernight.client.modules.ModuleCategory;
 import evernight.client.modules.render.NoRender.NoRenderModule;
 import evernight.client.render.color.Catppuccin;
-import evernight.client.render.font.FontRenderer;
 import evernight.client.render.gui.GuiDrawUtils;
 import evernight.client.render.hud.HudWidgetRenderer;
 import evernight.client.utils.core.InterpolatedFloat;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
@@ -254,10 +252,12 @@ public class HUDModule extends Module {
         setting.setValue(boxedValue);
     }
 
-    public float getBottomHudOffset() {
-        float chatOffset = this.getChatInputOffset();
-        float searchOffset = this.clickGuiSearchOffset.currentValue;
-        return Math.max(chatOffset, searchOffset);
+    /**
+     * Extra bottom margin reserved for the ClickGUI keybind legend. It is added on top of the clamped
+     * chat margin because the legend can be several lines tall.
+     */
+    public float getClickGuiHintOffset() {
+        return this.clickGuiSearchOffset.currentValue;
     }
 
     public float getEffectIconOffset() {
@@ -300,16 +300,11 @@ public class HUDModule extends Module {
                 effectRows = 0;
             }
         }
-        boolean moveForSearch = false;
-        int searchHeightBase = FontRenderer.INSTANCE.getHeight();
-        HUDModule hud = this;
-        searchHeightBase -= hud.getSafeY();
-        int searchHeight = searchHeightBase + (2);
+        float searchTargetOffset = 0.0F;
         if (ClientAccess.evernightMinecraft.screen instanceof ClickGuiScreen clickGui) {
-            EditBox searchBox = clickGui.getSearchBox();
-            moveForSearch = !searchBox.isFocused();
+            // Reserve the whole keybind legend, not a single line, so the HUD clears it while it shows.
+            searchTargetOffset = clickGui.getHintHudOffset();
         }
-        float searchTargetOffset = moveForSearch ? searchHeight : 0.0F;
         this.clickGuiSearchOffset.setTarget(searchTargetOffset);
         this.clickGuiSearchOffset.updateAndGet();
         InterpolatedFloat capturedEffectAnimation = this.effectIconOffset;

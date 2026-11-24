@@ -60,6 +60,12 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
     private static final int TILING_START_X = 10;
     private static final int TILING_START_Y = 5;
     private static final int TILING_GAP = 3;
+    /** Vertical gap between two keybind hint lines, in unscaled GUI pixels. */
+    private static final float HINT_LINE_GAP = 1.0F;
+    /** Gap between the lowest hint line and the bottom edge of the screen. */
+    private static final float HINT_BOTTOM_GAP = 2.0F;
+    /** Breathing room between the HUD and the topmost hint line. */
+    private static final float HINT_HUD_GAP = 2.0F;
     /** Share of the remaining distance covered per frame: gives the pan a damped follow-up. */
     private static final float PAN_DAMPING = 0.30F;
     private static final float SCALE_DAMPING = 0.25F;
@@ -405,6 +411,54 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
     }
 
     /**
+     * The hint lines the legend shows, in top-to-bottom order.
+     */
+    private List<String> buildHintLines() {
+        List<String> hintLines = new ArrayList<>();
+        if (UIModule.INSTANCE.tilingSetting.getValue()) {
+            hintLines.add(Translations.ui("gui.Shift + Scroll - Pan"));
+        }
+        hintLines.add(Translations.ui("gui.Ctrl + Scroll - Resize GUI"));
+        hintLines.add(Translations.ui("gui.Shift + F1 - Reset Layout"));
+        hintLines.add(Translations.ui("gui.Search"));
+        return hintLines;
+    }
+
+    /**
+     * Whether the bottom-right keybind legend is drawn right now. The legend gives way to the search
+     * field.
+     */
+    public boolean isHintLegendVisible() {
+        return this.searchBox != null && !this.searchBox.isFocused();
+    }
+
+    /**
+     * Height the keybind legend occupies, measured from the bottom edge of the screen in unscaled GUI
+     * pixels. Kept in sync with the layout in {@link #renderHintLegend}.
+     */
+    public float getHintLegendHeight() {
+        int fontHeight = FontRenderer.INSTANCE.getHeight();
+        float lineHeight = fontHeight + HINT_LINE_GAP;
+        int lineCount = this.buildHintLines().size();
+        float height = fontHeight + HINT_BOTTOM_GAP + Math.max(0, lineCount - 1) * lineHeight;
+        if (this.getParentScreen() instanceof TitleScreen) {
+            height += lineHeight;
+        }
+        return height;
+    }
+
+    /**
+     * Bottom margin the HUD needs so the keybind legend does not overlap it. Zero while the legend is
+     * hidden, which lets the HUD settle back to its normal bottom edge.
+     */
+    public float getHintHudOffset() {
+        if (!this.isHintLegendVisible()) {
+            return 0.0F;
+        }
+        return Math.max(0.0F, this.getHintLegendHeight() + HINT_HUD_GAP - HUD.getSafeY());
+    }
+
+    /**
      * Draws the fixed-size keybind legend at the bottom-right corner, stacked above the search hint.
      * The GUI zoom is cancelled here so the legend keeps a constant on-screen size while Ctrl + wheel
      * zooms the panels.
@@ -419,18 +473,12 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
         int screenWidth = ClientAccess.evernightMinecraft.getWindow().getGuiScaledWidth();
         int screenHeight = ClientAccess.evernightMinecraft.getWindow().getGuiScaledHeight();
         int hudMargin = HUD.getSafeX();
-        float lineHeight = fontHeight + 1.0F;
-        float bottomLineTop = screenHeight - fontHeight - 2.0F;
+        float lineHeight = fontHeight + HINT_LINE_GAP;
+        float bottomLineTop = screenHeight - fontHeight - HINT_BOTTOM_GAP;
         if (this.getParentScreen() instanceof TitleScreen) {
-            bottomLineTop -= fontHeight + 1.0F;
+            bottomLineTop -= lineHeight;
         }
-        List<String> hintLines = new ArrayList<>();
-        if (UIModule.INSTANCE.tilingSetting.getValue()) {
-            hintLines.add(Translations.ui("gui.Shift + Scroll - Pan"));
-        }
-        hintLines.add(Translations.ui("gui.Ctrl + Scroll - Resize GUI"));
-        hintLines.add(Translations.ui("gui.Shift + F1 - Reset Layout"));
-        hintLines.add(Translations.ui("gui.Search"));
+        List<String> hintLines = this.buildHintLines();
         Color reminderColor = Catppuccin.OVERLAY1;
         Color searchColor = ColorUtils.pulse(Catppuccin.OVERLAY1, Catppuccin.TEXT, 2000.0D, 250.0D);
         int lineCount = hintLines.size();
