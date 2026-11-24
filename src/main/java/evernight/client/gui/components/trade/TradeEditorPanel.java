@@ -74,7 +74,7 @@ public class TradeEditorPanel extends Panel implements ClientAccess {
         });
         TradeDefinition trade = new TradeDefinition(this.tradeName, this.tradeItems.getFromStack().getItem(),
                 this.tradeItems.getToStack().getItem(), maxPrice, enchantments);
-        ClientContext.tradeRegistry.reregisterByName(this.tradeName);
+        ClientContext.tradeRegistry.unregisterByName(this.tradeName);
         ClientContext.tradeRegistry.registerTrade(trade);
         ((ClientScreen) ClientAccess.evernightMinecraft.screen).closeWithTransition();
     }

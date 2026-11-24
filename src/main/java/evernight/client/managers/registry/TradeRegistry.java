@@ -12,8 +12,6 @@ import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public final class TradeRegistry extends Registry<TradeDefinition> implements ClientAccess, JsonConfigurable {
@@ -59,11 +57,14 @@ public final class TradeRegistry extends Registry<TradeDefinition> implements Cl
         return root;
     }
 
-    public void reregisterByName(String name) {
-        Predicate<TradeDefinition> predicate = trade -> trade.getName().equalsIgnoreCase(name);
-        Optional<TradeDefinition> match = this.findFirst(predicate);
-        Consumer<TradeDefinition> consumer = this::registerTrade;
-        match.ifPresent(consumer);
+    /**
+     * Removes every trade stored under {@code name}. Re-registering an edited definition is a
+     * remove-then-add pair, because {@link Registry#registerEntry} rejects duplicate names, and the
+     * trade manager deletes through the same lookup so it still works after the selected entry was
+     * replaced by an edit.
+     */
+    public void unregisterByName(String name) {
+        this.getRegistry().removeIf(trade -> trade.getName().equalsIgnoreCase(name));
     }
 
     @Override

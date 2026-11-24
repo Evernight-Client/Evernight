@@ -13,6 +13,8 @@ import evernight.client.gui.components.base.ActionButtonComponent;
 import evernight.client.gui.components.base.ButtonComponent;
 
 public class TradeActionsPanel extends Panel implements ClientAccess {
+    /** How long the button stays armed after the first click, so a slow second click still deletes. */
+    private static final long DELETE_CONFIRM_WINDOW_MILLIS = 3000L;
     private final ElapsedTimer deleteConfirmationTimer = new ElapsedTimer();
     private final TradeManagerScreen managerScreen;
     private final TradeDefinition trade;
@@ -45,10 +47,12 @@ public class TradeActionsPanel extends Panel implements ClientAccess {
     }
 
     private void deleteIfConfirmed() {
-        if (!this.deleteConfirmationTimer.hasElapsedAndReset(1000L)) {
-            ClientContext.tradeRegistry.reregisterByName(this.trade.name());
-            this.showCreatePanel();
+        if (this.deleteConfirmationTimer.hasElapsed(DELETE_CONFIRM_WINDOW_MILLIS)) {
+            this.deleteConfirmationTimer.reset();
+            return;
         }
+        ClientContext.tradeRegistry.unregisterByName(this.trade.name());
+        this.showCreatePanel();
     }
 
     private void showCreatePanel() {
@@ -56,7 +60,7 @@ public class TradeActionsPanel extends Panel implements ClientAccess {
     }
 
     private String getDeleteButtonLabel() {
-        return this.deleteConfirmationTimer.hasElapsed(1000L)
+        return this.deleteConfirmationTimer.hasElapsed(DELETE_CONFIRM_WINDOW_MILLIS)
                 ? "gui.Delete"
                 : "gui.Are you sure?";
     }
