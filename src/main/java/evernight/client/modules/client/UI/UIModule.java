@@ -84,9 +84,8 @@ public final class UIModule extends Module {
         this.resetSetting = this.add(new BooleanSetting(("Reset"), true));
         this.styleSetting = this.add(new EnumSetting<>(("Style"), UIModule.StyleChoice.PLAIN));
         this.animSpeedSetting = this.add(new NumberSetting<>("AnimSpeed", 1.0F, 0.5F, 2.5F));
-        // The scale is driven by Ctrl + wheel inside the ClickGUI; the setting stays as the persisted
-        // value but is not rendered as a row anymore.
-        this.scaleSetting = this.add(new NumberSetting<>("Scale", 1.2F, 0.1F, 2.0F, ignored -> false));
+        // The scale is editable both as a row and with Ctrl + wheel inside the ClickGUI.
+        this.scaleSetting = this.add(new NumberSetting<>("Scale", 1.0F, 0.1F, 2.0F));
         this.snowSetting = this.add(new BooleanSetting("Snow", true));
         this.tilingSetting = this.add(new BooleanSetting("Tiling", true));
         this.languageSetting = this.add(new EnumSetting<>("Language", UIModule.LanguageChoice.ENGLISH));

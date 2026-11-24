@@ -31,6 +31,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import evernight.client.gui.screens.core.ClientScreen;
@@ -69,7 +70,7 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
     private float panY;
     private float panTargetX;
     private float panTargetY;
-    private float scaleTarget = 1.2F;
+    private float scaleTarget = 1.0F;
     private boolean tilingLayoutActive;
 
     public ClickGuiScreen() {
@@ -139,15 +140,6 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
         return true;
     }
 
-    private boolean isMouseOverAnyPanel(double mouseX, double mouseY) {
-        for (Panel panel : this.panels) {
-            if (panel.isMouseOver(mouseX, mouseY)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * Damped follow-up of the pan and zoom targets. Called once per frame so wheel and arrow input feel
      * continuous instead of jumping, and the strip keeps gliding for a few frames after the input stops.
@@ -181,6 +173,9 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
         this.scaleTarget = defaultScale;
         this.guiScale = defaultScale;
         UIModule.INSTANCE.scaleSetting.setValue(defaultScale);
+        this.panels.sort(Comparator.comparingInt(
+                panel -> panel instanceof ModuleCategoryPanel categoryPanel
+                        ? categoryPanel.category.ordinal() : 100));
         int panelX = TILING_START_X;
         for (Panel panel : this.panels) {
             panel.setX(panelX);
@@ -195,8 +190,9 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
     }
 
     /**
-     * Wheel pans the strip vertically, Shift + wheel pans it horizontally and Ctrl + wheel resizes the
-     * whole GUI. Only active while the tiling layout is enabled; otherwise the panels scroll as usual.
+     * Ctrl + wheel resizes the whole GUI in small steps and works regardless of the tiling setting.
+     * While the tiling layout is active, the wheel pans the strip (Shift + wheel pans horizontally) and
+     * a horizontal touchpad swipe pans it horizontally too. Without tiling the panels scroll as usual.
      */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
@@ -204,19 +200,21 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
             this.zoomGui(verticalAmount > 0.0 ? SCALE_STEP : -SCALE_STEP);
             return true;
         }
-        if (UIModule.INSTANCE.tilingSetting.getValue() && verticalAmount != 0.0) {
-            double scale = GuiScaleUtils.calculateScaleMultiplier(this.guiScale);
-            if (this.isMouseOverAnyPanel(mouseX / scale, mouseY / scale)) {
-                // Keep the panels' own content scrolling usable: the wheel scrolls the panel under the
-                // cursor, and only the empty canvas pans the strip.
-                return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+        if (UIModule.INSTANCE.tilingSetting.getValue()) {
+            float stepX = 0.0F;
+            float stepY = 0.0F;
+            if (horizontalAmount != 0.0) {
+                stepX += (float) (-horizontalAmount * TILING_PAN_STEP);
             }
-            float step = (float) (-verticalAmount * TILING_PAN_STEP);
-            if (isShiftDown()) {
-                this.panTargetX += step;
-            } else {
-                this.panTargetY += step;
+            if (verticalAmount != 0.0) {
+                if (isShiftDown()) {
+                    stepX += (float) (-verticalAmount * TILING_PAN_STEP);
+                } else {
+                    stepY += (float) (-verticalAmount * TILING_PAN_STEP);
+                }
             }
+            this.panTargetX += stepX;
+            this.panTargetY += stepY;
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
