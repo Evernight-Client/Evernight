@@ -177,7 +177,8 @@ public class NameTagsModule extends Module {
             Setting<Boolean> option = this.infoSetting;
             return option.isExpanded();
         }));
-        this.potionSetting = this.add(new BooleanSetting("Potion", true).markAsGroup().dependsOn(this.infoSetting));
+        this.potionSetting = this.add(new BooleanSetting("Potion", true).dependsOn(this.infoSetting)
+                .markVisibilityDependency());
         this.potionNegativeSetting = this.add(new BooleanSetting("Negative", true).dependsOn(this.potionSetting));
         this.potionShowDurationSetting = this.add(new BooleanSetting("ShowDuration", true).dependsOn(this.potionSetting));
         this.potionSplitLinesSetting = this.add(new BooleanSetting("SplitLines", true).dependsOn(this.potionSetting));
@@ -417,6 +418,9 @@ public class NameTagsModule extends Module {
     }
 
     private List<String> buildPotionLines(LivingEntity entity) {
+        if (!this.potionSetting.getValue()) {
+            return List.of();
+        }
         if (!(entity instanceof Player potionPlayer)) {
             return List.of();
         }
