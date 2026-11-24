@@ -410,7 +410,10 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
      * zooms the panels.
      */
     private void renderHintLegend(PoseStack poseStack, int fontHeight) {
-        float zoom = (float) GuiScaleUtils.calculateScaleMultiplier(this.guiScale);
+        // Use the scale that was actually applied to the pose stack this frame. this.guiScale is eased
+        // by updateTilingAnimation() later in the same frame, so reading it here would lag one step and
+        // make the legend jitter while zooming.
+        float zoom = (float) GuiScaleUtils.getScaleMultiplier();
         poseStack.pushPose();
         poseStack.scale(1.0F / zoom, 1.0F / zoom, 1.0F);
         int screenWidth = ClientAccess.evernightMinecraft.getWindow().getGuiScaledWidth();
