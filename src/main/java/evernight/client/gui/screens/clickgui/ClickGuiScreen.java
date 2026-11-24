@@ -479,15 +479,14 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
             bottomLineTop -= lineHeight;
         }
         List<String> hintLines = this.buildHintLines();
-        Color reminderColor = Catppuccin.OVERLAY1;
-        Color searchColor = ColorUtils.pulse(Catppuccin.OVERLAY1, Catppuccin.TEXT, 2000.0D, 250.0D);
+        // Every line breathes like the search hint so the whole legend reads as one reminder block.
+        Color hintColor = ColorUtils.pulse(Catppuccin.OVERLAY1, Catppuccin.TEXT, 2000.0D, 250.0D);
         int lineCount = hintLines.size();
         for (int lineIndex = 0; lineIndex < lineCount; lineIndex++) {
             String line = hintLines.get(lineIndex);
-            Color color = lineIndex == lineCount - 1 ? searchColor : reminderColor;
             float x = screenWidth - FontRenderer.INSTANCE.getWidth(line) - hudMargin;
             float y = bottomLineTop - (lineCount - 1 - lineIndex) * lineHeight;
-            FontRenderer.INSTANCE.drawWithShadow(poseStack, line, x, y, color);
+            FontRenderer.INSTANCE.drawWithShadow(poseStack, line, x, y, hintColor);
         }
         poseStack.popPose();
     }
