@@ -66,6 +66,8 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
     private static final float HINT_BOTTOM_GAP = 2.0F;
     /** Breathing room between the HUD and the topmost hint line. */
     private static final float HINT_HUD_GAP = 2.0F;
+    /** Share of the legend block the HUD is lifted by; the whole block lifts it too far. */
+    private static final float HINT_HUD_LIFT_RATIO = 0.5F;
     /** Share of the remaining distance covered per frame: gives the pan a damped follow-up. */
     private static final float PAN_DAMPING = 0.30F;
     private static final float SCALE_DAMPING = 0.25F;
@@ -456,7 +458,8 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
         if (!this.isHintLegendVisible()) {
             return 0.0F;
         }
-        return Math.max(0.0F, this.getHintLegendHeight() + HINT_HUD_GAP - HUD.getSafeY());
+        float lift = this.getHintLegendHeight() + HINT_HUD_GAP - HUD.getSafeY();
+        return Math.max(0.0F, lift * HINT_HUD_LIFT_RATIO);
     }
 
     /**
