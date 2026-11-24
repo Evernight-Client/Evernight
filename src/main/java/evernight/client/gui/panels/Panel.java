@@ -122,7 +122,25 @@ public class Panel implements RegistryContainer<GuiElement>, GuiElement, NamedEn
     }
 
     public void disableHeightLimit() {
-        this.heightLimitDisabled = true;
+        this.setHeightLimitDisabled(true);
+    }
+
+    /**
+     * Enables or disables the panel's height limit. Disabling it renders the panel at its full content
+     * height and stops the internal wheel scroll, which the tiling layout uses so the viewport pan can
+     * reveal panels that extend past the screen edge. The scroll offset is reset when the limit is
+     * disabled so leftover scrolling does not clip the top of the panel.
+     */
+    public void setHeightLimitDisabled(boolean disabled) {
+        if (this.heightLimitDisabled == disabled) {
+            return;
+        }
+        this.heightLimitDisabled = disabled;
+        if (disabled) {
+            this.scrollOffset = 0;
+            this.scrollRecoveryCounter = 0;
+            this.scrollAnimation.setValue(0.0F);
+        }
     }
 
     protected int getHeightLimit() {

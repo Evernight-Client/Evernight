@@ -107,10 +107,15 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
         }
         this.tilingLayoutActive = tilingEnabled;
         if (!tilingEnabled) {
+            for (Panel panel : this.panels) {
+                panel.setHeightLimitDisabled(false);
+            }
             return;
         }
         int cursorX = TILING_START_X;
         for (Panel panel : this.panels) {
+            // Show every module at full height; the strip pan reveals what runs past the screen edge.
+            panel.setHeightLimitDisabled(true);
             panel.setX(Math.round(cursorX - this.panX));
             panel.setY(Math.round(TILING_START_Y - this.panY));
             cursorX += panel.getWidth() + TILING_GAP;
@@ -395,16 +400,45 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
                     - searchTextWidth / 2.0F, GuiScaleUtils.getScaledHeight() / 2.0F - fontHeight
                     / 2.0F, Catppuccin.TEXT);
         } else {
-            String searchHint = Translations.ui("gui.Search");
-            float hintY = GuiScaleUtils.getScaledHeight() - fontHeight - 1;
-            if (this.getParentScreen() instanceof TitleScreen) {
-                hintY -= fontHeight + 1;
-            }
-            Color hintColor = ColorUtils.pulse(Catppuccin.OVERLAY1, Catppuccin.TEXT, 2000.0D, 250.0D);
-            int hudMargin = HUD.getSafeX();
-            FontRenderer.INSTANCE.drawWithShadow(poseStack, searchHint, GuiScaleUtils.getScaledWidth()
-                    - FontRenderer.INSTANCE.getWidth(searchHint) - hudMargin, hintY - 1.0F, hintColor);
+            this.renderHintLegend(poseStack, fontHeight);
         }
+    }
+
+    /**
+     * Draws the fixed-size keybind legend at the bottom-right corner, stacked above the search hint.
+     * The GUI zoom is cancelled here so the legend keeps a constant on-screen size while Ctrl + wheel
+     * zooms the panels.
+     */
+    private void renderHintLegend(PoseStack poseStack, int fontHeight) {
+        float zoom = (float) GuiScaleUtils.calculateScaleMultiplier(this.guiScale);
+        poseStack.pushPose();
+        poseStack.scale(1.0F / zoom, 1.0F / zoom, 1.0F);
+        int screenWidth = ClientAccess.evernightMinecraft.getWindow().getGuiScaledWidth();
+        int screenHeight = ClientAccess.evernightMinecraft.getWindow().getGuiScaledHeight();
+        int hudMargin = HUD.getSafeX();
+        float lineHeight = fontHeight + 1.0F;
+        float bottomLineTop = screenHeight - fontHeight - 2.0F;
+        if (this.getParentScreen() instanceof TitleScreen) {
+            bottomLineTop -= fontHeight + 1.0F;
+        }
+        List<String> hintLines = new ArrayList<>();
+        if (UIModule.INSTANCE.tilingSetting.getValue()) {
+            hintLines.add(Translations.ui("gui.Shift + Scroll - Pan"));
+        }
+        hintLines.add(Translations.ui("gui.Ctrl + Scroll - Resize GUI"));
+        hintLines.add(Translations.ui("gui.Shift + F1 - Reset Layout"));
+        hintLines.add(Translations.ui("gui.Search"));
+        Color reminderColor = Catppuccin.OVERLAY1;
+        Color searchColor = ColorUtils.pulse(Catppuccin.OVERLAY1, Catppuccin.TEXT, 2000.0D, 250.0D);
+        int lineCount = hintLines.size();
+        for (int lineIndex = 0; lineIndex < lineCount; lineIndex++) {
+            String line = hintLines.get(lineIndex);
+            Color color = lineIndex == lineCount - 1 ? searchColor : reminderColor;
+            float x = screenWidth - FontRenderer.INSTANCE.getWidth(line) - hudMargin;
+            float y = bottomLineTop - (lineCount - 1 - lineIndex) * lineHeight;
+            FontRenderer.INSTANCE.drawWithShadow(poseStack, line, x, y, color);
+        }
+        poseStack.popPose();
     }
 
     private void drawSearchDimmer(PoseStack poseStack) {
