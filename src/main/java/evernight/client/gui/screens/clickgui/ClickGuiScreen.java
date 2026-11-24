@@ -426,10 +426,11 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
 
     /**
      * Whether the bottom-right keybind legend is drawn right now. The legend gives way to the search
-     * field.
+     * field and can be switched off in {@code UI > Elements > Hints}.
      */
     public boolean isHintLegendVisible() {
-        return this.searchBox != null && !this.searchBox.isFocused();
+        return this.searchBox != null && !this.searchBox.isFocused()
+                && UIModule.INSTANCE.hintsSetting.getValue();
     }
 
     /**
@@ -464,6 +465,9 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
      * zooms the panels.
      */
     private void renderHintLegend(PoseStack poseStack, int fontHeight) {
+        if (!this.isHintLegendVisible()) {
+            return;
+        }
         // Use the scale that was actually applied to the pose stack this frame. this.guiScale is eased
         // by updateTilingAnimation() later in the same frame, so reading it here would lag one step and
         // make the legend jitter while zooming.

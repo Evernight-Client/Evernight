@@ -55,6 +55,7 @@ public final class UIModule extends Module {
     public final Setting<Boolean> lineSetting;
     public final Setting<Boolean> bindsSetting;
     public final Setting<Boolean> gearSetting;
+    public final Setting<Boolean> hintsSetting;
     public final Setting<Boolean> soundsSetting;
     public final Setting<Boolean> hoverSetting;
     public final Setting<NamedIdentifier> hoverSoundSetting;
@@ -104,6 +105,8 @@ public final class UIModule extends Module {
         this.bindsSetting = this.add(new BooleanSetting("Binds", true, bindsVisibility));
         Predicate<Object> gearVisibility = ignored -> this.elementsSetting.isExpanded();
         this.gearSetting = this.add(new BooleanSetting("Gear", true, gearVisibility));
+        Predicate<Object> hintsVisibility = ignored -> this.elementsSetting.isExpanded();
+        this.hintsSetting = this.add(new BooleanSetting("Hints", true, hintsVisibility));
         BooleanSetting soundsOption = new BooleanSetting("Sounds", true);
         soundsOption.markAsGroup();
         soundsOption.markVisibilityDependency();
