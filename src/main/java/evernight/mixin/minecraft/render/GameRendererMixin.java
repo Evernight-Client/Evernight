@@ -9,6 +9,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.GameRenderer;
 import evernight.client.ClientAccess;
 import evernight.client.ClientContext;
 import evernight.client.events.render.HudRenderEvent;
@@ -117,19 +118,19 @@ public abstract class GameRendererMixin {
         return noRenderModule.isToggled() && noRenderModule.blindnessSetting.getValue() ? 0.0F : Mth.lerp(fraction, start, end);
     }
 
-    @Inject(
-            method = "renderLevel",
-            at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiling/ProfilerFiller;popPush(Ljava/lang/String;)V", args = "ldc=level")
-    )
-    private void captureWorldProjectionMatrix(DeltaTracker deltaTracker, CallbackInfo callback,
-                                              @Local(ordinal = 0) Matrix4f projectionMatrix,
-                                              @Local(ordinal = 1) Matrix4f unusedSecondMatrix,
-                                              @Local(ordinal = 1) float unusedRenderFloat,
-                                              @Local PoseStack poses) {
-        RenderUtils.WORLD_PROJECTION_MATRIX.set(projectionMatrix);
-    }
-
-    @WrapWithCondition(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand(FZLorg/joml/Matrix4f;)V"))
+    /**
+     * Captures the projection matrix vanilla computed for this frame.
+     *
+     * <p>Hooking {@code getProjectionMatrix(float fov)} directly: its argument is the FOV in degrees,
+     * not the partial tick, and the old {@code @Local} capture on renderLevel silently stopped
+     * resolving, which left WORLD_PROJECTION_MATRIX as an identity matrix and collapsed every 2D ESP
+     * box into the screen centre.
+     */
+    @ModifyReturnValue(method = "getProjectionMatrix", at = @At("RETURN"))
+    private Matrix4f captureProjectionMatrix(Matrix4f original) {
+        RenderUtils.WORLD_PROJECTION_MATRIX.set(original);
+        return original;
+    }    @WrapWithCondition(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand(FZLorg/joml/Matrix4f;)V"))
     private boolean shouldRenderHands(
             GameRenderer renderer, float partialTick, boolean ignoredHandFlag, Matrix4f projectionMatrix) {
         return !shader.isToggled() || !shader.handsSetting.getValue();
