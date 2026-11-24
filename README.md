@@ -10,6 +10,8 @@ Evernight 将战斗、移动、渲染、玩家、自动、杂项、漏洞利用�
 
 > 运行环境：Minecraft 1.21.11 · Fabric Loader 0.19.5+ · Fabric API · Java 21+
 
+>官方 QQ 群949374129 
+
 > 完整使用教程（安装、界面、指令、模块速查、配置与预设、插件开发）见 **[Evernight Wiki](https://github.com/Evernight-Client/Evernight/wiki)**。
 
 ## 目录
@@ -105,7 +107,7 @@ Evernight 将战斗、移动、渲染、玩家、自动、杂项、漏洞利用�
 3. 启动游戏。首次启动会在游戏目录创建 `evernight/` 配置文件夹。
 4. 按需安装 Baritone（Meteor 或 rfresh2 分支）、ViaFabricPlus、Xaero's Minimap 或 EntityCulling，以启用对应集成。
 
-> 构建好的发行版可加 QQ 群 **949374129** 获取；也可以按[从源码构建](#从源码构建)自行编译。
+
 
 ## 使用教程（Wiki）
 
