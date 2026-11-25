@@ -74,6 +74,7 @@ import evernight.client.modules.combat.Trigger.TriggerModule;
 import evernight.client.modules.combat.WebAura.WebAuraModule;
 import evernight.client.modules.exploit.AntiHunger.AntiHungerModule;
 import evernight.client.modules.exploit.AntiVanish.AntiVanishModule;
+import evernight.client.modules.exploit.BowPull.BowPullModule;
 import evernight.client.modules.exploit.ChorusControl.ChorusControlModule;
 import evernight.client.modules.exploit.FakeVanilla.FakeVanillaModule;
 import evernight.client.modules.exploit.FastLatency.FastLatencyModule;
@@ -333,6 +334,8 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected BordersModule");
         if (!this.registerModule(new evernight.client.modules.combat.BowAim.BowAimModule()))
             throw new IllegalStateException("Registration rejected BowAimModule");
+        if (!this.registerModule(new evernight.client.modules.exploit.BowPull.BowPullModule()))
+            throw new IllegalStateException("Registration rejected BowPullModule");
         if (!this.registerModule(new evernight.client.modules.render.BreakHighlight.BreakHighlightModule()))
             throw new IllegalStateException("Registration rejected BreakHighlightModule");
         if (!this.registerModule(new evernight.client.modules.client.Capes.CapesModule()))
