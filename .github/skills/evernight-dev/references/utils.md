@@ -393,4 +393,4 @@ float radius)`、`collectSphereBlocks(Vec3 center, float radius, boolean exclude
 | `BlockBreakingState` 破坏状态 mixin 接口（`MultiPlayerGameMode`） | `getCurrentBreakingBlock`、`setBreakingProgress` 等；由 mixin 实现 |
 | `BlockRegistryGroupMatcher` 方块版 `RegistryGroupMatcher` | `getRegistryId`、`getGroupNames`、`getGroupEntries` |
 | `Season` 季节枚举（`UIModule`/`ClientScreen` 主题） | `WINTER/SPRING/SUMMER/AUTUMN`；`fromMonth`、`containsMonth` |
-| `ItemFrameContainerLocator` 展示框标记容器 | `findMarkedFrames`、`findAllContainers`、`findNearestContainer(Predicate<ItemStack>\|Item, double)`、`resolveContainer(ItemFrame)`、`isContainer(BlockPos)`；按玩家距离升序，只认 `Container` 方块实体 |
+| `ItemFrameContainerLocator` 展示框标记容器 | `findMarkedFrames`、`findNearestFrame(Predicate<ItemStack>, double)`、`findAllContainers`、`findNearestContainer(Predicate<ItemStack>\|Item, double)`、`resolveContainer(ItemFrame)`、`isContainer(BlockPos)`；按玩家距离升序，只认 `Container` 方块实体 |

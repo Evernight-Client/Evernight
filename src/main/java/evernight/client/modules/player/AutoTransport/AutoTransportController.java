@@ -18,8 +18,12 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -30,6 +34,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -63,6 +68,14 @@ public final class AutoTransportController implements ClientAccess {
     private static final double EDGE_STOP_DISTANCE = 0.95D;
     private static final int[][] EDGE_OFFSETS =
             {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+    /**
+     * The item frame anchors: redstone dust named 搬走 marks the source end, redstone block named
+     * 搬到 marks the destination end. The names are item names configured by the player, not UI text.
+     */
+    private static final Item SOURCE_ANCHOR_ITEM = Items.REDSTONE;
+    private static final String SOURCE_ANCHOR_NAME = "搬走";
+    private static final Item DESTINATION_ANCHOR_ITEM = Items.REDSTONE_BLOCK;
+    private static final String DESTINATION_ANCHOR_NAME = "搬到";
 
     private enum Side {
         SOURCE,
@@ -264,14 +277,64 @@ public final class AutoTransportController implements ClientAccess {
     }
 
     private Side resolveInitialSide() {
-        return this.module.getSideChoice() == AutoTransportSideChoice.DESTINATION ? Side.DESTINATION : Side.SOURCE;
+        AutoTransportSideChoice choice = this.module.getSideChoice();
+        if (choice == AutoTransportSideChoice.SOURCE) {
+            return Side.SOURCE;
+        }
+        if (choice == AutoTransportSideChoice.DESTINATION) {
+            return Side.DESTINATION;
+        }
+        Side detected = this.resolveSideFromAnchors();
+        return detected != null ? detected : Side.SOURCE;
     }
 
     private Side resolveArrivalSide() {
         if (this.module.getSideChoice() != AutoTransportSideChoice.AUTO) {
             return this.side;
         }
+        Side detected = this.resolveSideFromAnchors();
+        if (detected != null) {
+            return detected;
+        }
         return this.side == Side.SOURCE ? Side.DESTINATION : Side.SOURCE;
+    }
+
+    /**
+     * Detects the current end from the named item frame anchors around the player.
+     *
+     * <p>The two ends are far apart, so at most one end's anchor is within the scan radius. When both
+     * are somehow visible the nearest one wins.
+     *
+     * @return the detected side, or null when no anchor frame is loaded near the player
+     */
+    private Side resolveSideFromAnchors() {
+        LocalPlayer player = evernightMinecraft.player;
+        if (player == null) {
+            return null;
+        }
+        double range = this.module.getScanRange();
+        Optional<ItemFrame> sourceAnchor = ItemFrameContainerLocator.findNearestFrame(
+                stack -> hasAnchorName(stack, SOURCE_ANCHOR_ITEM, SOURCE_ANCHOR_NAME), range);
+        Optional<ItemFrame> destinationAnchor = ItemFrameContainerLocator.findNearestFrame(
+                stack -> hasAnchorName(stack, DESTINATION_ANCHOR_ITEM, DESTINATION_ANCHOR_NAME), range);
+        if (sourceAnchor.isPresent() && destinationAnchor.isPresent()) {
+            Vec3 position = player.position();
+            double sourceDistance = position.distanceToSqr(sourceAnchor.get().position());
+            double destinationDistance = position.distanceToSqr(destinationAnchor.get().position());
+            return sourceDistance <= destinationDistance ? Side.SOURCE : Side.DESTINATION;
+        }
+        if (sourceAnchor.isPresent()) {
+            return Side.SOURCE;
+        }
+        return destinationAnchor.isPresent() ? Side.DESTINATION : null;
+    }
+
+    private static boolean hasAnchorName(ItemStack stack, Item item, String name) {
+        if (stack.isEmpty() || !stack.is(item)) {
+            return false;
+        }
+        Component customName = stack.get(DataComponents.CUSTOM_NAME);
+        return customName != null && name.equals(customName.getString().trim());
     }
 
     private void waitRecall() {
@@ -288,6 +351,12 @@ public final class AutoTransportController implements ClientAccess {
                 this.module.notifyInfo("NoCargoChest");
             }
             return;
+        }
+        if (this.module.getSideChoice() == AutoTransportSideChoice.AUTO) {
+            Side detected = this.resolveSideFromAnchors();
+            if (detected != null) {
+                this.side = detected;
+            }
         }
         this.enterPhase(AutoTransportPhase.DETECT_PEARL);
     }

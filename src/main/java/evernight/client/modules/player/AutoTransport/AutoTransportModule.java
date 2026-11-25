@@ -23,6 +23,9 @@ import net.minecraft.network.chat.Component;
  * ends. Before throwing, the module finds the nearest bubble column, sneaks to its edge without
  * stepping on it and throws the pearl down into it.
  *
+ * <p>The two ends are far apart, so the module tells them apart by the nearby anchor frame: redstone
+ * dust renamed to 搬走 marks the source end, redstone block renamed to 搬到 marks the destination end.
+ *
  * <p>Everything is client side: the module only sends the interactions a player would send, and it
  * pauses with a translated chat message when a required chest, bubble column or pearl is missing.
  */

@@ -19,13 +19,14 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Locates containers that are marked by an item frame.
+ * Locates item frames that display a marker item, and the containers those frames are attached to.
  *
  * <p>A frame is a marker when the item it displays matches the caller's filter, for example an ender
- * pearl marking the pearl chest or a shulker box marking the cargo chest. The marked container is the
- * block the frame is attached to, which vanilla derives from the frame position and its facing
- * direction. Only block entities implementing {@link Container} are reported (chests, barrels,
- * shulker boxes, hoppers, dispensers and similar), so frames attached to walls or signs are ignored.
+ * pearl marking the pearl chest, a shulker box marking the cargo chest, or a renamed redstone item
+ * marking one end of a transport route. The marked container is the block the frame is attached to,
+ * which vanilla derives from the frame position and its facing direction; only block entities
+ * implementing {@link Container} are reported (chests, barrels, shulker boxes, hoppers, dispensers and
+ * similar), so frames attached to walls or signs are ignored.
  *
  * <p>All methods are read-only queries over the currently loaded world and return an empty result
  * when there is no local player or level. Results are ordered by distance to the player, nearest
@@ -63,6 +64,22 @@ public final class ItemFrameContainerLocator implements ClientAccess {
             frames.sort(Comparator.comparingDouble(frame -> frame.position().distanceToSqr(eyePosition)));
         }
         return frames;
+    }
+
+    /**
+     * @return the nearest marked frame within the given distance, or empty when none matches
+     */
+    public static Optional<ItemFrame> findNearestFrame(Predicate<ItemStack> marker, double maxDistance) {
+        if (ClientAccess.evernightMinecraft.player == null) {
+            return Optional.empty();
+        }
+        Vec3 playerPosition = ClientAccess.evernightMinecraft.player.position();
+        for (ItemFrame frame : findMarkedFrames(marker)) {
+            if (playerPosition.distanceTo(frame.position()) <= maxDistance) {
+                return Optional.of(frame);
+            }
+        }
+        return Optional.empty();
     }
 
     /**
