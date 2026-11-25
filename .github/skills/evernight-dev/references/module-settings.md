@@ -56,6 +56,12 @@ public record Keybind(int code, Mode mode, boolean mouse) {
 
 `setDrawn/isDrawn` 控制列表/通知展示，`setWip`(protected)/`isWip` 只标记开发中。
 
+### 2.5 可选模组依赖
+
+- 整个模块依赖某个可选模组时，在构造器调 `protected final void requiresMod(String... modIds)`：任一 id 加载即算可用（如 `"baritone", "baritone-meteor"`）。`isAvailable()` 返回结果，GUI/补全会据此过滤；不可用模块仍注册（配置不丢），但不会出现在 ClickGUI、搜索和模块名补全里，`;<alias>` 不注册，`enable()` 直接返回。
+- 只有个别配置项依赖可选模组时，用 `Setting#hideWithoutBaritone()` 或 `hideUnlessModLoaded(String...)`，别把无意义的开关留在界面上。
+- 可选模组类不能出现在模块的字段类型、`implements` 列表或 `@EventHandler` 方法签名里（反射解析字段类型会在未安装时崩溃），桥接与字段类型禁区见 `SKILL.md` §3.8。
+
 ## 3. ModuleCategory 与派生基类
 
 ### 3.1 内置分类与插件分类
@@ -118,6 +124,7 @@ Setting(String name, T defaultValue, T min, T max, Predicate<? super T> visibili
 | `setConfigName` | `void setConfigName(String)` | 改配置键；**发布后不可改，否则老配置失效**。 |
 | `setChangeCallback` | `void setChangeCallback(Runnable)` | 值引用变化时执行；异常被吞。 |
 | `hideWithoutBaritone` | `void hideWithoutBaritone()` | Baritone 不可用时隐藏。 |
+| `hideUnlessModLoaded` | `void hideUnlessModLoaded(String... modIds)` | 任一给定模组 id 未加载时隐藏，用于 Xaero 等其它可选模组的单项配置。 |
 | `setBoundaryLabel` | `final Setting<T> setBoundaryLabel(String, SettingLabelCondition)` | 触 MIN/MAX 显示标签（`"None"`/`"Vanilla"`），仅 `hasNumericValue()`。 |
 | `forceOpaqueColor` | `Setting<T> forceOpaqueColor()` | alpha=255。 |
 | `setExcludedFromConfig` | `void setExcludedFromConfig(boolean)` | 不进 `Module#toJson/fromJson` 与预设。 |

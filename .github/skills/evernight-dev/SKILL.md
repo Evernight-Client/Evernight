@@ -128,6 +128,8 @@ public abstract class AvatarMixin {
 
 - 模块只持有桥接口或与可选模组无关的抽象；真实实现只在 `isBaritoneLoaded()` / `isAvailable()` 为真时构造，空实现负责无害的默认值。
 - 可选模组类只允许出现在桥的实现类里（`BaritoneAdapter`、`XaeroWaypointAdapter`），不要出现在模块的字段类型、`implements` 列表或 `@EventHandler` 签名里。
+- 整个模块都依赖某个可选模组时，在构造器调 `requiresMod("baritone", "baritone-meteor")`（任一模组 id 加载即可用）：模块仍注册、配置保留，但 ClickGUI、搜索、模块名补全与 `;<alias>` 都会隐藏，`enable()` 拒绝启用。
+- 只有个别配置项依赖可选模组时，用 `Setting#hideWithoutBaritone()` 或 `hideUnlessModLoaded("xaerominimap")`，别把无意义的开关留在界面上。
 - 运行时判断一律用 `ClientContext.baritoneBridge.isAvailable()`；`@Pseudo` mixin 的 `evernight.mixins.<模组>.json` 只负责可选注入，不能替代上面的字段隔离。
 
 细节与崩溃堆栈见 `references/module-settings.md` §6.1。
