@@ -80,6 +80,7 @@ public class StashFinderModule extends Module {
         this.logSetting = this.add(new BooleanSetting(("Log"), logDefault));
         Boolean xaeroDefault = false;
         this.xaeroSetting = this.add(new BooleanSetting(("Xaero"), xaeroDefault));
+        this.xaeroSetting.hideUnlessModLoaded("xaerominimap");
         Boolean writeWaypointsDefault = false;
         this.writeWaypointsSetting = this.add(new BooleanSetting(("WriteWaypoints"), writeWaypointsDefault));
         Boolean notifyDefault = true;

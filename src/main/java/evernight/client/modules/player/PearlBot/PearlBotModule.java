@@ -60,6 +60,7 @@ public final class PearlBotModule extends Module {
         this.doneMessageSetting = this.add(new StringSetting("DoneMessage", "已完成"));
         this.trapdoorDelaySetting = this.add(new NumberSetting<>("TrapdoorDelay", 1, 1, 20));
         this.returnSetting = this.add(new BooleanSetting("Return", true));
+        this.returnSetting.hideWithoutBaritone();
         this.controller = new PearlBotController(this);
     }
 

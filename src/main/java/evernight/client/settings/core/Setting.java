@@ -4,6 +4,7 @@ import evernight.client.ClientContext;
 import evernight.client.NamedFeature;
 import evernight.client.config.json.EnumJsonConverter;
 import evernight.client.render.text.Translations;
+import net.fabricmc.loader.api.FabricLoader;
 
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -249,6 +250,23 @@ public abstract class Setting<T> extends NamedFeature implements ValueProvider<T
     public void hideWithoutBaritone() {
         Predicate<T> baritoneAvailable = ignoredValue -> ClientContext.baritoneBridge.isAvailable();
         this.addVisibilityPredicate(baritoneAvailable);
+    }
+
+    /**
+     * Hides this setting when none of the given optional mod ids is loaded, for settings that only
+     * affect a feature of that mod.
+     */
+    public void hideUnlessModLoaded(String... modIds) {
+        Predicate<T> modAvailable = ignoredValue -> {
+            FabricLoader loader = FabricLoader.getInstance();
+            for (String modId : modIds) {
+                if (loader.isModLoaded(modId)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        this.addVisibilityPredicate(modAvailable);
     }
 
     public Setting<T> forceOpaqueColor() {
