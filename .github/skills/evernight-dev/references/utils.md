@@ -1,6 +1,6 @@
 # Evernight 工具类 —— client/utils 全量速查
 
-覆盖 `src/main/java/evernight/client/utils/` 全部 120 个文件（chat、collections、combat、entity、inventory、math、
+覆盖 `src/main/java/evernight/client/utils/` 全部 137 个文件（chat、collections、combat、entity、inventory、math、
 movement、network、world 9 个子包 + 根目录），路径相对仓库根。方法名齐全，参数只保留有语义的部分（类型见源码）；
 `**坑**` 为必须遵守的约束。
 
@@ -77,6 +77,7 @@ easingEnabled)`；`setTarget`、`updateAndGet`（**每帧一次**）、`setValue
 | 类 | 关键 API |
 | --- | --- |
 | `ChatFilterEntry` 过滤器条目 | `record ChatFilterEntry(String id, String filter)`（`ChatFilterRegistry` 数据载体） |
+| `RandomTagReplacer` 随机标签替换 | `TOKEN="<随机>"`、`ASCII_ALIAS="<random>"`、`RANDOM_LENGTH=5`；`containsTag`、`apply`（每次出现生成新的 5 位 `[A-Za-z0-9]`，无标签原样返回） |
 
 ### `ChatUtils`（`utils/chat/ChatUtils.java:30`）聊天输出/前缀/水印
 
@@ -392,3 +393,4 @@ float radius)`、`collectSphereBlocks(Vec3 center, float radius, boolean exclude
 | `BlockBreakingState` 破坏状态 mixin 接口（`MultiPlayerGameMode`） | `getCurrentBreakingBlock`、`setBreakingProgress` 等；由 mixin 实现 |
 | `BlockRegistryGroupMatcher` 方块版 `RegistryGroupMatcher` | `getRegistryId`、`getGroupNames`、`getGroupEntries` |
 | `Season` 季节枚举（`UIModule`/`ClientScreen` 主题） | `WINTER/SPRING/SUMMER/AUTUMN`；`fromMonth`、`containsMonth` |
+| `ItemFrameContainerLocator` 展示框标记容器 | `findMarkedFrames`、`findAllContainers`、`findNearestContainer(Predicate<ItemStack>\|Item, double)`、`resolveContainer(ItemFrame)`、`isContainer(BlockPos)`；按玩家距离升序，只认 `Container` 方块实体 |
