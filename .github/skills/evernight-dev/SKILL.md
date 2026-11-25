@@ -120,6 +120,18 @@ public abstract class AvatarMixin {
 
 `ClientContext.getModule` 在模块构造期不可靠，渲染时现取并判空，不要缓存成 `static final`。Shader pass 会二次渲染同一批对象，用 `ClientContext.shaderRegistry.renderingIntoTarget` / `renderingHands` 区分。
 
+### 3.8 可选模组（Baritone / Xaero 等）走桥接
+
+**模块的字段类型、方法签名不要直接引用可选模组的类。** `ModuleRegistry` 注册模块时会经 `ExperimentalFeatures` 反射 `getDeclaredFields()`，解析字段类型会加载该类型；字段类型若依赖可选模组，未安装时启动即 `NoClassDefFoundError`（典型：`EntityControlModule.pathfinder` 声明成 `EntityControlPathfinder`，而它 `implements AbstractGameEventListener`）。
+
+统一走现成桥接：`ClientContext.baritoneBridge`（`BaritoneBridge` + `BaritoneAdapter` / `DisabledBaritoneBridge`）、`ClientContext.waypointAdapter`（`WaypointAdapter` + `XaeroWaypointAdapter` / `DisabledWaypointAdapter`）。
+
+- 模块只持有桥接口或与可选模组无关的抽象；真实实现只在 `isBaritoneLoaded()` / `isAvailable()` 为真时构造，空实现负责无害的默认值。
+- 可选模组类只允许出现在桥的实现类里（`BaritoneAdapter`、`XaeroWaypointAdapter`），不要出现在模块的字段类型、`implements` 列表或 `@EventHandler` 签名里。
+- 运行时判断一律用 `ClientContext.baritoneBridge.isAvailable()`；`@Pseudo` mixin 的 `evernight.mixins.<模组>.json` 只负责可选注入，不能替代上面的字段隔离。
+
+细节与崩溃堆栈见 `references/module-settings.md` §6.1。
+
 ## 4. 校验与提交
 
 ```bash
