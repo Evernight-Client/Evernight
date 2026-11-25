@@ -88,11 +88,15 @@ public String translationKey(String key);   // "addons." + addonId + "." + key
 @Override public String getDisplayName();   // addons.<id>.names.modules.<Name>
 @Override public String getDescription();   // addons.<id>.descriptions.modules.<Name>
 @Override public <S extends Setting<?>> S add(S setting); // 自动设置标签键
+protected final void requiresMod(String... modIds);      // 整块依赖可选模组
+public boolean isAvailable();                            // 依赖是否满足
 ```
 
 - 显示文本查找链固定为「当前语言 → 英文 → 完整键」：中文缺键回退英文，两份都缺才把完整 key 显示到界面。构造器的 `description` 参数仅为源码兼容保留，不再作为显示兜底。
 - 设置标签由 `add` 写入 `Setting#setDisplayNameKey`，解析 `addons.<id>.names.settings.<SettingName>`；设置 tooltip 仍走本体的 `evernight.descriptions.settings.*` 逻辑。
 - `AddonContext.registerModule` 会校验模块声明的 addon id 与当前插件一致，不一致直接抛 `IllegalArgumentException`。
+- 插件模块整块依赖某个可选模组时，在构造器调 `requiresMod("modid", ...)`（任一 id 加载即算可用）：模块仍注册、配置保留，但 ClickGUI、搜索、模块名补全与 `;<alias>` 隐藏，`enable()` 拒绝启用。单个设置依赖可选模组用 `Setting#hideUnlessModLoaded(String...)`。
+- 可选模组的类不要写进模块字段类型、`implements` 列表或 `@EventHandler` 方法签名：注册时 `ExperimentalFeatures` 会反射 `getDeclaredFields()`，解析字段类型会加载对应类，缺失即导致启动崩溃。需要能力时走 `ClientContext.baritoneBridge` 等桥接。
 
 ### `ModuleCategory`（final，implements NamedEntry）
 

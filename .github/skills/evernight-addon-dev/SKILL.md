@@ -121,6 +121,7 @@ public final class ExampleModule extends AddonModule {
 - HUD 组件继承 `HudWidgetModule`、构造器里 `setRenderer(...)`，用 `registerHudModule`。
 - 指令继承 `Command`，在 `exec(LiteralArgumentBuilder root)` 里 `root.executes(action)`，别名用 `setAliases(...)`。
 - 模块的 `enable()` 自动订阅、`disable()` 自动退订——**不要再** `context.subscribe(module)`，会重复触发。
+- 模块整块依赖可选模组时，构造器调 `requiresMod("modid", ...)`：缺失时模块仍注册（配置保留），但 ClickGUI、搜索、模块名补全与 `;<alias>` 隐藏且 `enable()` 拒绝启用；单个设置用 `Setting#hideUnlessModLoaded(...)`。可选模组类不要写进模块的字段类型、`implements` 列表或 `@EventHandler` 签名，注册时反射解析字段类型会加载对应类，缺失即启动崩溃。
 
 ## 6. 语言与配置
 
