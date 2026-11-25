@@ -752,7 +752,10 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
         return super.registerEntry(module);
     }
 
-    @Deprecated
+    /**
+     * 按类型取模块。内部各处直接持有注册表，因此该方法不是 deprecated；
+     * 插件与外部代码请改用 {@link evernight.client.ClientContext#getModule(Class)}（它会判空 registry）。
+     */
     public <S extends Module> S getModule(Class<S> moduleType) {
         return moduleType.cast(this.modulesByClass.get(moduleType));
     }

@@ -112,7 +112,7 @@ public class SelfWebModule extends Module {
         if (!feetState.canBeReplaced()) {
             return;
         }
-        if (feetState.liquid()) {
+        if (!feetState.getFluidState().isEmpty()) {
             return;
         }
         if (!ClientAccess.evernightMinecraft.player.onGround()) {

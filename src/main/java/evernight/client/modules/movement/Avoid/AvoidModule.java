@@ -97,7 +97,7 @@ public class AvoidModule extends Module {
         ClipBlockStateContext rayContext = new ClipBlockStateContext(
                 ClientAccess.evernightMinecraft.player.position(),
                 new Vec3(ClientAccess.evernightMinecraft.player.getX(), ClientAccess.evernightMinecraft.level.getMinY() - 1, ClientAccess.evernightMinecraft.player.getZ()),
-                state -> state.isSolid());
+                state -> state.isSolidRender());
         if (rayLevel.isBlockInLine(rayContext).getType() != Type.MISS) {
             return;
         }

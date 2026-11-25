@@ -89,9 +89,11 @@ loom {
     }
 }
 
+def modVersion = project.version
+
 processResources {
-    inputs.property 'version', project.version
-    filesMatching('fabric.mod.json') { expand version: project.version }
+    inputs.property 'version', modVersion
+    filesMatching('fabric.mod.json') { expand version: modVersion }
 
     // 许可与第三方声明随 jar 一起分发，满足 GPL-3.0 与各组件许可证的随附要求。
     from('LICENSE') { into 'META-INF' }
@@ -106,7 +108,7 @@ def targetJavaVersion = 21
 tasks.withType(JavaCompile).configureEach {
     options.release = targetJavaVersion
     options.encoding = 'UTF-8'
-    options.compilerArgs += ['-proc:none']
+    options.compilerArgs += ['-proc:none', '-Xlint:deprecation', '-Xlint:-unchecked']
     options.fork = true
     options.forkOptions.memoryMaximumSize = providers.environmentVariable('CI').isPresent() ? '384m' : '4g'
 }

@@ -243,6 +243,9 @@ public class AutoCraftModule extends Module {
         PacketSender.send(new ServerboundRecipeBookChangeSettingsPacket(RecipeBookType.CRAFTING, false, filtering));
     }
 
+    // Ingredient#items 在 1.21.11 被标为 deprecated，但它是目前枚举配方原料的唯一公开入口，
+    // 官方没有给出替代方法（SlotDisplay 需要自行解析 registry）。这里局部抑制该 deprecation。
+    @SuppressWarnings("deprecation")
     private boolean hasIngredients(Collection<Ingredient> ingredients) {
         if (ingredients.isEmpty()) {
             return false;

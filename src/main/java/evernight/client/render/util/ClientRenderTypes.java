@@ -7,7 +7,7 @@ import com.mojang.blaze3d.textures.GpuSampler;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.rendertype.*;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
 
@@ -102,7 +102,7 @@ public final class ClientRenderTypes {
     private static final RenderType BLOCK_ATLAS_IMAGE = RenderType.create(
             "evernight_image",
             RenderSetup.builder(RenderPipelines.GUI_TEXTURED)
-                    .withTexture("Sampler0", TextureAtlas.LOCATION_BLOCKS)
+                    .withTexture("Sampler0", AtlasIds.BLOCKS)
                     .createRenderSetup());
 
     public static RenderType guiTriangleStrip() {

@@ -206,7 +206,7 @@ public abstract class Pipe {
     }
 
     public Packet receive(Packet.OpCode opcode, byte[] payload) {
-        JsonObject json = new JsonParser().parse(new String(payload)).getAsJsonObject();
+        JsonObject json = JsonParser.parseString(new String(payload)).getAsJsonObject();
         Packet packet = new Packet(opcode, json, this.ipcClient.getEncoding());
         if (this.ipcClient.isDebugMode()) {
             this.ipcClient.getCurrentLogger(LOGGER).info(String.format("[DEBUG] Received packet: %s", packet));

@@ -338,7 +338,7 @@ public class SelfFillModule extends Module {
                 replaceable = true;
             }
         }
-        if (!replaceable || state.liquid()) {
+        if (!replaceable || !state.getFluidState().isEmpty()) {
             return false;
         }
         return BlockInteractionUtils.findSupportDirection(position) != null;

@@ -109,7 +109,7 @@ public class TunnelsModule extends Module {
     private boolean isNonSolid(BlockPos position) {
         ClientLevel level = ClientAccess.evernightMinecraft.level;
         BlockState state = level.getBlockState(position);
-        return !state.isSolid();
+        return !state.isSolidRender();
     }
 
     private boolean isHorizontalTunnelCell(BlockPos position) {
@@ -157,7 +157,7 @@ public class TunnelsModule extends Module {
             BlockPos sidePosition = position.relative(horizontalDirection);
             ClientLevel level = ClientAccess.evernightMinecraft.level;
             BlockState sideState = level.getBlockState(sidePosition);
-            if (!sideState.isSolid()) {
+            if (!sideState.isSolidRender()) {
                 return false;
             }
             Block bambooBlock = Blocks.BAMBOO_BLOCK;

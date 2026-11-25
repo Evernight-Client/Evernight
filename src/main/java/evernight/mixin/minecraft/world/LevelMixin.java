@@ -40,7 +40,7 @@ public class LevelMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/util/RandomSource;create()Lnet/minecraft/util/RandomSource;"),
             require = 0)
     private RandomSource useThreadSafeRandomSource(RandomSource originalRandom) {
-        return RandomSource.createThreadSafe();
+        return RandomSource.createNewThreadLocalInstance();
     }
 
     @Inject(method = "guardEntityTick", at = @At("HEAD"), cancellable = true)
