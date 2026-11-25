@@ -24,9 +24,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.EnderChestBlockEntity;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -35,8 +38,9 @@ import java.util.function.Supplier;
  *
  * <p>Each tick advances exactly one phase. Container phases open the marked chest or the nearest
  * pre-placed ender chest, quick-move shulker boxes and close the screen again; the pearl phases
- * refill from the marked pearl chest and throw at the recorded point. The machine is purely client
- * side: it only sends the same clicks and use-item packets a player would send.
+ * refill from the marked pearl chest, sneak to the rim of the nearest bubble column and throw down
+ * into it. The machine is purely client side: it only sends the same clicks and use-item packets a
+ * player would send.
  *
  * <p>A position jump larger than the configured teleport distance is treated as an arrival on every
  * phase, because the partner may trigger the pearl before the local player has finished loading.
@@ -49,8 +53,16 @@ public final class AutoTransportController implements ClientAccess {
     private static final int CLOSE_GRACE_MILLIS = 1000;
     private static final int THROW_AIM_MILLIS = 100;
     private static final int FAILURE_REPEAT_MILLIS = 10_000;
+    private static final int BUBBLE_SEARCH_MILLIS = 500;
     private static final int MIN_CONTAINER_MENU_SLOTS = 27 + 36;
     private static final int REQUIRED_PEARLS = 16;
+    /**
+     * Horizontal distance from the bubble column centre at which the walk stops. The player box is
+     * 0.6 wide, so at 0.95 the box edge stays outside the 1x1 column block while hugging its rim.
+     */
+    private static final double EDGE_STOP_DISTANCE = 0.95D;
+    private static final int[][] EDGE_OFFSETS =
+            {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 
     private enum Side {
         SOURCE,
@@ -71,6 +83,7 @@ public final class AutoTransportController implements ClientAccess {
     private AutoTransportPhase pausedPhase;
     private Side side;
     private BlockPos target;
+    private BlockPos bubbleColumn;
     private Vec3 lastTickPosition;
     private ClientLevel lastLevel;
     private int phaseTicks;
@@ -176,9 +189,11 @@ public final class AutoTransportController implements ClientAccess {
 
     private void resetState() {
         this.cancelPathing();
+        this.releaseMovement();
         this.phase = AutoTransportPhase.WAIT_RECALL;
         this.pausedPhase = AutoTransportPhase.WAIT_RECALL;
         this.target = null;
+        this.bubbleColumn = null;
         this.lastTickPosition = null;
         this.phaseTicks = 0;
         this.openAttempts = 0;
@@ -194,9 +209,11 @@ public final class AutoTransportController implements ClientAccess {
     }
 
     private void enterPhase(AutoTransportPhase nextPhase) {
+        this.releaseMovement();
         this.phase = nextPhase;
         this.phaseTicks = 0;
         this.target = null;
+        this.bubbleColumn = null;
         this.openAttempts = 0;
         this.openRequested = false;
         this.throwAimed = false;
@@ -247,42 +264,12 @@ public final class AutoTransportController implements ClientAccess {
     }
 
     private Side resolveInitialSide() {
-        AutoTransportSideChoice choice = this.module.getSideChoice();
-        if (choice == AutoTransportSideChoice.SOURCE) {
-            return Side.SOURCE;
-        }
-        if (choice == AutoTransportSideChoice.DESTINATION) {
-            return Side.DESTINATION;
-        }
-        BlockPos sourcePoint = this.module.getSourceThrowPoint();
-        BlockPos destinationPoint = this.module.getDestinationThrowPoint();
-        Vec3 position = evernightMinecraft.player.position();
-        if (sourcePoint != null && destinationPoint != null) {
-            double sourceDistance = position.distanceToSqr(sourcePoint.getCenter());
-            double destinationDistance = position.distanceToSqr(destinationPoint.getCenter());
-            return sourceDistance <= destinationDistance ? Side.SOURCE : Side.DESTINATION;
-        }
-        double search = this.module.getScanRange() * 2.0D;
-        if (sourcePoint != null && position.distanceToSqr(sourcePoint.getCenter()) <= search * search) {
-            return Side.SOURCE;
-        }
-        if (destinationPoint != null && position.distanceToSqr(destinationPoint.getCenter()) <= search * search) {
-            return Side.DESTINATION;
-        }
-        return Side.SOURCE;
+        return this.module.getSideChoice() == AutoTransportSideChoice.DESTINATION ? Side.DESTINATION : Side.SOURCE;
     }
 
     private Side resolveArrivalSide() {
         if (this.module.getSideChoice() != AutoTransportSideChoice.AUTO) {
             return this.side;
-        }
-        BlockPos sourcePoint = this.module.getSourceThrowPoint();
-        BlockPos destinationPoint = this.module.getDestinationThrowPoint();
-        if (sourcePoint != null && destinationPoint != null) {
-            Vec3 position = evernightMinecraft.player.position();
-            double sourceDistance = position.distanceToSqr(sourcePoint.getCenter());
-            double destinationDistance = position.distanceToSqr(destinationPoint.getCenter());
-            return sourceDistance <= destinationDistance ? Side.SOURCE : Side.DESTINATION;
         }
         return this.side == Side.SOURCE ? Side.DESTINATION : Side.SOURCE;
     }
@@ -370,19 +357,31 @@ public final class AutoTransportController implements ClientAccess {
             this.checkPhaseTimeout();
             return;
         }
-        BlockPos throwPoint = this.getThrowPoint();
-        if (throwPoint != null && player.blockPosition().distSqr(throwPoint) > 9.0D) {
-            if (!ClientContext.baritoneBridge.isPathingOrCalculating()) {
-                ClientContext.baritoneBridge.pathTo(throwPoint);
-                this.pathActive = true;
+        if (this.bubbleColumn == null) {
+            if (!this.scanTimer.hasElapsedAndReset(BUBBLE_SEARCH_MILLIS)) {
+                return;
             }
+            this.bubbleColumn = this.findBubbleColumnTop();
+            if (this.bubbleColumn == null) {
+                this.pause("NoBubbleColumn");
+                return;
+            }
+        }
+        BlockPos column = this.bubbleColumn;
+        Vec3 columnCenter = column.getCenter();
+        double horizontalDistance =
+                Math.hypot(player.getX() - columnCenter.x, player.getZ() - columnCenter.z);
+        if (!this.isInsideBubbleColumn(column) && horizontalDistance > EDGE_STOP_DISTANCE) {
+            if (this.findEdgeStandSpot(column) == null) {
+                this.pause("NoBubbleEdge");
+                return;
+            }
+            this.moveTowardColumnEdge(column);
             this.checkPhaseTimeout();
             return;
         }
-        this.cancelPathing();
-        float[] angles = throwPoint != null
-                ? RotationManager.calculateRotations(player.getEyePosition(), throwPoint.getCenter())
-                : new float[]{player.getYRot(), this.module.getThrowPitch()};
+        this.holdSneakInPlace();
+        float[] angles = RotationManager.calculateRotations(player.getEyePosition(), columnCenter);
         ClientContext.rotationManager.requestRotation(angles, 100);
         if (!this.throwAimed) {
             this.throwAimed = true;
@@ -408,6 +407,156 @@ public final class AutoTransportController implements ClientAccess {
             }
         });
         this.enterPhase(AutoTransportPhase.THROW_SETTLE);
+    }
+
+    /**
+     * Finds the top block of the nearest bubble column around the player's feet level.
+     *
+     * <p>Columns are grouped by their horizontal position and only the highest block inside the
+     * vertical band is kept, so a column is represented by its surface block. The nearest column wins,
+     * with a vertical offset penalty to prefer the level the player is standing on.
+     */
+    private BlockPos findBubbleColumnTop() {
+        LocalPlayer player = evernightMinecraft.player;
+        ClientLevel level = evernightMinecraft.level;
+        if (player == null || level == null) {
+            return null;
+        }
+        BlockPos origin = player.blockPosition();
+        int radius = (int) Math.ceil(this.module.getBubbleRadius());
+        int minimumY = origin.getY() - 2;
+        int maximumY = origin.getY() + 1;
+        Map<Long, Integer> topYByColumn = new HashMap<>();
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int x = origin.getX() - radius; x <= origin.getX() + radius; x++) {
+            for (int z = origin.getZ() - radius; z <= origin.getZ() + radius; z++) {
+                for (int y = minimumY; y <= maximumY; y++) {
+                    cursor.set(x, y, z);
+                    if (!level.getBlockState(cursor).is(Blocks.BUBBLE_COLUMN)) {
+                        continue;
+                    }
+                    long key = ((long) x << 32) | (z & 0xFFFFFFFFL);
+                    Integer previous = topYByColumn.get(key);
+                    if (previous == null || y > previous) {
+                        topYByColumn.put(key, y);
+                    }
+                }
+            }
+        }
+        BlockPos nearest = null;
+        double bestScore = Double.MAX_VALUE;
+        for (Map.Entry<Long, Integer> entry : topYByColumn.entrySet()) {
+            int columnX = (int) (entry.getKey() >> 32);
+            int columnZ = (int) entry.getKey().longValue();
+            int columnY = entry.getValue();
+            double horizontal =
+                    Math.hypot(columnX + 0.5D - player.getX(), columnZ + 0.5D - player.getZ());
+            if (horizontal > radius) {
+                continue;
+            }
+            double vertical = Math.abs(columnY - origin.getY());
+            double score = horizontal + vertical * 3.0D;
+            if (score < bestScore) {
+                bestScore = score;
+                nearest = new BlockPos(columnX, columnY, columnZ);
+            }
+        }
+        return nearest;
+    }
+
+    /**
+     * @return the closest walkable block next to the column at the player's feet level, or null when
+     * every neighbour is blocked or water
+     */
+    private BlockPos findEdgeStandSpot(BlockPos column) {
+        ClientLevel level = evernightMinecraft.level;
+        LocalPlayer player = evernightMinecraft.player;
+        if (level == null || player == null) {
+            return null;
+        }
+        int standY = player.blockPosition().getY();
+        BlockPos best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (int[] offset : EDGE_OFFSETS) {
+            BlockPos stand = new BlockPos(column.getX() + offset[0], standY, column.getZ() + offset[1]);
+            if (!level.getBlockState(stand).isAir() || !level.getBlockState(stand.above()).isAir()) {
+                continue;
+            }
+            BlockPos floor = stand.below();
+            if (level.getBlockState(floor).getCollisionShape(level, floor).isEmpty()) {
+                continue;
+            }
+            double distance = player.position().distanceTo(stand.getCenter());
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = stand;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Walks toward the rim of the column while sneaking, using world-relative movement input so the
+     * camera direction does not matter. Movement is released once the player box hugs the rim.
+     */
+    private void moveTowardColumnEdge(BlockPos column) {
+        LocalPlayer player = evernightMinecraft.player;
+        if (player == null) {
+            return;
+        }
+        Vec3 columnCenter = column.getCenter();
+        double offsetX = player.getX() - columnCenter.x;
+        double offsetZ = player.getZ() - columnCenter.z;
+        double offsetLength = Math.hypot(offsetX, offsetZ);
+        double normalX = offsetLength > 1.0E-4D ? offsetX / offsetLength : 1.0D;
+        double normalZ = offsetLength > 1.0E-4D ? offsetZ / offsetLength : 0.0D;
+        double edgeX = columnCenter.x + normalX * 0.5D;
+        double edgeZ = columnCenter.z + normalZ * 0.5D;
+        double deltaX = edgeX - player.getX();
+        double deltaZ = edgeZ - player.getZ();
+        double distance = Math.hypot(deltaX, deltaZ);
+        if (distance < 0.05D) {
+            this.releaseMovement();
+            return;
+        }
+        double directionX = deltaX / distance;
+        double directionZ = deltaZ / distance;
+        float yawRadians = (float) Math.toRadians(player.getYRot());
+        float sin = (float) Math.sin(yawRadians);
+        float cos = (float) Math.cos(yawRadians);
+        float forward = (float) (directionX * -sin + directionZ * cos);
+        float strafe = (float) (directionX * cos + directionZ * sin);
+        float scale = (float) Math.min(1.0D, distance / 0.8D);
+        ClientContext.inputOverrides.requestSneak(true);
+        ClientContext.inputOverrides.requestSprint(false);
+        ClientContext.inputOverrides.requestForwardMovement(forward * scale);
+        ClientContext.inputOverrides.requestSidewaysMovement(strafe * scale);
+    }
+
+    private boolean isInsideBubbleColumn(BlockPos column) {
+        LocalPlayer player = evernightMinecraft.player;
+        if (player == null) {
+            return false;
+        }
+        BlockPos feet = player.blockPosition();
+        return feet.getX() == column.getX() && feet.getZ() == column.getZ() && feet.getY() == column.getY();
+    }
+
+    private void releaseMovement() {
+        ClientContext.inputOverrides.requestForwardMovement(0.0F);
+        ClientContext.inputOverrides.requestSidewaysMovement(0.0F);
+        ClientContext.inputOverrides.requestSneak(false);
+        ClientContext.inputOverrides.requestSprint(false);
+    }
+
+    /**
+     * Keeps the player crouched on the rim while the throw is being aimed.
+     */
+    private void holdSneakInPlace() {
+        ClientContext.inputOverrides.requestForwardMovement(0.0F);
+        ClientContext.inputOverrides.requestSidewaysMovement(0.0F);
+        ClientContext.inputOverrides.requestSneak(true);
+        ClientContext.inputOverrides.requestSprint(false);
     }
 
     private void throwSettle() {
@@ -622,10 +771,6 @@ public final class AutoTransportController implements ClientAccess {
             nearest = candidate;
         }
         return nearest;
-    }
-
-    private BlockPos getThrowPoint() {
-        return this.side == Side.SOURCE ? this.module.getSourceThrowPoint() : this.module.getDestinationThrowPoint();
     }
 
     private int findContainerSlot(AbstractContainerMenu menu, Predicate<ItemStack> filter) {

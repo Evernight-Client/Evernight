@@ -22,7 +22,7 @@ public enum AutoTransportPhase {
      */
     REFILL_PEARL,
     /**
-     * Sneaks, aims at the recorded throw point (or straight down) and throws a pearl.
+     * Sneaks to the rim of the nearest bubble column without stepping on it, aims down and throws.
      */
     THROW_PEARL,
     /**
