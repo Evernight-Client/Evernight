@@ -47,21 +47,23 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
-    modCompileOnly('maven.modrinth:viafabricplus:YzQYJEjP') { exclude group: 'dev.kastle.webrtc' }
-    modLocalRuntime('maven.modrinth:viafabricplus:YzQYJEjP') { exclude group: 'dev.kastle.webrtc' }
+    modCompileOnly('maven.modrinth:viafabricplus:RM6hveoK') { exclude group: 'dev.kastle.webrtc' }
+    modLocalRuntime('maven.modrinth:viafabricplus:RM6hveoK') { exclude group: 'dev.kastle.webrtc' }
     modCompileOnly 'maven.modrinth:lithium:Ow7wA0kG'
-    modCompileOnly 'maven.modrinth:immediatelyfast:QwkfUKSj'
-    modCompileOnly 'maven.modrinth:sodium:RB7CDjTS'
-    modCompileOnly 'maven.modrinth:xaeros-minimap:62EynHPJ'
-    modCompileOnly 'maven.modrinth:entityculling:CTabrwB1'
-    modLocalRuntime 'maven.modrinth:entityculling:CTabrwB1'
+    modCompileOnly 'maven.modrinth:immediatelyfast:4EwhsTu7'
+    modCompileOnly 'maven.modrinth:sodium:rkdTcxoT'
+    modLocalRuntime 'maven.modrinth:sodium:rkdTcxoT'
+    modCompileOnly 'maven.modrinth:xaeros-minimap:g0LRDWwe'
+    modLocalRuntime 'maven.modrinth:xaeros-minimap:g0LRDWwe'
+    modCompileOnly 'maven.modrinth:entityculling:bTu42fvx'
+    modLocalRuntime 'maven.modrinth:entityculling:bTu42fvx'
     modLocalRuntime 'me.djtheredstoner:DevAuth-fabric:1.2.2'
     compileOnly 'org.jetbrains:annotations:26.0.2'
 
     modCompileOnly 'com.github.rfresh2:baritone-fabric:1.21.11-SNAPSHOT'
     modLocalRuntime 'com.github.rfresh2:baritone-fabric:1.21.11-SNAPSHOT'
-    viaDistribution 'maven.modrinth:viafabricplus:YzQYJEjP'
-    entityCullingDistribution 'maven.modrinth:entityculling:CTabrwB1'
+    viaDistribution 'maven.modrinth:viafabricplus:RM6hveoK'
+    entityCullingDistribution 'maven.modrinth:entityculling:bTu42fvx'
 
     implementation nestedLibraries(configurations.viaDistribution) {
         include 'META-INF/jars/*.jar'
