@@ -5,7 +5,9 @@
   "name": "Evernight",
   "authors": [
     "Cypphi",
-    "wxh1024"
+    "wxh1024",
+    "Fishawa-CPU",
+    "LadenBoot5999"
   ],
   "contributors": [
     "Evernight contributors"
@@ -14,7 +16,7 @@
     "homepage": "https://github.com/Evernight-Client/Evernight",
     "sources": "https://github.com/Evernight-Client/Evernight",
     "issues": "https://github.com/Evernight-Client/Evernight/issues",
-    "discord": "https://discord.com/invite/W2cEqSf8eK"
+    "qq": "949374129"
   },
   "icon": "assets/evernight/icon.png",
   "description": "Evernight: a Fabric client for Minecraft 1.21.11 with modules, HUD, commands, presets and an addon system.",
