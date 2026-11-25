@@ -53,6 +53,7 @@ public final class ObstaclePasserModule extends Module {
 
     public ObstaclePasserModule() {
         super("ObstaclePasser", ModuleCategory.MOVEMENT);
+        this.requiresMod("baritone", "baritone-meteor");
         this.correctionWindow = new ObstacleCorrectionWindow(3);
         this.alignSetting = this.add(new BooleanSetting("Align", true));
         this.onlyLoadedSetting = this.add(new BooleanSetting("OnlyLoaded", true));

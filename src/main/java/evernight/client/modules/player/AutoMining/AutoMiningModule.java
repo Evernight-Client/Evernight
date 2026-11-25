@@ -129,6 +129,7 @@ public final class AutoMiningModule extends Module {
 
     public AutoMiningModule() {
         super("AutoMining", ModuleCategory.AUTO, "automining", "am");
+        this.requiresMod("baritone", "baritone-meteor");
         this.modeSetting = this.add(new EnumSetting<>("MiningMode", AutoMiningMode.DIAMOND));
         this.minYSetting = this.add(new NumberSetting<>("MinY", -60, -64, 320));
         this.maxYSetting = this.add(new NumberSetting<>("MaxY", 16, -64, 320));

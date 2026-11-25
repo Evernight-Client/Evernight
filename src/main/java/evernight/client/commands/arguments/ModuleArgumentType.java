@@ -54,7 +54,7 @@ public class ModuleArgumentType implements ArgumentType {
     @Override
     public CompletableFuture listSuggestions(CommandContext context, SuggestionsBuilder builder) {
         ModuleRegistry modules = ClientContext.moduleRegistry;
-        Stream<String> moduleNames = modules.getRegistry().stream().map(NamedFeature::getName);
+        Stream<String> moduleNames = modules.getRegistry().stream().filter(Module::isAvailable).map(NamedFeature::getName);
         return SharedSuggestionProvider.suggest(moduleNames, builder);
     }
 }

@@ -520,7 +520,8 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
                     if (!searchText.isEmpty()) {
                         for (Object moduleEntry : ClientContext.moduleRegistry.getRegistry()) {
                             Module module = (Module) moduleEntry;
-                            if (!(module instanceof HUDModule) && !(module instanceof HudWidgetModule)
+                            if (module.isAvailable()
+                                    && !(module instanceof HUDModule) && !(module instanceof HudWidgetModule)
                                     && module.getName().toLowerCase(Locale.ROOT).startsWith(TextUtils.normalizeKeyboardLayout(searchText.toLowerCase(Locale.ROOT)))) {
                                 this.searchCompletion = module.getName()
                                         .substring(this.searchBox.getCursorPosition());

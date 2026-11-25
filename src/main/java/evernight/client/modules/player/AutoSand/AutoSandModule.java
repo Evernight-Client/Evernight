@@ -121,6 +121,7 @@ public final class AutoSandModule extends Module {
 
     public AutoSandModule() {
         super("AutoSand", ModuleCategory.AUTO, "autosand", "sand");
+        this.requiresMod("baritone", "baritone-meteor");
         this.targetsSetting = this.add(new RegistrySetSetting<>("Targets", BuiltInRegistries.BLOCK,
                 Blocks.SAND, Blocks.RED_SAND));
         this.retryTimeoutSetting = this.add(new NumberSetting<>("RetryTimeout", 30, 5, 300).withUnit("s"));

@@ -7,7 +7,6 @@ import evernight.client.ClientContext;
 import evernight.client.events.core.EventHandler;
 import evernight.client.events.input.InputPressEvent;
 import evernight.client.events.render.WorldRenderEvent;
-import evernight.client.integrations.baritone.BaritoneBridge;
 import evernight.client.modules.*;
 import evernight.client.modules.Module;
 import evernight.client.modules.client.Baritone.BaritoneModule;
@@ -624,13 +623,10 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
     }
 
     private void registerPathfindingModules() {
-        BaritoneBridge bridge = ClientContext.baritoneBridge;
-        BaritoneModule baritoneModule = new BaritoneModule();
-        this.registerModule(baritoneModule);
-        if (bridge.isAvailable()) {
-            ObstaclePasserModule obstaclePasserModule = new ObstaclePasserModule();
-            this.registerModule(obstaclePasserModule);
-        }
+        if (!this.registerModule(new BaritoneModule()))
+            throw new IllegalStateException("Registration rejected BaritoneModule");
+        if (!this.registerModule(new ObstaclePasserModule()))
+            throw new IllegalStateException("Registration rejected ObstaclePasserModule");
     }
 
     @Override

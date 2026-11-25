@@ -48,6 +48,7 @@ public class BaritoneModule extends PermanentModule {
 
     public BaritoneModule() {
         super("Baritone", ModuleCategory.CLIENT);
+        this.requiresMod("baritone", "baritone-meteor");
         this.freeLookSetting = this.add(new BooleanSetting(("FreeLook"), true));
         this.backFillSetting = this.add(new BooleanSetting("BackFill", false));
         this.logOnArrivalSetting = this.add(new BooleanSetting("LogOnArrival", false));

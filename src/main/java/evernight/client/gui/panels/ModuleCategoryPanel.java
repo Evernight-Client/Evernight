@@ -26,7 +26,8 @@ public class ModuleCategoryPanel extends Panel implements ClientAccess {
 
     private void populateModules() {
         List<Module> modules = ClientContext.moduleRegistry.getRegistry();
-        modules.stream().filter(module -> module.getCategory() == this.category)
+        modules.stream().filter(Module::isAvailable)
+                .filter(module -> module.getCategory() == this.category)
                 .sorted(Comparator.comparing(NamedFeature::getName)).forEach(module -> {
                     ModuleComponent component = new ModuleComponent(module, this, 0);
                     this.children.add(component);

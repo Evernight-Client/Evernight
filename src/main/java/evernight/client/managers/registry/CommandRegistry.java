@@ -279,6 +279,9 @@ public final class CommandRegistry extends Registry<Command> implements ClientAc
      * while this registry is constructed and for addon modules as they are registered later.
      */
     public void registerModuleAliasCommands(Module module) {
+        if (!module.isAvailable()) {
+            return;
+        }
         Optional<Command> matchingCommand = this.findFirst(command -> {
             String commandName = command.getName();
             String moduleName = module.getName();

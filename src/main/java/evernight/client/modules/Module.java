@@ -13,6 +13,7 @@ import evernight.client.settings.core.JsonConfigurable;
 import evernight.client.settings.core.Setting;
 import evernight.client.utils.core.Toggleable;
 import evernight.client.utils.inventory.RegistryContainer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 
 import java.util.*;
@@ -37,6 +38,7 @@ public class Module extends NamedFeature implements Toggleable, ClientAccess, Re
     private boolean enabled;
     private boolean drawn;
     private boolean ignoreEnabledState;
+    private boolean available = true;
 
     public Module(String name, ModuleCategory category, String... aliases) {
         super(name);
@@ -54,6 +56,36 @@ public class Module extends NamedFeature implements Toggleable, ClientAccess, Re
         return setting;
     }
 
+    /**
+     * Marks this module as part of an optional mod. When none of the given mod ids is loaded the
+     * module stays registered (so its config survives), but it is hidden from the GUI and commands and
+     * cannot be enabled. Call this once from the module constructor.
+     *
+     * @param modIds mod ids of the alternative distributions of the same mod, e.g. both Baritone builds
+     */
+    protected final void requiresMod(String... modIds) {
+        if (modIds.length == 0) {
+            return;
+        }
+        FabricLoader loader = FabricLoader.getInstance();
+        boolean loaded = false;
+        for (String modId : modIds) {
+            if (loader.isModLoaded(modId)) {
+                loaded = true;
+                break;
+            }
+        }
+        this.available = loaded;
+    }
+
+    /**
+     * @return whether the optional mods declared through {@link #requiresMod(String...)} are installed;
+     * always {@code true} for modules without such a requirement
+     */
+    public boolean isAvailable() {
+        return this.available;
+    }
+
     public <S extends Setting<?>> S add(S setting, Setting<?> precedingSetting) {
         int insertionIndex = this.settings.indexOf(precedingSetting) + 1;
         this.settings.add(insertionIndex, setting);
@@ -67,7 +99,7 @@ public class Module extends NamedFeature implements Toggleable, ClientAccess, Re
 
     @Override
     public void enable() {
-        if (this.isToggled()) {
+        if (!this.isAvailable() || this.isToggled()) {
             return;
         }
         this.enabled = true;
