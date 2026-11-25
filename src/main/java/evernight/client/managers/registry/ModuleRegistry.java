@@ -495,6 +495,8 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected OffhandModule");
         if (!this.registerModule(new evernight.client.modules.render.Particles.ParticlesModule()))
             throw new IllegalStateException("Registration rejected ParticlesModule");
+        if (!this.registerModule(new evernight.client.modules.player.PearlBot.PearlBotModule()))
+            throw new IllegalStateException("Registration rejected PearlBotModule");
         if (!this.registerModule(new evernight.client.modules.exploit.Phase.PhaseModule()))
             throw new IllegalStateException("Registration rejected PhaseModule");
         if (!this.registerModule(new evernight.client.modules.render.PhaseESP.PhaseESPModule()))
