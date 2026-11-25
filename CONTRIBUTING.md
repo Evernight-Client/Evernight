@@ -11,7 +11,7 @@
 | Fabric Loader | 0.19.5+ |
 | Fabric API | 0.141.6+1.21.11 |
 
-Loom 1.18.4 要求 Gradle 跑在 JDK 25 上；`options.release = 21` 保证产物仍是 Java 21 字节码。运行 `gradlew.bat runClient`（Linux/macOS 为 `./gradlew runClient`）启动开发客户端，运行目录是 `run/`。
+Loom 1.19.3 要求 Gradle 跑在 JDK 25 上；`options.release = 21` 保证产物仍是 Java 21 字节码。运行 `gradlew.bat runClient`（Linux/macOS 为 `./gradlew runClient`）启动开发客户端，运行目录是 `run/`。
 
 ## 构建与校验
 
@@ -33,7 +33,7 @@ python .github/skills/evernight-dev/scripts/check-lang.py
 - **可见文本走语言表**：`Translations.*` 或 `NamedEntry#getDisplayName()`；`en_us.json` 与 `zh_cn.json` 键集合必须一致。
 - **标识符不翻译**：模块名、`Setting#getConfigName()`、指令字面量、配置 JSON 键保持英文。
 - **注册点唯一**：新模块进 `ModuleRegistry` 构造器；新 mixin 放进对应子包并登记 `evernight.mixins.<分类>.json`。
-- **插件 API 稳定**：`evernight/addon` 的公开签名是对外契约，修改时同步更新 `docs/addons.md`、`.github/skills/evernight-addon-dev/`，并说明兼容性。
+- **插件 API 稳定**：`evernight/addon` 的公开签名是对外契约，修改时同步更新 `.github/skills/evernight-addon-dev/`，并说明兼容性。
 - **不要提交密钥**：Webhook、Token、Client ID 等一律走运行期配置，不要硬编码进源码或示例。
 
 更细的 API 速查见 `.github/skills/evernight-dev/`。

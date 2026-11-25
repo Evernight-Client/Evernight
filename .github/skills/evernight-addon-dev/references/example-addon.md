@@ -1,6 +1,6 @@
 # 完整示例插件
 
-以下文件构成一个可编译的最小插件（包名 `com.example.exampleaddon`，模组 id `exampleaddon`）。与 `docs/addons.md` 的片段一致。
+以下文件构成一个可编译的最小插件（包名 `com.example.exampleaddon`，模组 id `exampleaddon`）。与 `SKILL.md` 第 3 节的骨架一致。
 
 ## 工程结构
 
@@ -37,7 +37,7 @@ rootProject.name = 'example-addon'
 
 ```gradle
 plugins {
-    id 'net.fabricmc.fabric-loom-remap' version '1.18.4'
+    id 'net.fabricmc.fabric-loom-remap' version '1.19.3'
 }
 
 version = '1.0.0'
@@ -69,7 +69,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 ```
 
-> 若 Loom 报 `Plugin [id: 'net.fabricmc.fabric-loom-remap'] was not found`，把 Evernight 的 `settings.gradle` 中 `pluginManagement.resolutionStrategy.eachPlugin` 段复制过来。Gradle 需运行在 JDK 25 上（Loom 1.18.4 要求），`options.release = 21` 保持 Java 21 目标。
+> 若 Loom 报 `Plugin [id: 'net.fabricmc.fabric-loom-remap'] was not found`，把 Evernight 的 `settings.gradle` 中 `pluginManagement.resolutionStrategy.eachPlugin` 段复制过来。Gradle 需运行在 JDK 25 上（Loom 1.19.3 要求），`options.release = 21` 保持 Java 21 目标。
 
 ## gradle.properties
 
