@@ -29,6 +29,7 @@ repositories {
 configurations {
     viaDistribution { transitive = false }
     entityCullingDistribution { transitive = false }
+    xaeroDistribution { transitive = false }
 }
 
 def nestedLibraries = { configuration, patterns ->
@@ -64,6 +65,7 @@ dependencies {
     modLocalRuntime 'com.github.rfresh2:baritone-fabric:1.21.11-SNAPSHOT'
     viaDistribution 'maven.modrinth:viafabricplus:RM6hveoK'
     entityCullingDistribution 'maven.modrinth:entityculling:bTu42fvx'
+    xaeroDistribution 'maven.modrinth:xaeros-minimap:g0LRDWwe'
 
     implementation nestedLibraries(configurations.viaDistribution) {
         include 'META-INF/jars/*.jar'
@@ -74,6 +76,11 @@ dependencies {
     modLocalRuntime viaFabricPlusModules
     modLocalRuntime nestedLibraries(configurations.entityCullingDistribution) {
         include 'META-INF/jars/*.jar'
+    }
+    // Xaero 小地图把 XaeroLib 打成 META-INF/jars 嵌套 jar；dev 运行环境不展开它，
+    // 单独抽出来作为独立模组加进运行期，否则启动报 "需要 xaerolib"。
+    modLocalRuntime nestedLibraries(configurations.xaeroDistribution) {
+        include 'META-INF/jars/xaerolib-*.jar'
     }
 }
 
