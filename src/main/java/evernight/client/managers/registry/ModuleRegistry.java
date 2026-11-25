@@ -162,6 +162,7 @@ import evernight.client.modules.player.AutoTame.AutoTameModule;
 import evernight.client.modules.player.AutoTemplate.AutoTemplateModule;
 import evernight.client.modules.player.AutoTool.AutoToolModule;
 import evernight.client.modules.player.AutoTrade.AutoTradeModule;
+import evernight.client.modules.player.AutoTransport.AutoTransportModule;
 import evernight.client.modules.player.ChestStealer.ChestStealerModule;
 import evernight.client.modules.player.FastPlace.FastPlaceModule;
 import evernight.client.modules.player.Freecam.FreecamModule;
@@ -312,6 +313,8 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected AutoToolModule");
         if (!this.registerModule(new evernight.client.modules.player.AutoTrade.AutoTradeModule()))
             throw new IllegalStateException("Registration rejected AutoTradeModule");
+        if (!this.registerModule(new evernight.client.modules.player.AutoTransport.AutoTransportModule()))
+            throw new IllegalStateException("Registration rejected AutoTransportModule");
         if (!this.registerModule(new evernight.client.modules.combat.AutoTrap.AutoTrapModule()))
             throw new IllegalStateException("Registration rejected AutoTrapModule");
         if (!this.registerModule(new evernight.client.modules.player.AutoTemplate.AutoTemplateModule()))
