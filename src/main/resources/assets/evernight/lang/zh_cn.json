@@ -163,7 +163,7 @@
   "evernight.descriptions.modules.SpeedMine": "发包挖掘方块，并在换工具时保持静默",
   "evernight.descriptions.modules.AntiHunger": "防止你损失饥饿值",
   "evernight.descriptions.modules.AntiVanish": "让隐身的玩家显形",
-  "evernight.descriptions.modules.BowPull": "发送拉弓包绕过一切",
+  "evernight.descriptions.modules.BowPull": "发送拉弓包绕过一切 :)",
   "evernight.descriptions.modules.ChorusControl": "让你选择紫颂果传送的目的地。 \n<yellow>潜行时传送",
   "evernight.descriptions.modules.FakeVanilla": "让服务器以为你用的是原版客户端",
   "evernight.descriptions.modules.FastLatency": "用比原版更快的回包方式刷新延迟显示。\n<yellow>“响应”设为“快速”或“立即”时可能被服务器踢出",

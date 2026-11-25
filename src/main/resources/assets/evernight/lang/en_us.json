@@ -163,7 +163,7 @@
   "evernight.descriptions.modules.SpeedMine": "Mines blocks silently.",
   "evernight.descriptions.modules.AntiHunger": "Prevents you from losing hunger points.",
   "evernight.descriptions.modules.AntiVanish": "Makes invisible players visible.",
-  "evernight.descriptions.modules.BowPull": "Sends bow pull packets to bypass everything.",
+  "evernight.descriptions.modules.BowPull": "Sends bow pull packets to bypass everything. :)",
   "evernight.descriptions.modules.ChorusControl": "Allows you to pick the position to teleport. \n<yellow>Sneak to teleport.",
   "evernight.descriptions.modules.FakeVanilla": "Makes servers think you're on vanilla.",
   "evernight.descriptions.modules.FastLatency": "Resolves your ping faster than the vanilla minecraft method.\n<yellow>The FastResponse setting may cause packet kicks.",
