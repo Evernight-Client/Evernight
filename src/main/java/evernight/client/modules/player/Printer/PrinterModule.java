@@ -124,7 +124,7 @@ public class PrinterModule extends Module {
         NumberSetting<Integer> shiftTime = new NumberSetting<>("ShiftTime", 100, 0, 1000);
         shiftTime.withUnit("ms");
         this.shiftTimeSetting = this.add(shiftTime.dependsOn(this.ignoreSneakSetting));
-        NumberSetting<Float> sneakSpeed = new NumberSetting<>("SneakSpeed", 0.0F, 0.0F, 20.0F);
+        NumberSetting<Float> sneakSpeed = new NumberSetting<>("SneakSpeed", 20.0F, 0.0F, 20.0F);
         sneakSpeed.withUnit("%");
         this.sneakSpeedSetting = this.add(sneakSpeed.dependsOn(this.ignoreSneakSetting));
 
