@@ -43,6 +43,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RedStoneWireBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -68,6 +70,13 @@ public class PrinterModule extends Module {
     private final Setting<Boolean> rotateSetting;
     private final Setting<Integer> printingRangeSetting;
     private final Setting<Boolean> inventorySwapSetting;
+    private final Setting<Boolean> facingSetting;
+    private final Setting<Boolean> facingRedstoneSetting;
+    private final Setting<Boolean> facingHalfSetting;
+    private final Setting<Boolean> facingPillarsSetting;
+    private final Setting<Boolean> facingAttachmentsSetting;
+    private final Setting<Boolean> facingChestsSetting;
+    private final Setting<Boolean> facingOrientationSetting;
     private final Setting<Boolean> ignoreSneakSetting;
     private final Setting<Integer> shiftTimeSetting;
     private final Setting<Float> sneakSpeedSetting;
@@ -94,6 +103,19 @@ public class PrinterModule extends Module {
         this.rotateSetting = this.add(new BooleanSetting("Rotate", true));
         this.printingRangeSetting = this.add(new NumberSetting<>("PrintingRange", 4, 1, 6).withUnit("m"));
         this.inventorySwapSetting = this.add(new BooleanSetting("InventorySwap", true));
+
+        BooleanSetting facing = new BooleanSetting("Facing", true);
+        facing.markVisibilityDependency();
+        facing.expanded = true;
+        this.facingSetting = this.add(facing);
+        Predicate<Boolean> facingChildVisible =
+                ignored -> this.facingSetting.isExpanded() && this.facingSetting.getValue();
+        this.facingRedstoneSetting = this.add(new BooleanSetting("FacingRedstone", true, facingChildVisible));
+        this.facingHalfSetting = this.add(new BooleanSetting("FacingHalf", true, facingChildVisible));
+        this.facingPillarsSetting = this.add(new BooleanSetting("FacingPillars", true, facingChildVisible));
+        this.facingAttachmentsSetting = this.add(new BooleanSetting("FacingAttachments", true, facingChildVisible));
+        this.facingChestsSetting = this.add(new BooleanSetting("FacingChests", true, facingChildVisible));
+        this.facingOrientationSetting = this.add(new BooleanSetting("FacingOrientation", true, facingChildVisible));
 
         BooleanSetting ignoreSneak = new BooleanSetting("IgnoreSneak", true);
         ignoreSneak.markVisibilityDependency();
@@ -154,6 +176,20 @@ public class PrinterModule extends Module {
 
     private boolean isRenderVisible() {
         return this.renderSetting.isExpanded();
+    }
+
+    private PrinterFacing.FacingOptions facingOptions() {
+        if (!this.facingSetting.getValue()) {
+            return PrinterFacing.FacingOptions.NONE;
+        }
+        return new PrinterFacing.FacingOptions(
+                true,
+                this.facingRedstoneSetting.getValue(),
+                this.facingHalfSetting.getValue(),
+                this.facingPillarsSetting.getValue(),
+                this.facingAttachmentsSetting.getValue(),
+                this.facingChestsSetting.getValue(),
+                this.facingOrientationSetting.getValue());
     }
 
     @Override
@@ -300,7 +336,7 @@ public class PrinterModule extends Module {
             return null;
         }
         ItemStack stack = slot.getStack();
-        SideChoice side = this.findSide(position, required, stack);
+        SideChoice side = this.findSide(position, required, stack, this.facingOptions());
         if (side == null) {
             return null;
         }
@@ -321,12 +357,73 @@ public class PrinterModule extends Module {
                 position, required, side.side(), side.clickedFace(), side.neighbor(), side.hit(), side.angles());
     }
 
-    private @Nullable SideChoice findSide(BlockPos position, BlockState required, ItemStack stack) {
+    private @Nullable SideChoice findSide(
+            BlockPos position, BlockState required, ItemStack stack, PrinterFacing.FacingOptions options) {
+        // A second half of a double chest must click the first chest's side face while sneaking.
+        // Do this before the generic preference pass so a non-merging support is never chosen.
+        SideChoice chestSide = this.findChestPartnerSide(position, required, stack, options);
+        if (chestSide != null) {
+            return chestSide;
+        }
+        // Prefer supports that do not need a background sneak; only fall back to a sneaking side
+        // when the projection cannot be placed otherwise.
+        SideChoice preferred = this.findSidePass(position, required, stack, options, true);
+        return preferred != null ? preferred : this.findSidePass(position, required, stack, options, false);
+    }
+
+    private @Nullable SideChoice findChestPartnerSide(
+            BlockPos position, BlockState required, ItemStack stack, PrinterFacing.FacingOptions options) {
+        if (!options.master() || !options.chest()) {
+            return null;
+        }
+        if (!required.hasProperty(BlockStateProperties.CHEST_TYPE)
+                || required.getValue(BlockStateProperties.CHEST_TYPE) == ChestType.SINGLE
+                || !required.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            return null;
+        }
+        LocalPlayer player = ClientAccess.evernightMinecraft.player;
+        Vec3 eye = player.getEyePosition();
+        double reach = player.blockInteractionRange() + 0.5D;
+        Direction facing = required.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        for (Direction side : Direction.values()) {
+            // Clicking the front/back of the partner does not merge the chest; only its side face
+            // (the axis perpendicular to the chest facing) does.
+            if (!side.getAxis().isHorizontal() || side.getAxis() == facing.getAxis()) {
+                continue;
+            }
+            BlockPos neighbor = position.relative(side);
+            BlockState neighborState = ClientAccess.evernightMinecraft.level.getBlockState(neighbor);
+            if (neighborState.getBlock() != required.getBlock()
+                    || !neighborState.hasProperty(BlockStateProperties.CHEST_TYPE)
+                    || neighborState.getValue(BlockStateProperties.CHEST_TYPE) != ChestType.SINGLE
+                    || !neighborState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)
+                    || neighborState.getValue(BlockStateProperties.HORIZONTAL_FACING) != facing) {
+                continue;
+            }
+            Vec3 hit = PrinterFacing.hitPosition(position, side, required, options.half());
+            if (hit == null || eye.distanceTo(hit) > reach) {
+                continue;
+            }
+            Direction clickedFace = side.getOpposite();
+            if (!WorldUtils.canSee(eye, hit, neighbor, clickedFace)) {
+                continue;
+            }
+            float[] angles = this.rotateSetting.getValue()
+                    ? RotationManager.calculateRotations(eye, hit) : null;
+            return new SideChoice(side, clickedFace, neighbor, hit, angles);
+        }
+        return null;
+    }
+
+    private @Nullable SideChoice findSidePass(
+            BlockPos position, BlockState required, ItemStack stack,
+            PrinterFacing.FacingOptions options, boolean avoidSneak) {
         LocalPlayer player = ClientAccess.evernightMinecraft.player;
         Vec3 eye = player.getEyePosition();
         double reach = player.blockInteractionRange() + 0.5D;
         Direction facing = PrinterFacing.getFacing(required);
-        boolean redstoneRotation = this.rotateSetting.getValue() && facing != null
+        boolean redstoneRotation = options.master() && options.redstone()
+                && this.rotateSetting.getValue() && facing != null
                 && PrinterFacing.isRedstoneComponent(required);
 
         for (Direction side : Direction.values()) {
@@ -334,11 +431,16 @@ public class PrinterModule extends Module {
             if (!WorldUtils.hasCollision(neighbor)) {
                 continue;
             }
-            if (!this.ignoreSneakSetting.getValue() && !player.isShiftKeyDown()
-                    && BlockInteractionUtils.requiresSneakForInteraction(neighbor)) {
-                continue;
+            boolean needsSneak = BlockInteractionUtils.requiresSneakForInteraction(neighbor);
+            if (needsSneak && !player.isShiftKeyDown()) {
+                if (avoidSneak) {
+                    continue;
+                }
+                if (!this.ignoreSneakSetting.getValue()) {
+                    continue;
+                }
             }
-            Vec3 hit = PrinterFacing.hitPosition(position, side, required);
+            Vec3 hit = PrinterFacing.hitPosition(position, side, required, options.half());
             if (hit == null || eye.distanceTo(hit) > reach) {
                 continue;
             }
@@ -348,7 +450,8 @@ public class PrinterModule extends Module {
             }
             BlockHitResult hitResult = new BlockHitResult(hit, clickedFace, neighbor, false);
             if (redstoneRotation) {
-                Direction look = PrinterFacing.isObserver(required) ? facing : facing.getOpposite();
+                Direction look = PrinterFacing.usesSameLookDirection(required)
+                        ? facing : facing.getOpposite();
                 return new SideChoice(
                         side, clickedFace, neighbor, hit, PrinterFacing.rotationsForDirection(look));
             }
@@ -357,7 +460,7 @@ public class PrinterModule extends Module {
                 BlockState simulated = PrinterFacing.simulate(
                         required, ClientAccess.evernightMinecraft.level, player,
                         InteractionHand.MAIN_HAND, stack, hitResult, aim);
-                if (simulated == null || !PrinterFacing.matches(required, simulated)) {
+                if (simulated == null || !PrinterFacing.matches(required, simulated, options)) {
                     continue;
                 }
                 return new SideChoice(
@@ -366,11 +469,7 @@ public class PrinterModule extends Module {
             BlockState simulated = PrinterFacing.simulate(
                     required, ClientAccess.evernightMinecraft.level, player,
                     InteractionHand.MAIN_HAND, stack, hitResult, null);
-            if (simulated == null) {
-                continue;
-            }
-            if (PrinterFacing.hasPlacementOrientation(required)
-                    && !PrinterFacing.matches(required, simulated)) {
+            if (simulated == null || !PrinterFacing.matches(required, simulated, options)) {
                 continue;
             }
             return new SideChoice(side, clickedFace, neighbor, hit, null);

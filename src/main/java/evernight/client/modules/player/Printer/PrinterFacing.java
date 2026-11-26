@@ -9,8 +9,11 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.BasePressurePlateBlock;
+import net.minecraft.world.level.block.CalibratedSculkSensorBlock;
+import net.minecraft.world.level.block.CrafterBlock;
 import net.minecraft.world.level.block.DaylightDetectorBlock;
 import net.minecraft.world.level.block.DiodeBlock;
+import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.ObserverBlock;
 import net.minecraft.world.level.block.RedStoneWireBlock;
 import net.minecraft.world.level.block.RedstoneLampBlock;
@@ -41,6 +44,17 @@ import java.util.Comparator;
  */
 public final class PrinterFacing {
     private static final double FACE_EPSILON = 1.0E-4D;
+
+    /**
+     * Per-category switches for the placement-state verification. {@code master} disables every
+     * orientation check (the printer then only cares about the block type).
+     */
+    public record FacingOptions(
+            boolean master, boolean redstone, boolean half, boolean pillar,
+            boolean attachment, boolean chest, boolean orientation) {
+        public static final FacingOptions ALL = new FacingOptions(true, true, true, true, true, true, true);
+        public static final FacingOptions NONE = new FacingOptions(false, false, false, false, false, false, false);
+    }
 
     private PrinterFacing() {
     }
@@ -78,10 +92,12 @@ public final class PrinterFacing {
     /**
      * Whether the block's placement direction is special enough that the printer should look
      * straight at the projected facing instead of only aiming at the clicked face.
+     *
+     * <p>Only blocks whose facing is derived from the player's look belong here. Click-attached
+     * redstone (buttons, levers, redstone torches, lightning rods) is intentionally left to the
+     * normal placement simulation, because its facing comes from the clicked face.
      */
     public static boolean isRedstoneComponent(BlockState state) {
-        // Order matters only for readability; every check is on the block class so modded states
-        // extending a vanilla class are covered too.
         return state.getBlock() instanceof RedStoneWireBlock
                 || state.getBlock() instanceof DiodeBlock
                 || state.getBlock() instanceof BasePressurePlateBlock
@@ -91,26 +107,19 @@ public final class PrinterFacing {
                 || state.getBlock() instanceof DaylightDetectorBlock
                 || state.getBlock() instanceof PistonBaseBlock
                 || state.getBlock() instanceof RedstoneLampBlock
-                || state.getBlock() instanceof AbstractFurnaceBlock;
-    }
-
-    public static boolean isObserver(BlockState state) {
-        return state.getBlock() instanceof ObserverBlock;
+                || state.getBlock() instanceof AbstractFurnaceBlock
+                || state.getBlock() instanceof DispenserBlock
+                || state.getBlock() instanceof CalibratedSculkSensorBlock
+                || state.getBlock() instanceof CrafterBlock;
     }
 
     /**
-     * @return whether the projected state has a placement-controlled orientation/half property
+     * @return whether the placement state uses the look direction directly as its facing instead of
+     * the opposite direction
      */
-    public static boolean hasPlacementOrientation(BlockState state) {
-        return getFacing(state) != null
-                || state.hasProperty(BlockStateProperties.HALF)
-                || state.hasProperty(BlockStateProperties.HANGING)
-                || state.hasProperty(BlockStateProperties.ATTACH_FACE)
-                || state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
-                || state.hasProperty(BlockStateProperties.BED_PART)
-                || state.hasProperty(SlabBlock.TYPE)
-                || state.hasProperty(BlockStateProperties.AXIS)
-                || state.hasProperty(BlockStateProperties.HORIZONTAL_AXIS);
+    public static boolean usesSameLookDirection(BlockState state) {
+        return state.getBlock() instanceof ObserverBlock
+                || state.getBlock() instanceof CalibratedSculkSensorBlock;
     }
 
     public static boolean isTopHalf(BlockState state) {
@@ -136,21 +145,43 @@ public final class PrinterFacing {
      * afterwards (stair shape, redstone connections, waterlogging, powered flags) must not make the
      * printer reject an otherwise correct placement.
      */
-    public static boolean matches(BlockState target, BlockState simulated) {
+    public static boolean matches(BlockState target, BlockState simulated, FacingOptions options) {
         if (target.getBlock() != simulated.getBlock()) {
             return false;
         }
-        return matches(target, simulated, BlockStateProperties.FACING)
+        if (!options.master()) {
+            return true;
+        }
+        boolean compareCoreFacing = options.redstone() || !isRedstoneComponent(target);
+        if (compareCoreFacing
+                && !(matches(target, simulated, BlockStateProperties.FACING)
                 && matches(target, simulated, BlockStateProperties.HORIZONTAL_FACING)
-                && matches(target, simulated, BlockStateProperties.FACING_HOPPER)
-                && matches(target, simulated, BlockStateProperties.AXIS)
-                && matches(target, simulated, BlockStateProperties.HORIZONTAL_AXIS)
-                && matches(target, simulated, BlockStateProperties.HALF)
-                && matches(target, simulated, BlockStateProperties.HANGING)
-                && matches(target, simulated, BlockStateProperties.ATTACH_FACE)
+                && matches(target, simulated, BlockStateProperties.FACING_HOPPER))) {
+            return false;
+        }
+        if (options.half()
+                && !(matches(target, simulated, BlockStateProperties.HALF)
                 && matches(target, simulated, BlockStateProperties.DOUBLE_BLOCK_HALF)
                 && matches(target, simulated, BlockStateProperties.BED_PART)
-                && matches(target, simulated, SlabBlock.TYPE);
+                && matches(target, simulated, BlockStateProperties.DOOR_HINGE)
+                && matches(target, simulated, SlabBlock.TYPE))) {
+            return false;
+        }
+        if (options.pillar()
+                && !(matches(target, simulated, BlockStateProperties.AXIS)
+                && matches(target, simulated, BlockStateProperties.HORIZONTAL_AXIS)
+                && matches(target, simulated, BlockStateProperties.VERTICAL_DIRECTION))) {
+            return false;
+        }
+        if (options.attachment()
+                && !(matches(target, simulated, BlockStateProperties.ATTACH_FACE)
+                && matches(target, simulated, BlockStateProperties.IN_WALL)
+                && matches(target, simulated, BlockStateProperties.BELL_ATTACHMENT)
+                && matches(target, simulated, BlockStateProperties.HANGING))) {
+            return false;
+        }
+        return !options.orientation()
+                || matches(target, simulated, BlockStateProperties.ORIENTATION);
     }
 
     private static <T extends Comparable<T>> boolean matches(
@@ -200,11 +231,12 @@ public final class PrinterFacing {
      * @return the world-space hit position, or {@code null} when this side cannot produce the
      * requested half
      */
-    public static @Nullable Vec3 hitPosition(BlockPos position, Direction side, BlockState target) {
+    public static @Nullable Vec3 hitPosition(
+            BlockPos position, Direction side, BlockState target, boolean halfAware) {
         double x = position.getX() + 0.5D;
         double z = position.getZ() + 0.5D;
-        boolean top = isTopHalf(target);
-        boolean bottom = isBottomHalf(target);
+        boolean top = halfAware && isTopHalf(target);
+        boolean bottom = halfAware && isBottomHalf(target);
         if (side == Direction.UP) {
             if (bottom) {
                 return null;
