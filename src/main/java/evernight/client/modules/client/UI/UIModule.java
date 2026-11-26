@@ -101,6 +101,7 @@ public final class UIModule extends Module {
         this.snowSetting = this.add(new BooleanSetting("Snow", true));
         this.tilingSetting = this.add(new BooleanSetting("Tiling", true));
         this.languageSetting = this.add(new EnumSetting<>("Language", UIModule.LanguageChoice.ENGLISH));
+        this.settingsSetting = this.add(new BooleanSetting("Settings", true));
         BooleanSetting searchOption = new BooleanSetting("Search", true);
         searchOption.markAsGroup();
         searchOption.markVisibilityDependency();
@@ -109,21 +110,25 @@ public final class UIModule extends Module {
                 .dependsOn(this.searchSetting));
         this.searchFuzzySetting = this.add(new BooleanSetting("SearchFuzzy", true)
                 .dependsOn(this.searchSetting));
-        this.searchFuzzyZh2ZSetting = this.add(new BooleanSetting("SearchFuzzyZh2Z", true)
-                .dependsOn(this.searchSetting, this.searchFuzzySetting));
-        this.searchFuzzySh2SSetting = this.add(new BooleanSetting("SearchFuzzySh2S", true)
-                .dependsOn(this.searchSetting, this.searchFuzzySetting));
-        this.searchFuzzyCh2CSetting = this.add(new BooleanSetting("SearchFuzzyCh2C", true)
-                .dependsOn(this.searchSetting, this.searchFuzzySetting));
-        this.searchFuzzyAng2AnSetting = this.add(new BooleanSetting("SearchFuzzyAng2An", true)
-                .dependsOn(this.searchSetting, this.searchFuzzySetting));
-        this.searchFuzzyEng2EnSetting = this.add(new BooleanSetting("SearchFuzzyEng2En", true)
-                .dependsOn(this.searchSetting, this.searchFuzzySetting));
-        this.searchFuzzyIng2InSetting = this.add(new BooleanSetting("SearchFuzzyIng2In", true)
-                .dependsOn(this.searchSetting, this.searchFuzzySetting));
-        this.searchFuzzyU2VSetting = this.add(new BooleanSetting("SearchFuzzyU2V", true)
-                .dependsOn(this.searchSetting, this.searchFuzzySetting));
-        this.settingsSetting = this.add(new BooleanSetting("Settings", true));
+        this.searchFuzzySetting.markVisibilityDependency();
+        // The individual fuzzy spellings are the PinIn Config options and only show while fuzzy
+        // matching is switched on and the "模糊拼音" row is expanded (right click).
+        Predicate<Object> fuzzySpellingVisibility = ignored -> this.searchFuzzySetting.getValue()
+                && this.searchFuzzySetting.isExpanded();
+        this.searchFuzzyZh2ZSetting = this.add(new BooleanSetting("SearchFuzzyZh2Z", true, fuzzySpellingVisibility)
+                .dependsOn(this.searchSetting));
+        this.searchFuzzySh2SSetting = this.add(new BooleanSetting("SearchFuzzySh2S", true, fuzzySpellingVisibility)
+                .dependsOn(this.searchSetting));
+        this.searchFuzzyCh2CSetting = this.add(new BooleanSetting("SearchFuzzyCh2C", true, fuzzySpellingVisibility)
+                .dependsOn(this.searchSetting));
+        this.searchFuzzyAng2AnSetting = this.add(new BooleanSetting("SearchFuzzyAng2An", true, fuzzySpellingVisibility)
+                .dependsOn(this.searchSetting));
+        this.searchFuzzyEng2EnSetting = this.add(new BooleanSetting("SearchFuzzyEng2En", true, fuzzySpellingVisibility)
+                .dependsOn(this.searchSetting));
+        this.searchFuzzyIng2InSetting = this.add(new BooleanSetting("SearchFuzzyIng2In", true, fuzzySpellingVisibility)
+                .dependsOn(this.searchSetting));
+        this.searchFuzzyU2VSetting = this.add(new BooleanSetting("SearchFuzzyU2V", true, fuzzySpellingVisibility)
+                .dependsOn(this.searchSetting));
         BooleanSetting elementsOption = new BooleanSetting("Elements", true);
         elementsOption.markAsGroup();
         elementsOption.markVisibilityDependency();

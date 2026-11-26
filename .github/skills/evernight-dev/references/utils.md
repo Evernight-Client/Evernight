@@ -397,13 +397,14 @@ float radius)`、`collectSphereBlocks(Vec3 center, float radius, boolean exclude
 
 ## 10. utils/search
 
-统一搜索（`utils/search/`）。配置在 `UI > 搜索`：`搜索语言`（`SearchMode.effective()` 解析 `AUTO` → 当前 Evernight
-语言；`CHINESE` 匹配中文名 + 智能拼音，`ENGLISH` 匹配英文名 + 注册名）、`模糊拼音`总开关与 7 个 PinIn 模糊音分项。
+统一搜索（`utils/search/`）。配置在 `UI > 搜索`（位于「设置提示」与「元素」之间）：`搜索语言`（`SearchMode.effective()`
+解析 `AUTO` → 当前 Evernight 语言；`CHINESE` 匹配中文名 + 智能拼音，`ENGLISH` 匹配英文名 + 注册名）与 `模糊拼音`
+（可展开，含 7 个 PinIn 模糊音分项）。
 
 | 类 | 关键 API |
 | --- | --- |
 | `SearchQuery` 一次查询（不可变） | `of(String)` / `of(String, SearchMode)`、`isBlank`、`text`、`mode`、`matchesEnglish(String...)`（大小写不敏感 `contains`）、`matchesChinese(String...)`（字面或拼音）；内置按候选串的结果缓存，**同一实例可每帧复用** |
-| `SearchQueryHolder` 搜索框缓存 | `update(String rawText)`：文本或生效模式变化才重建 `SearchQuery`，布局循环里直接调 |
+| `SearchQueryHolder` 搜索框缓存 | `update(String rawText)`：文本、生效模式或模糊音开关变化才重建 `SearchQuery`，布局循环里直接调 |
 | `SearchKey` 条目名字集合 | `of(Collection, Collection)`、`empty`、`matches(SearchQuery)`（按模式选英文/中文一侧）、`english()`、`chinese()`、`allTexts()` |
 | `SearchNames` 条目 → `SearchKey` | `forItem`、`forBlock`、`forEntityType`、`forMobEffect`、`forPotion`、`forSound`、`forEnchantment(Enchantment, Identifier)`、`forItemStack`（含附魔/药水效果/自定义名）、`forModule`、`forRegistryEntry(Identifier, entry, label)`；注册表对象带缓存 |
 | `LocalizedNames` 固定语言名 | `english` / `chinese`（资源管理器 `en_us` / `zh_cn` 表，含模组键）、`clientEnglish` / `clientChinese`（Evernight 自带语言文件） |

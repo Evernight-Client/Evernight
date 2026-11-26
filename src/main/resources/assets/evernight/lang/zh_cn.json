@@ -1966,7 +1966,7 @@
   "evernight.descriptions.settings.ScoreBoard": "隐藏计分板侧边栏",
   "evernight.descriptions.settings.Search": "搜索使用的名字来源与拼音匹配选项",
   "evernight.descriptions.settings.SearchLanguage": "搜索匹配使用的名字来源：自动跟随界面语言，中文用中文名与智能拼音，英文用英文名与注册名",
-  "evernight.descriptions.settings.SearchFuzzy": "允许输入法常见的模糊音写法（zh/z、sh/s、ch/c 等）",
+  "evernight.descriptions.settings.SearchFuzzy": "允许输入法常见的模糊音写法（右键展开可逐项关闭）",
   "evernight.descriptions.settings.SearchFuzzyZh2Z": "允许 zh 与 z 互相匹配",
   "evernight.descriptions.settings.SearchFuzzySh2S": "允许 sh 与 s 互相匹配",
   "evernight.descriptions.settings.SearchFuzzyCh2C": "允许 ch 与 c 互相匹配",

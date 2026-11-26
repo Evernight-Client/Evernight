@@ -1966,7 +1966,7 @@
   "evernight.descriptions.settings.ScoreBoard": "Hides the scoreboard sidebar.",
   "evernight.descriptions.settings.Search": "Name sources and pinyin matching options used by search.",
   "evernight.descriptions.settings.SearchLanguage": "Name source used by search: Auto follows the interface language, Chinese matches Chinese names and smart pinyin, English matches English names and registry ids.",
-  "evernight.descriptions.settings.SearchFuzzy": "Enables the fuzzy pinyin spellings IMEs accept by default (zh/z, sh/s, ch/c, ...).",
+  "evernight.descriptions.settings.SearchFuzzy": "Enables the fuzzy pinyin spellings IMEs accept by default (right-click to toggle each one).",
   "evernight.descriptions.settings.SearchFuzzyZh2Z": "Lets zh and z match each other.",
   "evernight.descriptions.settings.SearchFuzzySh2S": "Lets sh and s match each other.",
   "evernight.descriptions.settings.SearchFuzzyCh2C": "Lets ch and c match each other.",
