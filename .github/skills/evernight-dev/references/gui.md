@@ -183,7 +183,8 @@ new RegistrySetScreen<>(ClientAccess.evernightMinecraft.screen, this.registrySet
 - `SearchKey`：某条目的 `english[]` / `chinese[]` 名字集合；`matches(query)` 按当前模式选一侧。
 - `SearchNames`：为 item / block / entity / effect / potion / sound / enchantment / `ItemStack`（含附魔与药水效果）/
   `Module` 构建 `SearchKey`，英文名与中文名分别通过 `LocalizedNames`（资源管理器的 `en_us` / `zh_cn` 语言表，
-  含模组键）查询，并补注册名。中文模式**不会**命中英文名，英文模式**不会**命中中文名。
+  含模组键）查询，并补注册名；客户端 / 插件自有键（`evernight.*`、`addons.<id>.*`）先查 `LanguageTable`
+  的 overlay，所以插件模块的中英文名与拼音也被覆盖。中文模式**不会**命中英文名，英文模式**不会**命中中文名。
 
 ## 8. 打开界面的标准写法
 

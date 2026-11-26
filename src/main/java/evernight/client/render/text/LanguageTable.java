@@ -165,6 +165,35 @@ public final class LanguageTable {
         return this.translations.getOrDefault(key, fallback);
     }
 
+    /**
+     * Looks up one key in a fixed language, so callers can read the other language's text (and every
+     * addon overlay registered for it) instead of only the resolved active-language view. English and
+     * the active language also consult their base tables; other language codes only have overlays.
+     *
+     * @return the text, or {@code null} when neither a base table nor an overlay defines the key
+     */
+    public String getTranslationFor(String key, String languageCode) {
+        if (key == null || languageCode == null) {
+            return null;
+        }
+        String value = null;
+        if (DEFAULT_LANGUAGE.equals(languageCode)) {
+            value = this.englishBase.get(key);
+        } else if (languageCode.equals(this.activeLanguage)) {
+            value = this.activeBase.get(key);
+        }
+        Map<String, Map<String, String>> languageOverlays = this.overlays.get(languageCode);
+        if (languageOverlays != null) {
+            for (Map<String, String> entries : languageOverlays.values()) {
+                String overlayValue = entries.get(key);
+                if (overlayValue != null) {
+                    value = overlayValue;
+                }
+            }
+        }
+        return value;
+    }
+
     public boolean hasTranslation(String key) {
         return this.translations.containsKey(key);
     }

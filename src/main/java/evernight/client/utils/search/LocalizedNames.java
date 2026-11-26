@@ -1,6 +1,8 @@
 package evernight.client.utils.search;
 
+import evernight.client.ClientContext;
 import evernight.client.EvernightClient;
+import evernight.client.render.text.LanguageTable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.ClientLanguage;
 import net.minecraft.locale.Language;
@@ -17,8 +19,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Search needs the English name of a Chinese client and the Chinese name of an English client, so
  * the vanilla language of a given code is parsed from the resource manager once and cached. Vanilla
  * keys ({@code item.minecraft.*}) and mod keys are both covered because {@link ClientLanguage} walks
- * every loaded namespace. Evernight's own keys additionally fall back to the language file inside the
- * mod jar, which is always present even if the resource pack order changes.
+ * every loaded namespace. Client-owned keys ({@code evernight.*} and addon {@code addons.<id>.*})
+ * additionally consult the live language table, so addon language overlays are searchable too, with
+ * the language file inside the Evernight jar as the fallback.
  */
 public final class LocalizedNames {
     private static final String ENGLISH = "en_us";
@@ -39,12 +42,24 @@ public final class LocalizedNames {
         return lookup(CHINESE, translationKey);
     }
 
+    /**
+     * Client-owned key in English. The live {@link LanguageTable} is asked first so addon language
+     * overlays ({@code addons.<id>.*} module names, ...) are covered; the language file bundled in the
+     * Evernight jar is the fallback for the client's own keys.
+     */
     public static String clientEnglish(String translationKey) {
-        return clientLookup(ENGLISH, translationKey);
+        String overlayValue = clientOverlayLookup(ENGLISH, translationKey);
+        return overlayValue != null ? overlayValue : clientLookup(ENGLISH, translationKey);
     }
 
     public static String clientChinese(String translationKey) {
-        return clientLookup(CHINESE, translationKey);
+        String overlayValue = clientOverlayLookup(CHINESE, translationKey);
+        return overlayValue != null ? overlayValue : clientLookup(CHINESE, translationKey);
+    }
+
+    private static String clientOverlayLookup(String languageCode, String translationKey) {
+        LanguageTable table = ClientContext.languageTable;
+        return table == null ? null : table.getTranslationFor(translationKey, languageCode);
     }
 
     private static String lookup(String languageCode, String translationKey) {

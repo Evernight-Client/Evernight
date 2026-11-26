@@ -127,6 +127,7 @@ public final class ExampleModule extends AddonModule {
 
 - 语言文件 `assets/<id>/lang/en_us.json` + `zh_cn.json`，UTF-8 扁平 JSON，键集必须一致，全部放 `addons.<id>.*`。查找链：当前语言 → 英文 → 完整键（中文缺键回退英文，两份都缺才显示完整键，方便发现漏翻）。只写 `en_us.json` 可以跑，但推荐两份都写。
 - `AddonModule` 自动解析模块名/描述/设置标签；私有文案用 `Translations.get("addons.<id>.xxx")`。自定义枚举可覆写 `NamedEntry#getDisplayName()` 读自己的命名空间。
+- ClickGUI 搜索覆盖插件模块：英文模式匹配模块名/别名，中文模式匹配 `addons.<id>.names.modules.*` 的中文名与智能拼音；插件模块里的 `RegistrySetSetting` 物品列表、箱子搜索与交易选择同样使用统一的英文名/注册名/拼音匹配。
 - 模块开关/按键/设置自动进 `evernight/modules.json`，HUD 进 `evernight/hud.json`，无需额外代码。
 - 插件自有状态实现 `JsonConfigurable`（`toJson` / `fromJson` / `getConfigName`，必须覆写最后者）后 `context.registerConfig(...)`，文件落在 `evernight/<name>`，建议 `<id>.json` 避免与本体撞名。`ConfigurationManager` 尚未创建时该调用会被暂存，初始化后自动注册并读盘。
 - 大文件或非配置数据放 `dataDirectory()`。`;reload` 会重读所有配置源，包括插件配置。

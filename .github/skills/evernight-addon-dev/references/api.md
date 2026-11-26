@@ -163,6 +163,7 @@ Minecraft.destroy()
 - 文件：`assets/<addon id>/lang/en_us.json`、`zh_cn.json`，UTF-8 扁平 JSON。
 - `AddonManager` 在 `onInitialize` 前自动调用 `loadLanguageFiles()`；缺失文件静默跳过。
 - `LanguageTable` 以 `(sourceId, languageCode)` 为键保存 overlay；`load(stream, code)` 换语言后自动重新叠加。
+- `LanguageTable.getTranslationFor(key, code)` 可读取**指定语言**的文案（含 overlay）；ClickGUI 模块搜索会用它读取插件模块的中英文名，因此中英文模式与拼音都能命中插件的 `addons.<id>.names.modules.*`。
 - overlay 在基础表之后应用，因此插件键会覆盖同名本体键（不建议覆盖本体键）。
 - 本体键统一在 `evernight.` 命名空间，**插件不得使用**；插件所有键（模块名、描述、设置标签、私有文案）都放 `addons.<id>.*`。
 - `AddonModule` 自动读取 `addons.<id>.names.modules.*` / `addons.<id>.descriptions.modules.*` / `addons.<id>.names.settings.*`；其他文案用 `Translations.get("addons.<id>.xxx")`。
