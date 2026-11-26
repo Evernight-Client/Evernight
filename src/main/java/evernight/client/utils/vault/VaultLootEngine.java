@@ -17,80 +17,159 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.IntConsumer;
 
 /**
- * Bridge to the bundled loot engine, a {@code vaulttool} build of the cubiomes loot library that
- * mirrors the trial-chamber loot tables.
+ * Bridge to the loot engine, a {@code vaulttool} CLI built from the upstream cubiomes loot library.
  *
- * <p>The engine ships as a Windows executable ({@code assets/evernight/vault/vaulttool.exe}); the
- * first use extracts it into {@code <game directory>/evernight/tools} and every later call reuses that
- * copy (the engine keeps its per-seed state next to itself). On other systems the same directory may
- * hold a native {@code vaulttool} build for that platform, which is used when present.
- * {@link #isSupported()} reports whether an engine is usable at all; the prediction module hides itself
- * otherwise.
+ * <p>The engine itself lives in a separate repository ({@code evernight-vault-engine}) and is built
+ * there for every supported platform; this project only downloads those release binaries during the
+ * build and packs them under {@code assets/evernight/vault/}. Nothing is committed here, and a local
+ * build without the downloaded binaries simply produces a jar without an engine.
+ *
+ * <p>On first use the engine for the running platform is extracted into
+ * {@code <game directory>/evernight/tools} and reused afterwards (the engine keeps its per-seed state
+ * next to itself). A player-supplied {@code vaulttool} / {@code vaulttool.exe} in that directory takes
+ * precedence, which also covers platforms this project does not build for. {@link #isSupported()}
+ * reports whether any engine is usable; the prediction module hides itself otherwise.
  *
  * <p>Scanning and filtering happen inside the engine, so the Java side only parses a handful of
  * lines per call. Never widen this into "parse every predicted drop": a large scan would allocate
  * tens of thousands of objects on the game heap.
  */
 public final class VaultLootEngine {
-    private static final String RESOURCE_PATH = "/assets/evernight/vault/vaulttool.exe";
-    private static final String WINDOWS_TOOL_NAME = "vaulttool.exe";
-    private static final String NATIVE_TOOL_NAME = "vaulttool";
+    private static final String RESOURCE_PREFIX = "/assets/evernight/vault/vaulttool-";
+    private static final String EXTERNAL_TOOL_NAME = "vaulttool";
+    private static final String EXTERNAL_WINDOWS_TOOL_NAME = "vaulttool.exe";
     private static final String CANDIDATE_FILE_NAME = "vault-candidates.txt";
     private static final int LIST_TIMEOUT_SECONDS = 120;
     private static final int SCAN_TIMEOUT_SECONDS = 300;
 
+    /** Extracted engine of this session, so repeated calls do not re-read the bundled binary. */
+    private static volatile Path resolved;
+
     private VaultLootEngine() {
     }
 
-    private static boolean isWindows() {
-        return System.getProperty("os.name", "").toLowerCase(Locale.ROOT).startsWith("windows");
+    private static boolean isAndroid() {
+        String vendor = System.getProperty("java.vendor", "").toLowerCase(Locale.ROOT);
+        String vmName = System.getProperty("java.vm.name", "").toLowerCase(Locale.ROOT);
+        return vendor.contains("android") || vmName.contains("dalvik")
+                || System.getProperty("os.name", "").equalsIgnoreCase("android");
+    }
+
+    private static boolean isAarch64() {
+        String arch = System.getProperty("os.arch", "").toLowerCase(Locale.ROOT);
+        return arch.contains("aarch64") || arch.contains("arm64");
     }
 
     /**
-     * Whether an engine is available on this platform.
-     *
-     * <p>Windows always has the bundled executable. Every other system can only use an engine the
-     * player placed in {@code evernight/tools}; without one the module hides itself instead of
-     * offering switches that cannot work.
+     * Name of the bundled engine for the running platform, or {@code null} when this project ships no
+     * build for it (32-bit JVMs included).
      */
-    public static boolean isSupported() {
-        if (isWindows()) {
-            return VaultLootEngine.class.getResource(RESOURCE_PATH) != null;
+    static String platformName() {
+        String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+        String arch = System.getProperty("os.arch", "").toLowerCase(Locale.ROOT);
+        boolean sixtyFourBit = arch.contains("64");
+        if (!sixtyFourBit) {
+            return null;
         }
-        return Files.isRegularFile(nativeToolPath());
+        if (isAndroid()) {
+            if (isAarch64()) {
+                return "android-arm64";
+            }
+            if (arch.contains("x86_64") || arch.contains("amd64")) {
+                return "android-x86_64";
+            }
+            return null;
+        }
+        if (os.startsWith("windows")) {
+            return "windows-x86_64";
+        }
+        if (os.contains("mac") || os.contains("darwin")) {
+            return "macos-universal";
+        }
+        if (os.contains("linux")) {
+            return isAarch64() ? "linux-aarch64" : "linux-x86_64";
+        }
+        return null;
+    }
+
+    /** Whether a loot engine can run here, either bundled or supplied by the player. */
+    public static boolean isSupported() {
+        if (externalTool() != null) {
+            return true;
+        }
+        String platform = platformName();
+        return platform != null && bundledResource(platform) != null;
     }
 
     private static Path toolDirectory() {
         return FabricLoader.getInstance().getGameDir().resolve("evernight").resolve("tools");
     }
 
-    private static Path nativeToolPath() {
-        return toolDirectory().resolve(NATIVE_TOOL_NAME);
+    /** Player-supplied engine in {@code evernight/tools}, or {@code null}. */
+    private static Path externalTool() {
+        Path directory = toolDirectory();
+        Path nativeTool = directory.resolve(EXTERNAL_TOOL_NAME);
+        if (Files.isRegularFile(nativeTool)) {
+            return nativeTool;
+        }
+        Path windowsTool = directory.resolve(EXTERNAL_WINDOWS_TOOL_NAME);
+        return Files.isRegularFile(windowsTool) ? windowsTool : null;
     }
 
-    /** Extracts the bundled engine (Windows) or reuses a native build, then returns its path. */
+    private static String bundledResourcePath(String platform) {
+        return RESOURCE_PREFIX + platform + (platform.startsWith("windows") ? ".exe" : "");
+    }
+
+    private static java.net.URL bundledResource(String platform) {
+        return VaultLootEngine.class.getResource(bundledResourcePath(platform));
+    }
+
+    /** Returns a runnable engine path, extracting the bundled build on first use. */
     public static Path ensure() throws IOException {
+        Path cached = resolved;
+        if (cached != null && Files.isRegularFile(cached)) {
+            return cached;
+        }
+        Path external = externalTool();
+        if (external != null) {
+            resolved = external;
+            return external;
+        }
+        String platform = platformName();
+        if (platform == null) {
+            throw new IOException("No loot engine is available for " + System.getProperty("os.name") + "/"
+                    + System.getProperty("os.arch"));
+        }
+        String resourcePath = bundledResourcePath(platform);
         Path directory = toolDirectory();
         Files.createDirectories(directory);
-        if (!isWindows()) {
-            Path nativeTool = nativeToolPath();
-            if (Files.isRegularFile(nativeTool)) {
-                return nativeTool;
-            }
-            throw new IOException("No vault loot engine found at " + nativeTool);
-        }
-        Path executable = directory.resolve(WINDOWS_TOOL_NAME);
-        try (InputStream bundled = VaultLootEngine.class.getResourceAsStream(RESOURCE_PATH)) {
+        Path executable = directory.resolve(EXTERNAL_TOOL_NAME + "-" + platform
+                + (platform.startsWith("windows") ? ".exe" : ""));
+        try (InputStream bundled = VaultLootEngine.class.getResourceAsStream(resourcePath)) {
             if (bundled == null) {
-                throw new IOException("Bundled loot engine resource is missing: " + RESOURCE_PATH);
+                throw new IOException("Bundled loot engine resource is missing: " + resourcePath);
             }
             byte[] data = bundled.readAllBytes();
-            if (!Files.exists(executable) || Files.size(executable) != data.length) {
+            boolean unchanged = Files.isRegularFile(executable) && Files.size(executable) == data.length;
+            if (!unchanged) {
                 Files.write(executable, data, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
                         StandardOpenOption.WRITE);
             }
+            if (!platform.startsWith("windows")) {
+                markExecutable(executable);
+            }
         }
+        resolved = executable;
         return executable;
+    }
+
+    private static void markExecutable(Path executable) {
+        try {
+            Files.setPosixFilePermissions(executable,
+                    java.nio.file.attribute.PosixFilePermissions.fromString("rwxr-x---"));
+        } catch (UnsupportedOperationException | IOException ignoredFileSystem) {
+            // Windows and other non-POSIX file systems do not need (or support) the permission bits.
+        }
     }
 
     /**
