@@ -397,8 +397,8 @@ float radius)`、`collectSphereBlocks(Vec3 center, float radius, boolean exclude
 
 ## 10. utils/search
 
-统一搜索（`utils/search/`），行为由 `UI > Search` 的 `SearchMode`（`settings/options/SearchMode.java`）决定：
-`effective()` 解析 `AUTO` → 当前 Evernight 语言；`CHINESE` 匹配中文名 + 智能拼音，`ENGLISH` 匹配英文名 + 注册名。
+统一搜索（`utils/search/`）。配置在 `UI > 搜索`：`搜索语言`（`SearchMode.effective()` 解析 `AUTO` → 当前 Evernight
+语言；`CHINESE` 匹配中文名 + 智能拼音，`ENGLISH` 匹配英文名 + 注册名）、`模糊拼音`总开关与 7 个 PinIn 模糊音分项。
 
 | 类 | 关键 API |
 | --- | --- |
@@ -407,7 +407,7 @@ float radius)`、`collectSphereBlocks(Vec3 center, float radius, boolean exclude
 | `SearchKey` 条目名字集合 | `of(Collection, Collection)`、`empty`、`matches(SearchQuery)`（按模式选英文/中文一侧）、`english()`、`chinese()`、`allTexts()` |
 | `SearchNames` 条目 → `SearchKey` | `forItem`、`forBlock`、`forEntityType`、`forMobEffect`、`forPotion`、`forSound`、`forEnchantment(Enchantment, Identifier)`、`forItemStack`（含附魔/药水效果/自定义名）、`forModule`、`forRegistryEntry(Identifier, entry, label)`；注册表对象带缓存 |
 | `LocalizedNames` 固定语言名 | `english` / `chinese`（资源管理器 `en_us` / `zh_cn` 表，含模组键）、`clientEnglish` / `clientChinese`（Evernight 自带语言文件） |
-| `PinyinMatcher` 拼音匹配 | `contains(text, query)`（首次调用解析内置 PinIn 字典，默认开启模糊音）、`preloadAsync()`（客户端初始化已异步预热） |
+| `PinyinMatcher` 拼音匹配 | `contains(text, query)`（首次调用解析内置 PinIn 字典；模糊音按 `UI > 搜索` 的开关在匹配锁内应用）、`preloadAsync()`（客户端初始化已异步预热） |
 
 **坑**：`PinyinMatcher` 的 PinIn 上下文只在客户端线程匹配；`LocalizedNames` 首次使用会在客户端线程解析语言表（一次性）。
 

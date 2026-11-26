@@ -24,12 +24,13 @@ public enum SearchMode implements NamedEntry {
     }
 
     /**
-     * Resolves the mode configured in {@code UI > Search}, turning {@link #AUTO} into the concrete
-     * mode of the active interface language. Falls back to English before the UI module exists.
+     * Resolves the mode configured in {@code UI > 搜索 > 搜索语言}, turning {@link #AUTO} into the
+     * concrete mode of the active interface language. Falls back to English before the UI module
+     * exists.
      */
     public static SearchMode effective() {
         UIModule uiModule = UIModule.INSTANCE;
-        SearchMode selected = uiModule == null ? AUTO : uiModule.searchSetting.getValue();
+        SearchMode selected = uiModule == null ? AUTO : uiModule.searchLanguageSetting.getValue();
         if (selected != AUTO) {
             return selected;
         }

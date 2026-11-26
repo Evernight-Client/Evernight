@@ -170,12 +170,14 @@ new RegistrySetScreen<>(ClientAccess.evernightMinecraft.screen, this.registrySet
 ## 7.1 搜索框（统一搜索模式）
 
 所有搜索框（Registry 集合编辑器、ClickGUI 模块搜索、`ChestSearchBar` 箱子搜索、交易物品/附魔选择）共用
-`client/utils/search/`，行为由 `UI > Search` 的 `SearchMode` 决定：`AUTO` 跟随 Evernight 界面语言，
-`CHINESE` 匹配中文名 + 智能拼音（全拼、首字母、中英混输），`ENGLISH` 匹配英文名 + 注册名（`modid:path`、`path`）。
+`client/utils/search/`。配置在 `UI > 搜索` 分类下：**搜索语言**（`SearchLanguage`，`SearchMode`：`AUTO` 跟随
+Evernight 界面语言，`CHINESE` 匹配中文名 + 智能拼音，`ENGLISH` 匹配英文名 + 注册名）、**模糊拼音**总开关
+（`SearchFuzzy`）与 PinIn `Config` 的各模糊音分项（`SearchFuzzyZh2Z` / `Sh2S` / `Ch2C` / `Ang2An` / `Eng2En` /
+`Ing2In` / `U2V`，默认全开）。`PinyinMatcher` 在匹配锁内按这些开关重建 PinIn 配置，改设置后下一次匹配即生效。
 
 - `SearchQuery`：归一化后的查询 + 解析后的模式 + 每个候选字符串的结果缓存；`matchesEnglish(...)` 只做大小写不敏感
   `contains`，`matchesChinese(...)` = 字面 `contains` 或拼音匹配（`PinyinMatcher` → 内置裁剪版 PinIn，无索引；
-  默认开启模糊音 zh/z、sh/s、ch/c、ang/an、eng/en、ing/in、v/u）。
+  模糊音按 `UI > 搜索` 的开关生效，默认全开）。
 - `SearchQueryHolder`：每个搜索框一个，`update(文本)` 只在文本或生效模式变化时重建 `SearchQuery`，**布局循环里可以每帧调**。
 - `SearchKey`：某条目的 `english[]` / `chinese[]` 名字集合；`matches(query)` 按当前模式选一侧。
 - `SearchNames`：为 item / block / entity / effect / potion / sound / enchantment / `ItemStack`（含附魔与药水效果）/

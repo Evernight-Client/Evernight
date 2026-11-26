@@ -2,6 +2,7 @@ package evernight.client.utils.search;
 
 import evernight.client.ClientAccess;
 import evernight.client.EvernightClient;
+import evernight.client.modules.client.UI.UIModule;
 import me.towdium.pinin.PinIn;
 
 /**
@@ -12,10 +13,25 @@ import me.towdium.pinin.PinIn;
  * cost. Matching is serialized on the context because the matcher keeps one scratch element for
  * characters that are not in the dictionary, and the chest search bar can be driven from module
  * logic as well as from rendering.
+ *
+ * <p>The fuzzy spellings exposed in {@code UI > 搜索} are the PinIn {@code Config} options; they are
+ * applied under the same lock, so toggling a row takes effect on the next match without rebuilding
+ * the dictionary.
  */
 public final class PinyinMatcher {
+    private static final int FUZZY_ZH2Z = 1;
+    private static final int FUZZY_SH2S = 1 << 1;
+    private static final int FUZZY_CH2C = 1 << 2;
+    private static final int FUZZY_ANG2AN = 1 << 3;
+    private static final int FUZZY_ENG2EN = 1 << 4;
+    private static final int FUZZY_ING2IN = 1 << 5;
+    private static final int FUZZY_U2V = 1 << 6;
+    private static final int FUZZY_ALL = FUZZY_ZH2Z | FUZZY_SH2S | FUZZY_CH2C | FUZZY_ANG2AN
+            | FUZZY_ENG2EN | FUZZY_ING2IN | FUZZY_U2V;
+
     private static volatile PinIn pinin;
     private static volatile boolean unavailable;
+    private static int configuredMask = -1;
 
     private PinyinMatcher() {
     }
@@ -26,7 +42,12 @@ public final class PinyinMatcher {
         }
         try {
             PinIn context = instance();
+            int mask = currentFuzzyMask();
             synchronized (context) {
+                if (configuredMask != mask) {
+                    applyFuzzy(context, mask);
+                    configuredMask = mask;
+                }
                 return context.contains(text, query);
             }
         } catch (Throwable failure) {
@@ -62,7 +83,7 @@ public final class PinyinMatcher {
         synchronized (PinyinMatcher.class) {
             local = pinin;
             if (local == null) {
-                local = createContext();
+                local = new PinIn();
                 pinin = local;
             }
             return local;
@@ -70,19 +91,38 @@ public final class PinyinMatcher {
     }
 
     /**
-     * Builds the shared context with the fuzzy spellings Chinese players expect from an IME:
-     * {@code zh/z}, {@code sh/s}, {@code ch/c}, {@code ang/an}, {@code eng/en}, {@code ing/in} and
-     * {@code v/u}. They are what lets {@code zongguo}, {@code san} or {@code nu} find 中国, 上 and 女.
+     * Reads the fuzzy rows of {@code UI > 搜索}. The master {@code SearchFuzzy} switch gates every
+     * individual spelling; before the UI module exists (or before a config is loaded) everything is on.
+     * Also used by the search query cache to notice a settings change.
      */
-    private static PinIn createContext() {
-        return new PinIn().config()
-                .fZh2Z(true)
-                .fSh2S(true)
-                .fCh2C(true)
-                .fAng2An(true)
-                .fEng2En(true)
-                .fIng2In(true)
-                .fU2V(true)
+    public static int currentFuzzyMask() {
+        UIModule uiModule = UIModule.INSTANCE;
+        if (uiModule == null) {
+            return FUZZY_ALL;
+        }
+        if (!uiModule.searchFuzzySetting.getValue()) {
+            return 0;
+        }
+        int mask = 0;
+        if (uiModule.searchFuzzyZh2ZSetting.getValue()) mask |= FUZZY_ZH2Z;
+        if (uiModule.searchFuzzySh2SSetting.getValue()) mask |= FUZZY_SH2S;
+        if (uiModule.searchFuzzyCh2CSetting.getValue()) mask |= FUZZY_CH2C;
+        if (uiModule.searchFuzzyAng2AnSetting.getValue()) mask |= FUZZY_ANG2AN;
+        if (uiModule.searchFuzzyEng2EnSetting.getValue()) mask |= FUZZY_ENG2EN;
+        if (uiModule.searchFuzzyIng2InSetting.getValue()) mask |= FUZZY_ING2IN;
+        if (uiModule.searchFuzzyU2VSetting.getValue()) mask |= FUZZY_U2V;
+        return mask;
+    }
+
+    private static void applyFuzzy(PinIn context, int mask) {
+        context.config()
+                .fZh2Z((mask & FUZZY_ZH2Z) != 0)
+                .fSh2S((mask & FUZZY_SH2S) != 0)
+                .fCh2C((mask & FUZZY_CH2C) != 0)
+                .fAng2An((mask & FUZZY_ANG2AN) != 0)
+                .fEng2En((mask & FUZZY_ENG2EN) != 0)
+                .fIng2In((mask & FUZZY_ING2IN) != 0)
+                .fU2V((mask & FUZZY_U2V) != 0)
                 .commit();
     }
 }
