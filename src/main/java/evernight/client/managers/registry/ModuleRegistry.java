@@ -175,6 +175,7 @@ import evernight.client.modules.player.NoEffects.NoEffectsModule;
 import evernight.client.modules.player.NoGlitchBlocks.NoGlitchBlocksModule;
 import evernight.client.modules.player.NoInteract.NoInteractModule;
 import evernight.client.modules.player.Nuker.NukerModule;
+import evernight.client.modules.player.Printer.PrinterModule;
 import evernight.client.modules.player.Replenish.ReplenishModule;
 import evernight.client.modules.player.RotationLock.RotationLockModule;
 import evernight.client.modules.player.Scaffold.ScaffoldModule;
@@ -511,6 +512,8 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected PistonCrystalModule");
         if (!this.registerModule(new evernight.client.modules.render.PredictPath.PredictPathModule()))
             throw new IllegalStateException("Registration rejected PredictPathModule");
+        if (!this.registerModule(new evernight.client.modules.player.Printer.PrinterModule()))
+            throw new IllegalStateException("Registration rejected PrinterModule");
         if (!this.registerModule(new evernight.client.modules.combat.Pusher.PusherModule()))
             throw new IllegalStateException("Registration rejected PusherModule");
         if (!this.registerModule(new evernight.client.modules.exploit.RaytraceBypass.RaytraceBypassModule()))
