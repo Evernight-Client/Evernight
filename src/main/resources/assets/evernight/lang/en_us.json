@@ -1964,6 +1964,7 @@
   "evernight.descriptions.settings.Scheme": "Color blindness simulation applied to client colors.",
   "evernight.descriptions.settings.Scope": "Which inventory area is sorted.",
   "evernight.descriptions.settings.ScoreBoard": "Hides the scoreboard sidebar.",
+  "evernight.descriptions.settings.Search": "Name source used by search: Auto follows the interface language, Chinese matches Chinese names and smart pinyin, English matches English names and registry ids.",
   "evernight.descriptions.settings.Secondary": "Secondary color used for the totem pop notification.",
   "evernight.descriptions.settings.SecondColor": "Second color used by the pulse color mode.",
   "evernight.descriptions.settings.Select": "Steal any item, only whitelisted, or skip blacklisted ones.",

@@ -1964,6 +1964,7 @@
   "evernight.descriptions.settings.Scheme": "应用于客户端配色的色盲模拟方案",
   "evernight.descriptions.settings.Scope": "参与整理的背包区域",
   "evernight.descriptions.settings.ScoreBoard": "隐藏计分板侧边栏",
+  "evernight.descriptions.settings.Search": "搜索匹配使用的名字来源：自动跟随界面语言，中文用中文名与智能拼音，英文用英文名与注册名",
   "evernight.descriptions.settings.Secondary": "图腾消耗提示的次要色调",
   "evernight.descriptions.settings.SecondColor": "脉冲颜色模式使用的第二种颜色",
   "evernight.descriptions.settings.Select": "拿取全部物品、仅拿白名单，或跳过黑名单",

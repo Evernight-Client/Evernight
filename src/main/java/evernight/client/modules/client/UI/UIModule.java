@@ -35,6 +35,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import evernight.client.settings.core.NamedEntry;
 import evernight.client.settings.core.Setting;
+import evernight.client.settings.options.SearchMode;
 import evernight.client.settings.types.BooleanSetting;
 import evernight.client.settings.types.ColorSetting;
 import evernight.client.settings.types.EnumSetting;
@@ -48,6 +49,7 @@ public final class UIModule extends Module {
     public final Setting<Float> scaleSetting;
     public final Setting<Boolean> snowSetting;
     public final Setting<Boolean> tilingSetting;
+    public final Setting<SearchMode> searchSetting;
     public final Setting<Boolean> settingsSetting;
     public final Setting<Boolean> elementsSetting;
     public final Setting<Boolean> aeroSetting;
@@ -90,6 +92,7 @@ public final class UIModule extends Module {
         this.snowSetting = this.add(new BooleanSetting("Snow", true));
         this.tilingSetting = this.add(new BooleanSetting("Tiling", true));
         this.languageSetting = this.add(new EnumSetting<>("Language", UIModule.LanguageChoice.ENGLISH));
+        this.searchSetting = this.add(new EnumSetting<>("Search", SearchMode.AUTO));
         this.settingsSetting = this.add(new BooleanSetting("Settings", true));
         BooleanSetting elementsOption = new BooleanSetting("Elements", true);
         elementsOption.markAsGroup();

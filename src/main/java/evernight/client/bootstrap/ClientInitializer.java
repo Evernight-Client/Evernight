@@ -21,6 +21,7 @@ import evernight.client.utils.combat.TotemPopTracker;
 import evernight.client.utils.entity.PlayerStateTracker;
 import evernight.client.utils.inventory.CustomItemRegistries;
 import evernight.client.utils.movement.MovementSpeedTracker;
+import evernight.client.utils.search.PinyinMatcher;
 import evernight.client.utils.world.BlockBreakTracker;
 import evernight.client.utils.world.MapDataCache;
 import net.fabricmc.api.EnvType;
@@ -88,6 +89,8 @@ public final class ClientInitializer {
                 ? new XaeroWaypointAdapter() : new DisabledWaypointAdapter();
         FontSupport.initialize();
         ClientContext.languageTable = new LanguageTable();
+        // Parse the bundled pinyin dictionary off-thread so the first search is not stalled by it.
+        PinyinMatcher.preloadAsync();
         ClientContext.inputOverrides = new InputOverrideManager();
         ClientContext.blockColorRegistry = new BlockColorRegistry();
         ClientContext.playerStateTracker = new PlayerStateTracker();
