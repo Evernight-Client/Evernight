@@ -3,6 +3,7 @@ package evernight.client;
 import evernight.client.gui.screens.clickgui.ClickGuiScreen;
 import evernight.client.gui.screens.hud.HudEditorScreen;
 import evernight.client.integrations.baritone.BaritoneBridge;
+import evernight.client.integrations.litematica.ProjectionSource;
 import evernight.client.integrations.xaero.WaypointAdapter;
 import evernight.client.integrations.xaero.WaypointSync;
 import evernight.client.modules.Module;
@@ -92,6 +93,7 @@ public final class ClientContext {
     public static boolean configurationLoading;
     public static SwingInteractionManager swingManager;
     public static BaritoneBridge baritoneBridge;
+    public static ProjectionSource projectionSource;
     public static WaypointAdapter waypointAdapter;
     public static WaypointSync waypointSync;
     public static ClickGuiScreen clickGui;

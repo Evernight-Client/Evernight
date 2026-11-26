@@ -9,6 +9,9 @@ import evernight.client.input.ClientKeybinds;
 import evernight.client.integrations.baritone.BaritoneAdapter;
 import evernight.client.integrations.baritone.BaritoneBridge;
 import evernight.client.integrations.baritone.DisabledBaritoneBridge;
+import evernight.client.integrations.litematica.DisabledProjectionSource;
+import evernight.client.integrations.litematica.LitematicaProjectionSource;
+import evernight.client.integrations.litematica.ProjectionSource;
 import evernight.client.integrations.xaero.DisabledWaypointAdapter;
 import evernight.client.integrations.xaero.XaeroWaypointAdapter;
 import evernight.client.integrations.xaero.XaeroWaypointSync;
@@ -87,6 +90,8 @@ public final class ClientInitializer {
                 ? new BaritoneAdapter() : new DisabledBaritoneBridge();
         ClientContext.waypointAdapter = FabricLoader.getInstance().isModLoaded("xaerominimap")
                 ? new XaeroWaypointAdapter() : new DisabledWaypointAdapter();
+        ClientContext.projectionSource = ProjectionSource.isLitematicaLoaded()
+                ? new LitematicaProjectionSource() : new DisabledProjectionSource();
         FontSupport.initialize();
         ClientContext.languageTable = new LanguageTable();
         // Parse the bundled pinyin dictionary off-thread so the first search is not stalled by it.
