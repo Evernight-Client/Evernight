@@ -30,6 +30,11 @@ import java.util.function.IntConsumer;
  * precedence, which also covers platforms this project does not build for. {@link #isSupported()}
  * reports whether any engine is usable; the prediction module hides itself otherwise.
  *
+ * <p>Android runs the statically linked {@code android-aarch64} build: it needs neither bionic's
+ * dynamic loader nor the device's libc. Whether it can run at all depends on the launcher, because
+ * Android 10+ only permits {@code exec()} from app storage for apps that target API 28 or older, so
+ * {@link #isSupported()} starts the engine once and hides the module when that is refused.
+ *
  * <p>Scanning and filtering happen inside the engine, so the Java side only parses a handful of
  * lines per call. Never widen this into "parse every predicted drop": a large scan would allocate
  * tens of thousands of objects on the game heap.
@@ -41,9 +46,15 @@ public final class VaultLootEngine {
     private static final String CANDIDATE_FILE_NAME = "vault-candidates.txt";
     private static final int LIST_TIMEOUT_SECONDS = 120;
     private static final int SCAN_TIMEOUT_SECONDS = 300;
+    /** Enough of a binary to read the ELF/PE header that identifies its architecture. */
+    private static final int HEADER_BYTES = 512;
+    private static final int PROBE_TIMEOUT_SECONDS = 5;
 
     /** Extracted engine of this session, so repeated calls do not re-read the bundled binary. */
     private static volatile Path resolved;
+
+    /** Result of the Android exec probe; the platform cannot change within one session. */
+    private static volatile Boolean androidEngineRuns;
 
     private VaultLootEngine() {
     }
@@ -51,8 +62,22 @@ public final class VaultLootEngine {
     private static boolean isAndroid() {
         String vendor = System.getProperty("java.vendor", "").toLowerCase(Locale.ROOT);
         String vmName = System.getProperty("java.vm.name", "").toLowerCase(Locale.ROOT);
-        return vendor.contains("android") || vmName.contains("dalvik")
-                || System.getProperty("os.name", "").equalsIgnoreCase("android");
+        if (vendor.contains("android") || vmName.contains("dalvik")
+                || System.getProperty("os.name", "").equalsIgnoreCase("android")) {
+            return true;
+        }
+        try {
+            // Android exports these to every app process, and launchers that host an ordinary Linux
+            // JVM (Pojav and similar) keep them while still reporting os.name = "Linux".
+            String root = System.getenv("ANDROID_ROOT");
+            String data = System.getenv("ANDROID_DATA");
+            if ((root != null && !root.isEmpty()) || (data != null && !data.isEmpty())) {
+                return true;
+            }
+            return Files.isRegularFile(Path.of("/system/build.prop"));
+        } catch (RuntimeException unavailableEnvironment) {
+            return false;
+        }
     }
 
     private static boolean isAarch64() {
@@ -64,19 +89,22 @@ public final class VaultLootEngine {
      * Name of the bundled engine for the running platform, or {@code null} when this project ships no
      * build for it (32-bit JVMs included).
      *
-     * <p>Android is deliberately unsupported: modern Android versions refuse to execute binaries
-     * extracted into app-writable storage, so the prediction module hides itself there instead of
-     * offering switches that cannot work. Environments that expose a normal Linux JVM (Pojav and
-     * similar) still resolve to the {@code linux-*} build.
+     * <p>Android gets its own static build instead of the {@code linux-*} one: a glibc binary cannot
+     * start there even when the launcher allows {@code exec()}, and the static bionic build needs no
+     * dynamic loader at all. Windows on ARM gets a native PE ARM64 build; an x86_64 JVM under
+     * emulation still resolves to {@code windows-x86_64}, which works.
      */
     static String platformName() {
         String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         String arch = System.getProperty("os.arch", "").toLowerCase(Locale.ROOT);
-        if (!arch.contains("64") || isAndroid()) {
+        if (!arch.contains("64")) {
             return null;
         }
+        if (isAndroid()) {
+            return isAarch64() ? "android-aarch64" : null;
+        }
         if (os.startsWith("windows")) {
-            return "windows-x86_64";
+            return isAarch64() ? "windows-aarch64" : "windows-x86_64";
         }
         if (os.contains("mac") || os.contains("darwin")) {
             return "macos-universal";
@@ -93,44 +121,120 @@ public final class VaultLootEngine {
             return true;
         }
         String platform = platformName();
-        return platform != null && bundledEngineLooksRunnable(platform);
+        if (platform == null || !bundledEngineLooksRunnable(platform)) {
+            return false;
+        }
+        return !platform.startsWith("android") || androidEngineExecutes();
     }
 
     /**
-     * Rejects a bundled engine whose first bytes do not match the platform's executable format.
+     * Starts the bundled engine once to prove that {@code exec()} is actually permitted.
+     *
+     * <p>Android 10+ labels app storage {@code execute}-denied for apps targeting API 29 or newer, so
+     * a launcher decides whether any spawned binary can run; the engine answers by exiting with its
+     * usage message. A refusal is a property of the environment, not of the engine, which is why the
+     * module hides instead of offering settings that cannot work.
+     */
+    private static boolean androidEngineExecutes() {
+        Boolean cached = androidEngineRuns;
+        if (cached != null) {
+            return cached;
+        }
+        boolean runs = false;
+        try {
+            Path executable = ensure();
+            Process process = new ProcessBuilder(executable.toAbsolutePath().toString())
+                    .directory(executable.getParent().toFile())
+                    .redirectErrorStream(true)
+                    .start();
+            try {
+                runs = process.waitFor(PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+            } finally {
+                process.destroyForcibly();
+            }
+        } catch (IOException deniedOrUnreadable) {
+            runs = false;
+        }
+        androidEngineRuns = runs;
+        return runs;
+    }
+
+    /**
+     * Rejects a bundled engine whose header does not match the platform's executable format and
+     * architecture.
      *
      * <p>The engines are cross-compiled in CI, and a misconfigured toolchain once produced a Linux
-     * ELF named {@code *.exe}. Checking the magic hides the module instead of failing at runtime.
+     * ELF named {@code *.exe}. Checking the magic and the machine hides the module instead of failing
+     * at runtime, and it also catches a host binary shipped under an {@code *-aarch64} name.
      */
     private static boolean bundledEngineLooksRunnable(String platform) {
         try (InputStream bundled = VaultLootEngine.class.getResourceAsStream(bundledResourcePath(platform))) {
             if (bundled == null) {
                 return false;
             }
-            return matchesPlatformMagic(platform, bundled.readNBytes(4));
+            return matchesPlatformHeader(platform, bundled.readNBytes(HEADER_BYTES));
         } catch (IOException unreadableResource) {
             return false;
         }
     }
 
-    private static boolean matchesPlatformMagic(String platform, byte[] magic) {
-        if (magic.length < 4) {
+    private static boolean matchesPlatformHeader(String platform, byte[] header) {
+        if (header.length < 4) {
             return false;
         }
         if (platform.startsWith("windows")) {
-            return magic[0] == 'M' && magic[1] == 'Z';
+            return isWindowsPeFor(platform, header);
         }
-        if (platform.startsWith("linux")) {
-            return magic[0] == 0x7F && magic[1] == 'E' && magic[2] == 'L' && magic[3] == 'F';
+        if (platform.startsWith("linux") || platform.startsWith("android")) {
+            return isElfFor(platform, header);
         }
         // Mach-O: thin little-endian (cffaedfe), thin big-endian (feedfacf), or fat (cafebabe).
-        int first = magic[0] & 0xFF;
-        int second = magic[1] & 0xFF;
-        int third = magic[2] & 0xFF;
-        int fourth = magic[3] & 0xFF;
+        int first = header[0] & 0xFF;
+        int second = header[1] & 0xFF;
+        int third = header[2] & 0xFF;
+        int fourth = header[3] & 0xFF;
         return (first == 0xCF && second == 0xFA && third == 0xED && fourth == 0xFE)
                 || (first == 0xFE && second == 0xED && third == 0xFA && fourth == 0xCF)
                 || (first == 0xCA && second == 0xFE && third == 0xBA && fourth == 0xBE);
+    }
+
+    /** ELF magic plus {@code e_machine}: 0xB7 is AArch64, 0x3E is x86-64. */
+    private static boolean isElfFor(String platform, byte[] header) {
+        if (header[0] != 0x7F || header[1] != 'E' || header[2] != 'L' || header[3] != 'F') {
+            return false;
+        }
+        if (header.length < 20) {
+            return false;
+        }
+        int machine = (header[18] & 0xFF) | ((header[19] & 0xFF) << 8);
+        return machine == (platform.endsWith("aarch64") ? 0xB7 : 0x3E);
+    }
+
+    /**
+     * PE magic plus the COFF machine (0xAA64 ARM64, 0x8664 x86-64).
+     *
+     * <p>Anything that cannot be read is accepted on the magic alone: the architecture check is a
+     * guard against a mis-built release, not a reason to hide a working engine.
+     */
+    private static boolean isWindowsPeFor(String platform, byte[] header) {
+        if (header[0] != 'M' || header[1] != 'Z') {
+            return false;
+        }
+        int expected = platform.equals("windows-aarch64") ? 0xAA64 : 0x8664;
+        if (header.length < 0x40) {
+            return true;
+        }
+        int peOffset = (header[0x3C] & 0xFF) | ((header[0x3D] & 0xFF) << 8)
+                | ((header[0x3E] & 0xFF) << 16) | ((header[0x3F] & 0xFF) << 24);
+        if (peOffset <= 0 || peOffset + 6 > header.length
+                || header[peOffset] != 'P' || header[peOffset + 1] != 'E'
+                || header[peOffset + 2] != 0 || header[peOffset + 3] != 0) {
+            return true;
+        }
+        int machine = (header[peOffset + 4] & 0xFF) | ((header[peOffset + 5] & 0xFF) << 8);
+        return machine == expected;
     }
 
     private static Path toolDirectory() {
@@ -178,7 +282,7 @@ public final class VaultLootEngine {
                 throw new IOException("Bundled loot engine resource is missing: " + resourcePath);
             }
             byte[] data = bundled.readAllBytes();
-            if (!matchesPlatformMagic(platform, data)) {
+            if (!matchesPlatformHeader(platform, data)) {
                 throw new IOException("Bundled loot engine has the wrong format for " + platform);
             }
             boolean unchanged = Files.isRegularFile(executable) && Files.size(executable) == data.length;

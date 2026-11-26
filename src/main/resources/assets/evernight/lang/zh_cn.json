@@ -217,7 +217,7 @@
   "evernight.descriptions.modules.AutoTransport": "自动完成两端之间的珍珠搬运循环。\n补珍珠并把珍珠扔进附近的气泡柱，然后装卸潜影盒。\n用可配置的指令通知队友触发珍珠。\n箱子通过其贴着的物品展示框识别，两端需要提前放好末影箱。\n端锚点是展示框里命名为「搬走」的红石粉、命名为「搬到」的红石块。\n<red>需要 Baritone 才能走到远处的箱子",
   "evernight.descriptions.modules.PearlBot": "朋友私信触发时自动拉珍珠。\n收到含触发词的私信后，机器人会在附近告示牌中找写着发信人名字的那块，走到它下方的按钮或活板门并点击，然后走回原位。\n有多块匹配告示牌时，优先选下方（3 格内）挂着末影珍珠实体的那块，其次取最近的。\n按钮点一下；活板门间隔一个 tick 点两下（先开后关）。\n回复会显示在本地聊天并私聊回发信人；四条文案和搜索半径都可自定义。\n<red>需要 Baritone 才能走到告示牌",
   "evernight.descriptions.modules.VaultESP": "只高亮不祥宝库。\n不祥宝库不是独立方块，而是 minecraft:vault 的方块状态 ominous=true，\n所以高亮完全来自服务端已经下发的区块数据，不发任何数据包。\n右键点过的宝库会被记录为已打开，即使服务端之后不再重发方块状态，\n开过的宝库也不会再被标出来。\n扫描跟随区块加载与方块更新，不按 tick 轮询。",
-  "evernight.descriptions.modules.VaultPrediction": "预测全服第几次开不祥宝库会出附魔金苹果或沉重核心。\n不祥宝库的战利品表共用一条随机序列，每开一次推进一次，\n因此「全服第 N 次开」的掉落只由世界种子决定。\n自己开宝库时，模块还能用弹出的物品反推这次是全服第几次，\n持续缩圈直到位置唯一。\n<red>依赖构建时打包的战利品引擎（Windows/Linux/macOS）。\n<red>Android 或不支持的系统会自动隐藏本模块，\n<red>也可以把同协议的 vaulttool 放进 evernight/tools",
+  "evernight.descriptions.modules.VaultPrediction": "预测全服第几次开不祥宝库会出附魔金苹果或沉重核心。\n不祥宝库的战利品表共用一条随机序列，每开一次推进一次，\n因此「全服第 N 次开」的掉落只由世界种子决定。\n自己开宝库时，模块还能用弹出的物品反推这次是全服第几次，\n持续缩圈直到位置唯一。\n<red>依赖构建时打包的战利品引擎（Windows / Windows ARM64 / Linux / macOS / Android aarch64）。\n<red>系统不受支持或安卓启动器禁止执行时会自动隐藏本模块，\n<red>也可以把同协议的 vaulttool 放进 evernight/tools",
   "evernight.names.modules.AimAssist": "瞄准辅助",
   "evernight.names.modules.AnchorAura": "重生锚光环",
   "evernight.names.modules.AntiBot": "反机器人",
