@@ -34,7 +34,7 @@ MIT 与 GPL-3.0 兼容，合并后的整体按 GPL-3.0-only 分发；上游的�
 - Copyright (c) 2019 Juntong Liu
 - 条款：[PinIn-MIT.txt](PinIn-MIT.txt)。
 - 裁剪范围：只保留无索引的即时匹配器（`PinIn#contains`），删除了索引搜索器（TreeSearcher / CachedSearcher / SimpleSearcher）、加速器、双拼等键盘方案、注音格式转换与运行期模糊音配置；匹配算法未改动。
-- 拼音数据来自 PinIn 自带的 `data.txt`（其来源为 rime-terra-pinyin 与 mozillazg/pinyin-data），随 MIT 许可一并分发。
+- 拼音数据来自 PinIn 自带的 `data.txt`，其源数据为 rime-terra-pinyin（LGPL-3.0）与 mozillazg/pinyin-data（MIT），两者均与本项目的 GPL-3.0-only 兼容。
 
 ### LPCTools — LGPL-3.0-only
 
