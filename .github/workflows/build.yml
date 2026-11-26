@@ -24,6 +24,28 @@ jobs:
       - name: Validate language tables
         run: python3 .github/skills/evernight-dev/scripts/check-lang.py
 
+      - name: Fetch vault engine binaries
+        run: |
+          mkdir -p native/vault-dist
+          base="https://github.com/${{ github.repository_owner }}/evernight-vault-engine/releases/latest/download"
+          missing=0
+          for name in \
+            vaulttool-windows-x86_64.exe \
+            vaulttool-linux-x86_64 \
+            vaulttool-linux-aarch64 \
+            vaulttool-macos-universal \
+            vaulttool-android-arm64 \
+            vaulttool-android-x86_64; do
+            if ! curl -fsSL --retry 3 --retry-delay 2 "$base/$name" -o "native/vault-dist/$name"; then
+              echo "missing vault engine: $name"
+              missing=$((missing + 1))
+            fi
+          done
+          ls -l native/vault-dist
+          if [ "$missing" -gt 0 ]; then
+            echo "::warning::$missing vault engine binaries were unavailable; the jar will hide the vault prediction module"
+          fi
+
       - name: Build
         run: |
           chmod +x gradlew
