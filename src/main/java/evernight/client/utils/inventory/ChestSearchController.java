@@ -5,13 +5,15 @@ import evernight.client.ClientContext;
 import evernight.client.managers.registry.ModuleRegistry;
 import evernight.client.modules.misc.ChestSearchBar.ChestSearchBarModule;
 import evernight.client.render.color.ColorUtils;
+import evernight.client.settings.options.SearchMode;
+import evernight.client.utils.search.SearchKey;
+import evernight.client.utils.search.SearchNames;
+import evernight.client.utils.search.SearchQuery;
 import evernight.mixin.minecraft.gui.AbstractContainerScreenAccessor;
-import it.unimi.dsi.fastutil.objects.Object2IntMap.Entry;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AfterInit;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,25 +23,18 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.client.gui.screens.inventory.HopperScreen;
 import net.minecraft.client.gui.screens.inventory.ShulkerBoxScreen;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.component.ItemContainerContents;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import java.awt.*;
 import java.util.Locale;
-import java.util.function.BiPredicate;
+import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class ChestSearchController {
     public static final ChestSearchController INSTANCE = new ChestSearchController();
@@ -53,6 +48,9 @@ public class ChestSearchController {
     public static String text = "";
     public static int matchedSlotCount = 0;
     private static ChestSearchBarModule chestSearchBarModule = ClientContext.getModule(ChestSearchBarModule.class);
+    private static ChestFilter cachedFilter;
+    private static String cachedFilterText;
+    private static SearchMode cachedFilterMode;
 
     static {
         replaymodLoaded = FabricLoader.getInstance().isModLoaded("replaymod");
@@ -60,84 +58,37 @@ public class ChestSearchController {
 
     public static boolean isFull(ItemStack stack, String query) {
         if (!chestSearchBarModule.highlightFullSetting.getValue()) return false;
-        query = normalize(query);
-        if (query == null || query.isEmpty() || stack.isEmpty()) return false;
+        ChestFilter filter = filter(query);
+        if (filter.isBlank() || stack.isEmpty()) return false;
         if (!stack.getItem().getDescriptionId().contains("shulker_box")) return false;
         ItemContainerContents contents = stack.get(DataComponents.CONTAINER);
         if (contents == null || contents.stream().toList().size() != 27) return false;
         for (ItemStack containedStack : contents.stream().toList()) {
-            if (!namesMatch(containedStack, query)) return false;
+            if (!filter.matches(containedStack)) return false;
         }
         return true;
     }
 
     public static boolean namesMatch(ItemStack stack, String query) {
-        query = normalize(query);
-        if (query == null || query.isEmpty()) return true;
+        ChestFilter filter = filter(query);
+        if (filter.isBlank()) return true;
         if (stack.isEmpty()) return false;
-        Item item = stack.getItem();
-        if (matchesContainerContents(stack, query)) return true;
-        if (matchesBundleContents(stack, query)) return true;
-        String hoverName = normalize(stack.getHoverName().getString());
-        BiPredicate<String, String> predicate = String::contains;
-        if (query.length() >= 3 && query.startsWith("\"") && query.endsWith("\"")) {
-            query = query.substring(1, query.length() - 1);
-            predicate = String::equals;
-        }
-        if (query.length() >= 3 && query.startsWith("/") && query.endsWith("/")) {
-            query = query.substring(1, query.length() - 1);
-            predicate = (candidate, expression) -> Pattern.compile(expression).matcher(candidate).find();
-        }
-        ItemEnchantments storedEnchantments = stack.get(DataComponents.STORED_ENCHANTMENTS);
-        if (storedEnchantments != null) {
-            for (Entry<Holder<Enchantment>> entry : storedEnchantments.entrySet()) {
-                if (matchesEnchantment(predicate, query, entry)) return true;
-            }
-        }
-        if (stack.isEnchanted()) {
-            for (Entry<Holder<Enchantment>> entry : stack.getEnchantments().entrySet()) {
-                if (matchesEnchantment(predicate, query, entry)) return true;
-            }
-        }
-        if (predicate.test(I18n.get(item.getDescriptionId()).toLowerCase(Locale.ROOT), query)) return true;
-        PotionContents potionContents = stack.get(DataComponents.POTION_CONTENTS);
-        if (potionContents != null) {
-            for (MobEffectInstance effect : potionContents.getAllEffects()) {
-                if (predicate.test(I18n.get(effect.getDescriptionId()).toLowerCase(Locale.ROOT), query)) return true;
-            }
-        }
-        return predicate.test(hoverName, query);
+        return filter.matches(stack);
     }
 
-    private static String normalize(String value) {
-        return ChatFormatting.stripFormatting(value.trim().toLowerCase(Locale.ROOT));
-    }
-
-    private static boolean matchesContainerContents(ItemStack stack, String query) {
-        ItemContainerContents contents = stack.get(DataComponents.CONTAINER);
-        if (contents != null) {
-            for (ItemStack containedStack : contents.nonEmptyItems()) {
-                if (namesMatch(containedStack, query)) return true;
-            }
+    /**
+     * Builds (and caches) the filter of one search bar content. The cache is keyed by the raw text and
+     * the resolved search mode, so the per-slot overlay loop only parses the query once.
+     */
+    private static ChestFilter filter(String query) {
+        String rawQuery = query == null ? "" : query;
+        SearchMode mode = SearchMode.effective();
+        if (cachedFilter == null || !Objects.equals(cachedFilterText, rawQuery) || cachedFilterMode != mode) {
+            cachedFilterText = rawQuery;
+            cachedFilterMode = mode;
+            cachedFilter = ChestFilter.of(rawQuery, mode);
         }
-        return false;
-    }
-
-    private static boolean matchesBundleContents(ItemStack stack, String query) {
-        BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
-        if (contents != null) {
-            for (ItemStack containedStack : contents.itemsCopy()) {
-                if (namesMatch(containedStack, query)) return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean matchesEnchantment(BiPredicate<String, String> predicate, String query, Entry<Holder<Enchantment>> entry) {
-        if (entry == null) return false;
-        MutableComponent name = (MutableComponent) Enchantment.getFullname(entry.getKey(), entry.getIntValue());
-        String searchableName = name.toString().toLowerCase(Locale.ROOT).replaceAll("enchantment", "");
-        return predicate.test(searchableName, query);
+        return cachedFilter;
     }
 
     public static void bindReferencedModules(ModuleRegistry registry) {
@@ -217,6 +168,81 @@ public class ChestSearchController {
             searchBox.setBordered(true);
             searchBox.setResponder(newText -> text = newText);
             Screens.getButtons(screen).add(searchBox);
+        }
+    }
+
+    /**
+     * Parsed search bar content: a plain query matched through the shared search modes, or the
+     * {@code "exact"} / {@code /regex/} forms that keep working on the raw names.
+     */
+    private static final class ChestFilter {
+        private final SearchQuery query;
+        private final String exact;
+        private final Pattern regex;
+
+        private ChestFilter(SearchQuery query, String exact, Pattern regex) {
+            this.query = query;
+            this.exact = exact;
+            this.regex = regex;
+        }
+
+        static ChestFilter of(String rawQuery, SearchMode mode) {
+            SearchQuery query = SearchQuery.of(rawQuery, mode);
+            String text = query.text();
+            if (text.length() >= 3 && text.startsWith("\"") && text.endsWith("\"")) {
+                return new ChestFilter(query, text.substring(1, text.length() - 1), null);
+            }
+            if (text.length() >= 3 && text.startsWith("/") && text.endsWith("/")) {
+                try {
+                    return new ChestFilter(query, null, Pattern.compile(text.substring(1, text.length() - 1)));
+                } catch (PatternSyntaxException ignoredFailure) {
+                    // An unfinished expression keeps filtering literally instead of hiding every slot.
+                }
+            }
+            return new ChestFilter(query, null, null);
+        }
+
+        boolean isBlank() {
+            return this.query.isBlank();
+        }
+
+        boolean matches(ItemStack stack) {
+            if (matchesContainerContents(stack)) return true;
+            if (matchesBundleContents(stack)) return true;
+            SearchKey key = SearchNames.forItemStack(stack);
+            if (this.exact != null) {
+                for (String candidate : key.allTexts()) {
+                    if (candidate.toLowerCase(Locale.ROOT).equals(this.exact)) return true;
+                }
+                return false;
+            }
+            if (this.regex != null) {
+                for (String candidate : key.allTexts()) {
+                    if (this.regex.matcher(candidate.toLowerCase(Locale.ROOT)).find()) return true;
+                }
+                return false;
+            }
+            return key.matches(this.query);
+        }
+
+        private boolean matchesContainerContents(ItemStack stack) {
+            ItemContainerContents contents = stack.get(DataComponents.CONTAINER);
+            if (contents != null) {
+                for (ItemStack containedStack : contents.nonEmptyItems()) {
+                    if (this.matches(containedStack)) return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean matchesBundleContents(ItemStack stack) {
+            BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
+            if (contents != null) {
+                for (ItemStack containedStack : contents.itemsCopy()) {
+                    if (this.matches(containedStack)) return true;
+                }
+            }
+            return false;
         }
     }
 }

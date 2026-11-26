@@ -8,10 +8,13 @@ import evernight.client.gui.panels.Panel;
 import evernight.client.gui.screens.core.ClientScreen;
 import evernight.client.settings.types.StringSetting;
 import evernight.client.gui.components.setting.StringSettingComponent;
+import evernight.client.utils.search.SearchQuery;
+import evernight.client.utils.search.SearchQueryHolder;
 
 public abstract class TradeSelectorPanel<T> extends Panel implements ClientAccess {
     protected final TradeItemsComponent tradeItems;
     protected final StringSettingComponent searchInput;
+    private final SearchQueryHolder searchQueryHolder = new SearchQueryHolder();
     private final boolean fromSide;
 
     public TradeSelectorPanel(TradeItemsComponent tradeItems, boolean fromSide) {
@@ -27,6 +30,11 @@ public abstract class TradeSelectorPanel<T> extends Panel implements ClientAcces
     protected abstract void applySelection(T selection);
 
     protected abstract T getSelection();
+
+    /** Search state shared by the entry list of this panel, rebuilt only when the input changes. */
+    protected SearchQuery searchQuery() {
+        return this.searchQueryHolder.update(this.searchInput.getText());
+    }
 
     @Override
     public void render(PoseStack poseStack, double mouseX, double mouseY) {

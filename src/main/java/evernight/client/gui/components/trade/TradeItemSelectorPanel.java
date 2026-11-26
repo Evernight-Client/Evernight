@@ -1,14 +1,14 @@
 package evernight.client.gui.components.trade;
 
 import evernight.client.ClientAccess;
-import evernight.client.render.font.TextUtils;
+import evernight.client.utils.search.SearchNames;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import evernight.client.gui.components.ItemListComponent;
 
 public class TradeItemSelectorPanel extends TradeSelectorPanel<Item> implements ClientAccess {
     private final ItemListComponent itemList = new ItemListComponent(this,
-            item -> TextUtils.containsIgnoreCase(item.getName().getString(), this.searchInput.getText()));
+            item -> SearchNames.forItem(item).matches(this.searchQuery()));
 
     public TradeItemSelectorPanel(TradeItemsComponent tradeItems, boolean fromSide) {
         super(tradeItems, fromSide);

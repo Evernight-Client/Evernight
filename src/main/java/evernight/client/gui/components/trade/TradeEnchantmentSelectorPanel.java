@@ -1,7 +1,8 @@
 package evernight.client.gui.components.trade;
 
-import evernight.client.render.font.TextUtils;
 import evernight.client.utils.inventory.EnchantmentUtils;
+import evernight.client.utils.search.SearchNames;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -33,11 +34,12 @@ public class TradeEnchantmentSelectorPanel extends TradeSelectorPanel<Enchantmen
 
     private boolean matchesEnchantment(EnchantmentListEntry entry) {
         ItemStack stack = this.isFromSide() ? this.tradeItems.getFromStack() : this.tradeItems.getToStack();
-        boolean supported = ((Enchantment) EnchantmentUtils.getHolder(entry.enchantmentKey()).value())
-                .isSupportedItem(stack);
+        Enchantment enchantment = (Enchantment) EnchantmentUtils.getHolder(entry.enchantmentKey()).value();
+        boolean supported = enchantment.isSupportedItem(stack);
         if (stack.is(Items.ENCHANTED_BOOK) || stack.is(Items.BOOK)) {
             supported = true;
         }
-        return supported && TextUtils.containsIgnoreCase(entry.name(), this.searchInput.getText());
+        Identifier identifier = entry.enchantmentKey() == null ? null : entry.enchantmentKey().identifier();
+        return supported && SearchNames.forEnchantment(enchantment, identifier).matches(this.searchQuery());
     }
 }
