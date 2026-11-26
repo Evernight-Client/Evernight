@@ -407,7 +407,7 @@ float radius)`、`collectSphereBlocks(Vec3 center, float radius, boolean exclude
 | `SearchKey` 条目名字集合 | `of(Collection, Collection)`、`empty`、`matches(SearchQuery)`（按模式选英文/中文一侧）、`english()`、`chinese()`、`allTexts()` |
 | `SearchNames` 条目 → `SearchKey` | `forItem`、`forBlock`、`forEntityType`、`forMobEffect`、`forPotion`、`forSound`、`forEnchantment(Enchantment, Identifier)`、`forItemStack`（含附魔/药水效果/自定义名）、`forModule`、`forRegistryEntry(Identifier, entry, label)`；注册表对象带缓存 |
 | `LocalizedNames` 固定语言名 | `english` / `chinese`（资源管理器 `en_us` / `zh_cn` 表，含模组键）、`clientEnglish` / `clientChinese`（Evernight 自带语言文件） |
-| `PinyinMatcher` 拼音匹配 | `contains(text, query)`（首次调用解析内置 PinIn 字典）、`preloadAsync()`（客户端初始化已异步预热） |
+| `PinyinMatcher` 拼音匹配 | `contains(text, query)`（首次调用解析内置 PinIn 字典，默认开启模糊音）、`preloadAsync()`（客户端初始化已异步预热） |
 
 **坑**：`PinyinMatcher` 的 PinIn 上下文只在客户端线程匹配；`LocalizedNames` 首次使用会在客户端线程解析语言表（一次性）。
 

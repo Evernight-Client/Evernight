@@ -4,11 +4,13 @@
 package me.towdium.pinin.utils;
 
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
  * Lazily filled map for the phoneme and pinyin elements of one {@link me.towdium.pinin.PinIn}
- * context. Lookups happen during construction only; matching reads the prepared elements.
+ * context. Entries are created on first use; {@link #foreach} lets a configuration change rebuild
+ * the already created elements in place.
  */
 public class Cache<K, V> {
     private final HashMap<K, V> entries = new HashMap<>();
@@ -27,5 +29,9 @@ public class Cache<K, V> {
             }
         }
         return cached;
+    }
+
+    public void foreach(BiConsumer<K, V> consumer) {
+        this.entries.forEach(consumer);
     }
 }

@@ -62,10 +62,27 @@ public final class PinyinMatcher {
         synchronized (PinyinMatcher.class) {
             local = pinin;
             if (local == null) {
-                local = new PinIn();
+                local = createContext();
                 pinin = local;
             }
             return local;
         }
+    }
+
+    /**
+     * Builds the shared context with the fuzzy spellings Chinese players expect from an IME:
+     * {@code zh/z}, {@code sh/s}, {@code ch/c}, {@code ang/an}, {@code eng/en}, {@code ing/in} and
+     * {@code v/u}. They are what lets {@code zongguo}, {@code san} or {@code nu} find 中国, 上 and 女.
+     */
+    private static PinIn createContext() {
+        return new PinIn().config()
+                .fZh2Z(true)
+                .fSh2S(true)
+                .fCh2C(true)
+                .fAng2An(true)
+                .fEng2En(true)
+                .fIng2In(true)
+                .fU2V(true)
+                .commit();
     }
 }

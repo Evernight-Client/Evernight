@@ -174,7 +174,8 @@ new RegistrySetScreen<>(ClientAccess.evernightMinecraft.screen, this.registrySet
 `CHINESE` 匹配中文名 + 智能拼音（全拼、首字母、中英混输），`ENGLISH` 匹配英文名 + 注册名（`modid:path`、`path`）。
 
 - `SearchQuery`：归一化后的查询 + 解析后的模式 + 每个候选字符串的结果缓存；`matchesEnglish(...)` 只做大小写不敏感
-  `contains`，`matchesChinese(...)` = 字面 `contains` 或拼音匹配（`PinyinMatcher` → 内置裁剪版 PinIn，无索引）。
+  `contains`，`matchesChinese(...)` = 字面 `contains` 或拼音匹配（`PinyinMatcher` → 内置裁剪版 PinIn，无索引；
+  默认开启模糊音 zh/z、sh/s、ch/c、ang/an、eng/en、ing/in、v/u）。
 - `SearchQueryHolder`：每个搜索框一个，`update(文本)` 只在文本或生效模式变化时重建 `SearchQuery`，**布局循环里可以每帧调**。
 - `SearchKey`：某条目的 `english[]` / `chinese[]` 名字集合；`matches(query)` 按当前模式选一侧。
 - `SearchNames`：为 item / block / entity / effect / potion / sound / enchantment / `ItemStack`（含附魔与药水效果）/

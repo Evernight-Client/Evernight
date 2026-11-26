@@ -24,6 +24,11 @@ public final class Keyboard {
         return standard(reading);
     }
 
+    /** Maps one phoneme spelling to the keys that should be matched; quanyin uses identity. */
+    public String keys(String spelling) {
+        return spelling;
+    }
+
     /**
      * Splits {@code reading} (a quanyin word with a trailing tone digit, e.g. {@code zhong1}) into
      * initial, final and tone. Two-letter initials such as {@code zh} are kept together.
