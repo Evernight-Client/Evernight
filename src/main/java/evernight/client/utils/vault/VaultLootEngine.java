@@ -63,21 +63,16 @@ public final class VaultLootEngine {
     /**
      * Name of the bundled engine for the running platform, or {@code null} when this project ships no
      * build for it (32-bit JVMs included).
+     *
+     * <p>Android is deliberately unsupported: modern Android versions refuse to execute binaries
+     * extracted into app-writable storage, so the prediction module hides itself there instead of
+     * offering switches that cannot work. Environments that expose a normal Linux JVM (Pojav and
+     * similar) still resolve to the {@code linux-*} build.
      */
     static String platformName() {
         String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         String arch = System.getProperty("os.arch", "").toLowerCase(Locale.ROOT);
-        boolean sixtyFourBit = arch.contains("64");
-        if (!sixtyFourBit) {
-            return null;
-        }
-        if (isAndroid()) {
-            if (isAarch64()) {
-                return "android-arm64";
-            }
-            if (arch.contains("x86_64") || arch.contains("amd64")) {
-                return "android-x86_64";
-            }
+        if (!arch.contains("64") || isAndroid()) {
             return null;
         }
         if (os.startsWith("windows")) {
@@ -175,10 +170,13 @@ public final class VaultLootEngine {
     /**
      * Scans {@code limit} vault openings starting at {@code offset} and returns at most {@code amount}
      * hits for the semicolon-separated item ids in {@code targetSpec}.
+     *
+     * @param lootVersion loot-table generation to simulate, passed to the engine as
+     *                    {@code VAULT_MC_VERSION}; older engines ignore it and keep their built-in set
      */
     public static List<VaultLootLogic.Hit> search(long seed, boolean ominous, int offset, int limit, int amount,
-                                                  String targetSpec) throws IOException {
-        List<String> lines = collect(ensure(), "search", Long.toString(seed), ominous ? "1" : "0",
+                                                  String targetSpec, String lootVersion) throws IOException {
+        List<String> lines = collect(ensure(), lootVersion, "search", Long.toString(seed), ominous ? "1" : "0",
                 Integer.toString(offset), Integer.toString(limit), Integer.toString(amount), targetSpec);
         List<VaultLootLogic.Hit> hits = new ArrayList<>();
         for (String line : lines) {
@@ -199,9 +197,9 @@ public final class VaultLootEngine {
 
     /** Every offset below {@code maxScan} whose drops match {@code spec} in arrival order. */
     public static List<Integer> matches(long seed, boolean ominous, int maxScan, String spec,
-                                        IntConsumer progress) throws IOException {
+                                        IntConsumer progress, String lootVersion) throws IOException {
         List<Integer> offsets = new ArrayList<>();
-        stream(ensure(), progress, line -> {
+        stream(ensure(), lootVersion, progress, line -> {
             if (!line.startsWith("M ")) {
                 return;
             }
@@ -218,7 +216,8 @@ public final class VaultLootEngine {
      * {@code delta} openings, scanning only {@code [rangeStart, rangeEnd)}.
      */
     public static List<Integer> narrow(long seed, boolean ominous, int rangeStart, int rangeEnd, int delta,
-                                       String spec, List<Integer> candidates, IntConsumer progress) throws IOException {
+                                       String spec, List<Integer> candidates, IntConsumer progress,
+                                       String lootVersion) throws IOException {
         Path directory = toolDirectory();
         Files.createDirectories(directory);
         Path candidateFile = directory.resolve(CANDIDATE_FILE_NAME);
@@ -228,7 +227,7 @@ public final class VaultLootEngine {
         }
         Files.writeString(candidateFile, text.toString(), StandardCharsets.UTF_8);
         List<Integer> kept = new ArrayList<>();
-        stream(ensure(), progress, line -> {
+        stream(ensure(), lootVersion, progress, line -> {
             if (!line.startsWith("KEEP ")) {
                 return;
             }
@@ -245,9 +244,9 @@ public final class VaultLootEngine {
         void accept(String line);
     }
 
-    private static void stream(Path executable, IntConsumer progress, LineSink sink, String... arguments)
-            throws IOException {
-        Process process = start(executable, arguments);
+    private static void stream(Path executable, String lootVersion, IntConsumer progress, LineSink sink,
+                               String... arguments) throws IOException {
+        Process process = start(executable, lootVersion, arguments);
         int producedLines = 0;
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
@@ -267,8 +266,8 @@ public final class VaultLootEngine {
         awaitExit(process, SCAN_TIMEOUT_SECONDS, producedLines);
     }
 
-    private static List<String> collect(Path executable, String... arguments) throws IOException {
-        Process process = start(executable, arguments);
+    private static List<String> collect(Path executable, String lootVersion, String... arguments) throws IOException {
+        Process process = start(executable, lootVersion, arguments);
         List<String> lines = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
@@ -281,7 +280,7 @@ public final class VaultLootEngine {
         return lines;
     }
 
-    private static Process start(Path executable, String... arguments) throws IOException {
+    private static Process start(Path executable, String lootVersion, String... arguments) throws IOException {
         List<String> command = new ArrayList<>(arguments.length + 1);
         command.add(executable.toAbsolutePath().toString());
         for (String argument : arguments) {
@@ -290,6 +289,9 @@ public final class VaultLootEngine {
         ProcessBuilder builder = new ProcessBuilder(command);
         builder.directory(executable.getParent().toFile());
         builder.redirectErrorStream(true);
+        if (lootVersion != null && !lootVersion.isBlank()) {
+            builder.environment().put("VAULT_MC_VERSION", lootVersion);
+        }
         return builder.start();
     }
 
