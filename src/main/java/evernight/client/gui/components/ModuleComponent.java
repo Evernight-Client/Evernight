@@ -23,6 +23,8 @@ import evernight.client.utils.core.ClampedInterpolatedFloat;
 import evernight.client.utils.core.FloatAnimation;
 import evernight.client.utils.core.InterpolatedFloat;
 import evernight.client.utils.core.KeyUtils;
+import evernight.client.utils.search.SearchKey;
+import evernight.client.utils.search.SearchNames;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.Nullable;
@@ -64,6 +66,7 @@ public class ModuleComponent extends AbstractComponent implements CloseState {
     private int searchHighlightCycle = 0;
     private boolean copyShortcutHovered;
     private boolean requestedOpen;
+    private SearchKey searchKey;
 
     public ModuleComponent(Module module, Panel panel, int yOffset) {
         super(panel, yOffset);
@@ -110,6 +113,17 @@ public class ModuleComponent extends AbstractComponent implements CloseState {
 
     public Module getModule() {
         return this.module;
+    }
+
+    /**
+     * Searchable names of this module for the ClickGUI search box (English identifiers and aliases, or
+     * the Chinese display name), built lazily and reused across frames.
+     */
+    public SearchKey getSearchKey() {
+        if (this.searchKey == null) {
+            this.searchKey = SearchNames.forModule(this.module);
+        }
+        return this.searchKey;
     }
 
     @Override

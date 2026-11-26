@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import evernight.client.ClientAccess;
 import evernight.client.ClientContext;
 import evernight.client.config.preset.ModulePresetCodec;
-import evernight.client.gui.core.GuiElement;
 import evernight.client.gui.components.ModuleComponent;
 import evernight.client.gui.components.setting.SettingComponent;
 import evernight.client.gui.panels.ModuleCategoryPanel;
@@ -33,7 +32,6 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import evernight.client.gui.screens.core.ClientScreen;
 import evernight.client.gui.screens.preset.ModuleImportConfirmationScreen;
 import evernight.client.gui.screens.preset.PresetImportScreen;
@@ -43,12 +41,17 @@ import evernight.client.render.font.FontRenderer;
 import evernight.client.render.font.TextUtils;
 import evernight.client.render.gui.GuiDrawUtils;
 import evernight.client.render.gui.GuiScaleUtils;
+import evernight.client.settings.options.SearchMode;
+import evernight.client.utils.search.LocalizedNames;
+import evernight.client.utils.search.SearchQuery;
+import evernight.client.utils.search.SearchQueryHolder;
 
 public class ClickGuiScreen extends ClientScreen implements ClientAccess {
     private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
     private static final HUDModule HUD = ClientContext.getModule(HUDModule.class);
     private final FloatAnimation searchFocusAnimation = new FloatAnimation();
     private final ElapsedTimer searchCursorTimer = new ElapsedTimer();
+    private final SearchQueryHolder searchQueryHolder = new SearchQueryHolder();
     public EditBox searchBox;
     public List openModuleComponents = new ArrayList();
     private SettingComponent<?> editingSetting = null;
@@ -275,28 +278,7 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
                 break;
             case GLFW.GLFW_KEY_ENTER:
             case GLFW.GLFW_KEY_KP_ENTER:
-                boolean foundModule = false;
-                for (Panel panel : this.panels) {
-                    for (Object childEntry : panel.getChildren()) {
-                        GuiElement element = (GuiElement) childEntry;
-                        if (element instanceof ModuleComponent moduleComponent) {
-                            Module searchedModule = moduleComponent.getModule();
-                            String moduleName = searchedModule.getName();
-                            String completedSearch = TextUtils.normalizeKeyboardLayout(
-                                    searchText + this.searchCompletion);
-                            if (moduleName.equalsIgnoreCase(completedSearch)
-                                    || searchedModule.getDisplayName().equalsIgnoreCase(completedSearch)) {
-                                moduleComponent.setOpen(true);
-                                moduleComponent.startSearchHighlight();
-                                foundModule = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (foundModule) {
-                        break;
-                    }
-                }
+                this.openMatchingModule(searchText + this.searchCompletion);
                 this.reset();
                 break;
             case GLFW.GLFW_KEY_TAB:
@@ -342,6 +324,83 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
 
     public EditBox getSearchBox() {
         return this.searchBox;
+    }
+
+    /**
+     * Search state shared by every module row; the holder only rebuilds it when the text or the
+     * configured search mode changes, so the per-frame layout pass is cheap.
+     */
+    public SearchQuery getSearchQuery() {
+        return this.searchQueryHolder.update(this.searchBox == null ? "" : this.searchBox.getValue());
+    }
+
+    /**
+     * Opens and highlights the module selected by Enter: an exact identifier/name match first, then the
+     * first row matched by the search query (which also covers pinyin input in Chinese mode).
+     */
+    private void openMatchingModule(String typedText) {
+        String normalizedText = TextUtils.normalizeKeyboardLayout(typedText);
+        SearchQuery query = SearchQuery.of(typedText, SearchMode.effective());
+        ModuleComponent exactMatch = null;
+        ModuleComponent firstMatch = null;
+        for (Panel panel : this.panels) {
+            for (Object childEntry : panel.getChildren()) {
+                if (!(childEntry instanceof ModuleComponent moduleComponent)) {
+                    continue;
+                }
+                Module searchedModule = moduleComponent.getModule();
+                if (!searchedModule.isAvailable()) {
+                    continue;
+                }
+                if (searchedModule.getName().equalsIgnoreCase(normalizedText)
+                        || searchedModule.getDisplayName().equalsIgnoreCase(normalizedText)) {
+                    exactMatch = moduleComponent;
+                    break;
+                }
+                if (firstMatch == null && !query.isBlank() && moduleComponent.getSearchKey().matches(query)) {
+                    firstMatch = moduleComponent;
+                }
+            }
+            if (exactMatch != null) {
+                break;
+            }
+        }
+        ModuleComponent target = exactMatch != null ? exactMatch : firstMatch;
+        if (target != null) {
+            target.setOpen(true);
+            target.startSearchHighlight();
+        }
+    }
+
+    /**
+     * Inline completion shown after the typed text. English mode completes module identifiers, Chinese
+     * mode completes Chinese display names; pinyin input intentionally has no completion because a
+     * reading maps to many characters.
+     */
+    private String computeCompletion(String searchText) {
+        if (searchText == null || searchText.isEmpty()) {
+            return "";
+        }
+        String normalizedText = TextUtils.normalizeKeyboardLayout(searchText);
+        SearchMode mode = SearchMode.effective();
+        for (Object moduleEntry : ClientContext.moduleRegistry.getRegistry()) {
+            Module module = (Module) moduleEntry;
+            if (!module.isAvailable()
+                    || module instanceof HUDModule || module instanceof HudWidgetModule) {
+                continue;
+            }
+            String completionSource = module.getName();
+            if (mode == SearchMode.CHINESE) {
+                completionSource = LocalizedNames.clientChinese("evernight.names.modules." + module.getName());
+            }
+            if (completionSource == null || completionSource.length() <= searchText.length()) {
+                continue;
+            }
+            if (completionSource.regionMatches(true, 0, normalizedText, 0, searchText.length())) {
+                return completionSource.substring(searchText.length());
+            }
+        }
+        return "";
     }
 
     public SettingComponent<?> getEditingSetting() {
@@ -516,22 +575,7 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
         this.searchBox.setVisible(true);
         this.searchBox.setEditable(true);
         this.searchBox.setMaxLength(64);
-        this.searchBox.setResponder(searchText -> {
-                    if (!searchText.isEmpty()) {
-                        for (Object moduleEntry : ClientContext.moduleRegistry.getRegistry()) {
-                            Module module = (Module) moduleEntry;
-                            if (module.isAvailable()
-                                    && !(module instanceof HUDModule) && !(module instanceof HudWidgetModule)
-                                    && module.getName().toLowerCase(Locale.ROOT).startsWith(TextUtils.normalizeKeyboardLayout(searchText.toLowerCase(Locale.ROOT)))) {
-                                this.searchCompletion = module.getName()
-                                        .substring(this.searchBox.getCursorPosition());
-                                return;
-                            }
-                        }
-                    }
-                    this.searchCompletion = "";
-                }
-        );
+        this.searchBox.setResponder(searchText -> this.searchCompletion = this.computeCompletion(searchText));
         this.addRenderableWidget(this.searchBox);
         this.scaleTarget = this.guiScale;
         this.applyTilingLayout();
