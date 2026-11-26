@@ -77,7 +77,7 @@ public class PrinterModule extends Module {
     private final Setting<Boolean> facingAttachmentsSetting;
     private final Setting<Boolean> facingChestsSetting;
     private final Setting<Boolean> facingOrientationSetting;
-    private final Setting<Boolean> ignoreSneakSetting;
+    private final Setting<Boolean> autoSneakSetting;
     private final Setting<Integer> shiftTimeSetting;
     private final Setting<Float> sneakSpeedSetting;
     private final Setting<ListFilterMode> listModeSetting;
@@ -117,16 +117,16 @@ public class PrinterModule extends Module {
         this.facingChestsSetting = this.add(new BooleanSetting("FacingChests", true, facingChildVisible));
         this.facingOrientationSetting = this.add(new BooleanSetting("FacingOrientation", true, facingChildVisible));
 
-        BooleanSetting ignoreSneak = new BooleanSetting("IgnoreSneak", true);
-        ignoreSneak.markVisibilityDependency();
-        ignoreSneak.expanded = true;
-        this.ignoreSneakSetting = this.add(ignoreSneak);
+        BooleanSetting autoSneak = new BooleanSetting("AutoSneak", true);
+        autoSneak.markVisibilityDependency();
+        autoSneak.expanded = true;
+        this.autoSneakSetting = this.add(autoSneak);
         NumberSetting<Integer> shiftTime = new NumberSetting<>("ShiftTime", 100, 0, 1000);
         shiftTime.withUnit("ms");
-        this.shiftTimeSetting = this.add(shiftTime.dependsOn(this.ignoreSneakSetting));
+        this.shiftTimeSetting = this.add(shiftTime.dependsOn(this.autoSneakSetting));
         NumberSetting<Float> sneakSpeed = new NumberSetting<>("SneakSpeed", 20.0F, 0.0F, 20.0F);
         sneakSpeed.withUnit("%");
-        this.sneakSpeedSetting = this.add(sneakSpeed.dependsOn(this.ignoreSneakSetting));
+        this.sneakSpeedSetting = this.add(sneakSpeed.dependsOn(this.autoSneakSetting));
 
         this.listModeSetting = this.add(new EnumSetting<>("ListMode", ListFilterMode.BLACKLIST));
         Predicate<Set<Block>> blacklistVisible =
@@ -228,7 +228,7 @@ public class PrinterModule extends Module {
         if (!this.hasSneak) {
             return;
         }
-        if (!this.ignoreSneakSetting.getValue()) {
+        if (!this.autoSneakSetting.getValue()) {
             this.stopSneak();
             return;
         }
@@ -279,7 +279,7 @@ public class PrinterModule extends Module {
         if (player.isSpectator() || !player.isAlive() || player.isHandsBusy() || player.isSleeping()) {
             return;
         }
-        if (this.hasSneak && this.ignoreSneakSetting.getValue()
+        if (this.hasSneak && this.autoSneakSetting.getValue()
                 && !this.sneakTimer.hasElapsed(this.shiftTimeSetting.getValue())) {
             return;
         }
@@ -344,7 +344,7 @@ public class PrinterModule extends Module {
         LocalPlayer player = ClientAccess.evernightMinecraft.player;
         boolean needsSneak = BlockInteractionUtils.requiresSneakForInteraction(side.neighbor());
         if (needsSneak && !player.isShiftKeyDown()) {
-            if (!this.ignoreSneakSetting.getValue()) {
+            if (!this.autoSneakSetting.getValue()) {
                 return null;
             }
             if (!this.hasSneak) {
@@ -436,7 +436,7 @@ public class PrinterModule extends Module {
                 if (avoidSneak) {
                     continue;
                 }
-                if (!this.ignoreSneakSetting.getValue()) {
+                if (!this.autoSneakSetting.getValue()) {
                     continue;
                 }
             }
@@ -490,7 +490,7 @@ public class PrinterModule extends Module {
         if (ClientAccess.evernightMinecraft.gameMode == null) {
             return;
         }
-        if (this.hasSneak && this.ignoreSneakSetting.getValue()
+        if (this.hasSneak && this.autoSneakSetting.getValue()
                 && !this.sneakTimer.hasElapsed(this.shiftTimeSetting.getValue())) {
             return;
         }
