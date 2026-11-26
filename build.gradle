@@ -58,6 +58,11 @@ dependencies {
     modLocalRuntime 'maven.modrinth:xaeros-minimap:g0LRDWwe'
     modCompileOnly 'maven.modrinth:entityculling:bTu42fvx'
     modLocalRuntime 'maven.modrinth:entityculling:bTu42fvx'
+    // 投影：Litematica 及其前置 MaLiLib（编译期只读 + 开发运行时可联调，不进发布 jar）
+    modCompileOnly "maven.modrinth:litematica:${litematica_version}"
+    modLocalRuntime "maven.modrinth:litematica:${litematica_version}"
+    modCompileOnly "maven.modrinth:malilib:${malilib_version}"
+    modLocalRuntime "maven.modrinth:malilib:${malilib_version}"
     modLocalRuntime 'me.djtheredstoner:DevAuth-fabric:1.2.2'
     compileOnly 'org.jetbrains:annotations:26.0.2'
 

@@ -45,7 +45,9 @@
     "sodium": "*",
     "lithium": "*",
     "immediatelyfast": "*",
-    "xaerominimap": "*"
+    "xaerominimap": "*",
+    "litematica": ">=0.26.16",
+    "malilib": ">=0.27.19"
   },
   "mixins": [
     "evernight.mixins.client.json",
