@@ -38,8 +38,10 @@ jobs:
           missing=0
           for name in \
             vaulttool-windows-x86_64.exe \
+            vaulttool-windows-aarch64.exe \
             vaulttool-linux-x86_64 \
             vaulttool-linux-aarch64 \
+            vaulttool-android-aarch64 \
             vaulttool-macos-universal; do
             if ! curl -fsSL --retry 3 --retry-delay 2 "$base/$name" -o "native/vault-dist/$name"; then
               echo "missing vault engine: $name"
