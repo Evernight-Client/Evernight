@@ -560,9 +560,11 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
     private void drawSearchDimmer(PoseStack poseStack) {
         float dimmerOpacity = this.searchFocusAnimation.getValue() * 0.2F;
         int dimmerColor = ARGB.color(dimmerOpacity, Catppuccin.CRUST.getRGB());
+        // The pose stack is already scaled by the Ctrl + wheel GUI zoom here, so the visible screen
+        // size in these coordinates is what GuiScaleUtils reports, not the raw window size. Using the
+        // window size made the dimmer shrink with the zoom and leave the rest of the screen uncovered.
         GuiDrawUtils.fillRect(poseStack, 0.0F, 0.0F,
-                ClientAccess.evernightMinecraft.getWindow().getGuiScaledWidth(),
-                ClientAccess.evernightMinecraft.getWindow().getGuiScaledHeight(), dimmerColor);
+                GuiScaleUtils.getScaledWidth(), GuiScaleUtils.getScaledHeight(), dimmerColor);
     }
 
     @Override
