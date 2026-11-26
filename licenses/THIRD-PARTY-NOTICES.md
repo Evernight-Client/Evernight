@@ -10,6 +10,7 @@ Evernight 本体以 [GPL-3.0-only](../LICENSE) 发布。本文件记录本体中
 | [LGPL-3.0.txt](LGPL-3.0.txt) | LPCTools 移植模块（AutoGrindstone）；LGPL-3.0 以 GPL-3.0 为基础 |
 | [Apache-2.0.txt](Apache-2.0.txt) | 内置的 DiscordIPC |
 | [MIT-OpenZio.txt](MIT-OpenZio.txt) | 上游 Open Zio 基础代码 |
+| [PinIn-MIT.txt](PinIn-MIT.txt) | 内置的裁剪版 PinIn 拼音匹配库及其拼音字典 |
 | [MiSans.txt](MiSans.txt) | 内置 MiSans 字体（字体许可，非开源许可，按原协议要求随附） |
 | [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) | 本文件：逐项说明来源、许可证与已知风险 |
 
@@ -25,6 +26,15 @@ Evernight 本体以 [GPL-3.0-only](../LICENSE) 发布。本文件记录本体中
 - Copyright (c) 2026 wxh1024 (Evernight modifications)
 
 MIT 与 GPL-3.0 兼容，合并后的整体按 GPL-3.0-only 分发；上游的版权与许可声明按 MIT 要求原样保留在 [MIT-OpenZio.txt](MIT-OpenZio.txt)。
+
+### PinIn — MIT
+
+`src/main/java/me/towdium/pinin/` 与 `assets/evernight/pinyin/data.txt` 是 [PinIn](https://github.com/Towdium/PinIn) 的裁剪内置副本，用于物品、方块、实体、附魔、模块等搜索框的智能拼音匹配（全拼、首字母、中英混输）。
+
+- Copyright (c) 2019 Juntong Liu
+- 条款：[PinIn-MIT.txt](PinIn-MIT.txt)。
+- 裁剪范围：只保留无索引的即时匹配器（`PinIn#contains`），删除了索引搜索器（TreeSearcher / CachedSearcher / SimpleSearcher）、加速器、双拼等键盘方案、注音格式转换与运行期模糊音配置；匹配算法未改动。
+- 拼音数据来自 PinIn 自带的 `data.txt`（其来源为 rime-terra-pinyin 与 mozillazg/pinyin-data），随 MIT 许可一并分发。
 
 ### LPCTools — LGPL-3.0-only
 
@@ -80,6 +90,7 @@ Evernight 与 Xaero 无任何隶属或授权关系；如原作者提出要求，
 | 资源 | 路径 | 许可 / 出处 |
 | --- | --- | --- |
 | MiSans Regular | `assets/evernight/font/misans-regular.ttf` | 小米 MiSans 字体许可，见 [MiSans.txt](MiSans.txt) |
+| 拼音字典 | `assets/evernight/pinyin/data.txt` | 取自内置的 PinIn（数据来自 rime-terra-pinyin 与 mozillazg/pinyin-data），见 [PinIn-MIT.txt](PinIn-MIT.txt) |
 | 界面贴图、图标、披风 | `assets/evernight/textures/`、`capes/`、`icon.png` | 本项目自制 |
 | 着色器 | `assets/evernight/shaders/` | 本项目编写 |
 | 原版着色器改写 | `assets/minecraft/shaders/core/evernight_*` | 由 Minecraft 原版着色器改编，原资产归 Mojang |
