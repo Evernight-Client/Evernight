@@ -9,6 +9,9 @@ import evernight.client.render.font.FontRenderer;
 import evernight.client.render.gui.GuiDrawUtils;
 import evernight.client.utils.core.ClampedInterpolatedFloat;
 import evernight.client.utils.core.FloatAnimation;
+import evernight.client.utils.search.SearchKey;
+import evernight.client.utils.search.SearchNames;
+import evernight.client.utils.search.SearchQuery;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.locale.Language;
@@ -24,25 +27,26 @@ import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.block.Block;
 
-import java.util.Locale;
-
 class RegistryEntryComponent<E> extends ButtonComponent {
     public final ClampedInterpolatedFloat visibilityAnimation = new ClampedInterpolatedFloat(
             () -> this.getUiModule().animSpeedSetting.getValue() * 2.0F, true);
     protected final FloatAnimation hoverScrollAnimation = new FloatAnimation();
     private final RegistrySetScreen<E> screen;
+    private final Identifier identifier;
     private final E entry;
     private final Item iconItem;
     private final ItemStack iconStack;
     private final boolean availableEntry;
     private boolean resetVisibilityAnimation = true;
     private boolean visible;
+    private SearchKey searchKey;
 
     public RegistryEntryComponent(RegistrySetScreen<E> screen, Panel panel, Identifier identifier, E entry, boolean availableEntry) {
         // Registry labels are localised names/user data, not evernight.ui keys: translating them would
         // render "evernight.ui.Gold Block" instead of "Gold Block".
         super(panel, createLabel(identifier, entry), false);
         this.screen = screen;
+        this.identifier = identifier;
         this.entry = entry;
         this.availableEntry = availableEntry;
         this.iconStack = createIconStack(identifier, entry);
@@ -105,9 +109,8 @@ class RegistryEntryComponent<E> extends ButtonComponent {
         this.visible = this.screen.registrySetting.getValue().contains(this.entry);
         if (this.availableEntry) {
             this.visible = !this.visible;
-            String searchText = this.screen.searchComponent.getText();
-            if (!searchText.isEmpty() && !this.getLabel().toLowerCase()
-                    .contains(searchText.toLowerCase(Locale.ROOT))) {
+            SearchQuery query = this.screen.getSearchQuery();
+            if (!query.isBlank() && !this.searchKey().matches(query)) {
                 this.visible = false;
                 this.resetVisibilityAnimation = true;
                 this.visibilityAnimation.setValue(false);
@@ -121,6 +124,17 @@ class RegistryEntryComponent<E> extends ButtonComponent {
             this.visibilityAnimation.setTarget(this.visible);
             this.visibilityAnimation.updateAndGet();
         }
+    }
+
+    /**
+     * Searchable names of this entry: English name/id and Chinese name, built once per row because the
+     * registry entry never changes while the screen is open.
+     */
+    private SearchKey searchKey() {
+        if (this.searchKey == null) {
+            this.searchKey = SearchNames.forRegistryEntry(this.identifier, this.entry, this.getLabel());
+        }
+        return this.searchKey;
     }
 
     @Override

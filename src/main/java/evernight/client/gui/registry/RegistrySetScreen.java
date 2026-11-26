@@ -9,6 +9,8 @@ import evernight.client.gui.screens.core.ClientScreen;
 import evernight.client.settings.types.RegistrySetSetting;
 import evernight.client.settings.types.StringSetting;
 import evernight.client.utils.core.KeyUtils;
+import evernight.client.utils.search.SearchQuery;
+import evernight.client.utils.search.SearchQueryHolder;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.resources.Identifier;
@@ -28,6 +30,7 @@ public class RegistrySetScreen<E> extends ClientScreen {
     protected final StringSettingComponent searchComponent = new StringSettingComponent(this.extraPanel,
             CloseState.ALWAYS_OPEN, this.createSearchSetting());
     private final RegistryEntryCatalog.EntryList catalogEntries;
+    private final SearchQueryHolder searchQueryHolder = new SearchQueryHolder();
     private final Screen parentScreen;
 
     public RegistrySetScreen(Screen parentScreen, RegistrySetSetting<E> registrySetting) {
@@ -66,6 +69,14 @@ public class RegistrySetScreen<E> extends ClientScreen {
         } else {
             ClientAccess.evernightMinecraft.setScreen(this.parentScreen);
         }
+    }
+
+    /**
+     * Search state shared by every entry row of the available list. The holder rebuilds the query
+     * lazily when the text or the configured search mode changes, so rows can call this per frame.
+     */
+    public SearchQuery getSearchQuery() {
+        return this.searchQueryHolder.update(this.searchComponent.getText());
     }
 
     private void addEntryPair(Identifier identifier, E entry, boolean prepend) {
