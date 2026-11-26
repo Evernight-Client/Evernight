@@ -86,7 +86,8 @@ public class VaultESPModule extends Module {
     private final Map<Long, Integer> surfaceCache = new HashMap<>();
     private final ChunkScanner chunkScanner;
 
-    private VaultOpenedStore openedStore = new VaultOpenedStore();
+    /** Standalone opened record shared by every module session; loaded on first access. */
+    private final VaultOpenedStore openedStore = VaultOpenedStore.shared();
     private Identifier lastDimension;
 
     public VaultESPModule() {
@@ -113,7 +114,6 @@ public class VaultESPModule extends Module {
     @Override
     public void onEnable() {
         this.clearState();
-        this.openedStore = VaultOpenedStore.load();
         this.chunkScanner.start();
         this.chunkScanner.scanLoadedChunks();
     }

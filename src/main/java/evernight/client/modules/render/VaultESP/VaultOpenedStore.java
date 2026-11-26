@@ -9,28 +9,49 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Local record of the ominous vaults the player already right-clicked.
+ * Standalone record of the ominous vaults the player already right-clicked.
  *
  * <p>Some servers never resend the block state after a vault was opened, so the client cannot tell a
  * fresh vault from a looted one. Right-clicking a vault records it here, keyed by server address plus
- * dimension, and the ESP then treats it as opened. The file is {@code evernight/vaultopened.json};
- * serialisation and file access are separate so the format stays readable.
+ * dimension, and the ESP then treats it as opened.
+ *
+ * <p>The records live in their own file, {@code <game directory>/evernight/vault-opened.json}, and are
+ * loaded lazily the first time any code asks for the store, so they are independent of the ESP
+ * module's enabled state. Every new record is written immediately; writes go through a temporary file
+ * and a move so a crash cannot leave a truncated file behind.
  */
 public final class VaultOpenedStore implements ClientAccess {
-    private static final String FILE_NAME = "vaultopened.json";
+    private static final String FILE_NAME = "vault-opened.json";
+    /** File written by the first implementation, read once and migrated on demand. */
+    private static final String LEGACY_FILE_NAME = "vaultopened.json";
     private static final int FORMAT_VERSION = 1;
+
+    private static VaultOpenedStore shared;
 
     /** Scope key (server plus dimension) to recorded {@code "x,y,z"} positions. */
     private final Map<String, Set<String>> scopes = new LinkedHashMap<>();
     private boolean dirty;
+
+    private VaultOpenedStore() {
+    }
+
+    /** The process-wide record, loaded from disk on first use. */
+    public static synchronized VaultOpenedStore shared() {
+        if (shared == null) {
+            shared = load();
+        }
+        return shared;
+    }
 
     public static String key(int x, int y, int z) {
         return x + "," + y + "," + z;
@@ -134,18 +155,24 @@ public final class VaultOpenedStore implements ClientAccess {
         return store;
     }
 
-    /** {@code <game directory>/evernight/vaultopened.json}. */
+    /** {@code <game directory>/evernight/vault-opened.json}. */
     public static Path path() {
         return FabricLoader.getInstance().getGameDir().resolve("evernight").resolve(FILE_NAME);
     }
 
-    public static VaultOpenedStore load() {
+    private static VaultOpenedStore load() {
+        Path file = path();
+        Path legacy = file.resolveSibling(LEGACY_FILE_NAME);
+        Path source = Files.exists(file) ? file : (Files.exists(legacy) ? legacy : null);
+        if (source == null) {
+            return new VaultOpenedStore();
+        }
         try {
-            Path file = path();
-            if (!Files.exists(file)) {
-                return new VaultOpenedStore();
+            VaultOpenedStore store = fromJson(Files.readString(source, StandardCharsets.UTF_8));
+            if (source.equals(legacy)) {
+                store.dirty = true;
             }
-            return fromJson(Files.readString(file, StandardCharsets.UTF_8));
+            return store;
         } catch (IOException | RuntimeException unreadableFile) {
             return new VaultOpenedStore();
         }
@@ -156,13 +183,24 @@ public final class VaultOpenedStore implements ClientAccess {
         if (!this.dirty) {
             return true;
         }
+        Path file = path();
+        Path temporary = file.resolveSibling(FILE_NAME + ".tmp");
         try {
-            Path file = path();
             Files.createDirectories(file.getParent());
-            Files.writeString(file, this.toJson(), StandardCharsets.UTF_8);
+            Files.writeString(temporary, this.toJson(), StandardCharsets.UTF_8);
+            try {
+                Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException fallbackMove) {
+                Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING);
+            }
             this.dirty = false;
             return true;
         } catch (IOException | RuntimeException unwritableFile) {
+            try {
+                Files.deleteIfExists(temporary);
+            } catch (IOException ignoredCleanupFailure) {
+            }
             return false;
         }
     }
