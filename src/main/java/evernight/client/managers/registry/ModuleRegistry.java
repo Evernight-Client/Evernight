@@ -211,6 +211,7 @@ import evernight.client.modules.render.Tracers.TracersModule;
 import evernight.client.modules.render.Trails.TrailsModule;
 import evernight.client.modules.render.Trajectories.TrajectoriesModule;
 import evernight.client.modules.render.Tunnels.TunnelsModule;
+import evernight.client.modules.render.VaultESP.VaultESPModule;
 import evernight.client.modules.render.ViewClip.ViewClipModule;
 import evernight.client.modules.render.ViewModel.ViewModelModule;
 import evernight.client.modules.render.VoidESP.VoidESPModule;
@@ -585,6 +586,8 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected TunnelsModule");
         if (!this.registerModule(new evernight.client.modules.client.UI.UIModule()))
             throw new IllegalStateException("Registration rejected UIModule");
+        if (!this.registerModule(new evernight.client.modules.render.VaultESP.VaultESPModule()))
+            throw new IllegalStateException("Registration rejected VaultESPModule");
         if (!this.registerModule(new evernight.client.modules.exploit.VaultPrediction.VaultPredictionModule()))
             throw new IllegalStateException("Registration rejected VaultPredictionModule");
         if (!this.registerModule(new evernight.client.modules.movement.Velocity.VelocityModule()))
