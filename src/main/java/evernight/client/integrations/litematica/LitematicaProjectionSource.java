@@ -16,9 +16,9 @@ import org.jetbrains.annotations.Nullable;
  * the schematic world is rebuilt by Litematica whenever a schematic is loaded, placed or unplaced
  * and whenever the client changes dimension, so every call re-reads it.
  *
- * <p>Deliberately does <b>not</b> use {@code DataManager.getRenderLayerRange()}: that returns a
- * MaLiLib {@code LayerRange} and would pull MaLiLib types into the module layer. The scan radius is
- * owned by the module instead.
+ * <p>The render layer range is read through {@code DataManager.getRenderLayerRange()}, which returns
+ * a MaLiLib {@code LayerRange}. MaLiLib is a hard dependency of Litematica, so this stays safe; the
+ * module layer still never sees the MaLiLib type.
  */
 public final class LitematicaProjectionSource implements ProjectionSource {
     @Override
@@ -28,6 +28,18 @@ public final class LitematicaProjectionSource implements ProjectionSource {
             return world != null && getPlacementName() != null;
         } catch (Throwable failure) {
             return false;
+        }
+    }
+
+    @Override
+    public boolean isWithinRenderLayer(BlockPos pos) {
+        if (pos == null) {
+            return false;
+        }
+        try {
+            return DataManager.getRenderLayerRange().isPositionWithinRange(pos);
+        } catch (Throwable failure) {
+            return true;
         }
     }
 

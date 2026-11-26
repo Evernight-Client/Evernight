@@ -35,6 +35,31 @@ public interface ProjectionSource {
     boolean isAvailable();
 
     /**
+     * Whether the given position is inside the render layer range of the active projection.
+     *
+     * <p>Litematica renders only the configured layer range, so blocks outside of it are invisible
+     * to the player and must not be printed. The default keeps every covered position eligible for
+     * sources that have no layer concept.
+     *
+     * @return {@code true} when the position should be treated as part of the rendered projection
+     */
+    default boolean isWithinRenderLayer(BlockPos pos) {
+        return true;
+    }
+
+    /**
+     * Block state the projection wants at the given position, but only when that position is
+     * currently inside the rendered layer range.
+     *
+     * @return the projected state, or {@code null} when the position is not rendered or no
+     * projection covers it
+     */
+    @Nullable
+    default BlockState getProjectedStateIfRendered(BlockPos pos) {
+        return this.isWithinRenderLayer(pos) ? this.getProjectedState(pos) : null;
+    }
+
+    /**
      * Block state the projection wants at the given position.
      *
      * @return the projected state, or {@code null} when no projection covers that position
