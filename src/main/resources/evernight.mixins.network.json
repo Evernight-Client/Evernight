@@ -33,7 +33,8 @@
     "ServerboundPingRequestPacketAccessor",
     "ServerboundPlayerActionPacketMixin",
     "ServerboundUseItemOnPacketMixin",
-    "ServerboundUseItemPacketMixin"
+    "ServerboundUseItemPacketMixin",
+    "VaultLootCaptureMixin"
   ],
   "injectors": {
     "defaultRequire": 0,

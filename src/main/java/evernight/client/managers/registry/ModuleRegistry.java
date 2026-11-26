@@ -91,6 +91,7 @@ import evernight.client.modules.exploit.RocketExtender.RocketExtenderModule;
 import evernight.client.modules.exploit.SpearFix.SpearFixModule;
 import evernight.client.modules.exploit.Timer.TimerModule;
 import evernight.client.modules.exploit.Trident.TridentModule;
+import evernight.client.modules.exploit.VaultPrediction.VaultPredictionModule;
 import evernight.client.modules.exploit.XCarry.XCarryModule;
 import evernight.client.modules.misc.Announcer.AnnouncerModule;
 import evernight.client.modules.misc.AntiAFK.AntiAFKModule;
@@ -584,6 +585,8 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected TunnelsModule");
         if (!this.registerModule(new evernight.client.modules.client.UI.UIModule()))
             throw new IllegalStateException("Registration rejected UIModule");
+        if (!this.registerModule(new evernight.client.modules.exploit.VaultPrediction.VaultPredictionModule()))
+            throw new IllegalStateException("Registration rejected VaultPredictionModule");
         if (!this.registerModule(new evernight.client.modules.movement.Velocity.VelocityModule()))
             throw new IllegalStateException("Registration rejected VelocityModule");
         if (!this.registerModule(new evernight.client.modules.render.ViewClip.ViewClipModule()))
