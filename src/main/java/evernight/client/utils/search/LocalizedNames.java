@@ -23,6 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class LocalizedNames {
     private static final String ENGLISH = "en_us";
     private static final String CHINESE = "zh_cn";
+    /** Vanilla key every language file defines; used to detect a half-initialized resource manager. */
+    private static final String READY_ANCHOR_KEY = "item.minecraft.diamond_sword";
     private static final Map<String, Language> TABLES = new ConcurrentHashMap<>();
     private static final Map<String, Map<String, String>> CLIENT_TABLES = new ConcurrentHashMap<>();
 
@@ -71,7 +73,10 @@ public final class LocalizedNames {
             if (minecraft == null || minecraft.getResourceManager() == null) {
                 return null;
             }
-            return ClientLanguage.loadFrom(minecraft.getResourceManager(), List.of(languageCode), false);
+            Language loaded = ClientLanguage.loadFrom(minecraft.getResourceManager(), List.of(languageCode), false);
+            // A table missing an always-present vanilla key means the resource packs were not ready yet;
+            // do not cache it, so a later search retries instead of staying empty for the session.
+            return loaded.has(READY_ANCHOR_KEY) ? loaded : null;
         } catch (Throwable failure) {
             EvernightClient.LOGGER.warn("Could not load the {} language table for search", languageCode, failure);
             return null;
