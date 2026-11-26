@@ -93,7 +93,44 @@ public final class VaultLootEngine {
             return true;
         }
         String platform = platformName();
-        return platform != null && bundledResource(platform) != null;
+        return platform != null && bundledEngineLooksRunnable(platform);
+    }
+
+    /**
+     * Rejects a bundled engine whose first bytes do not match the platform's executable format.
+     *
+     * <p>The engines are cross-compiled in CI, and a misconfigured toolchain once produced a Linux
+     * ELF named {@code *.exe}. Checking the magic hides the module instead of failing at runtime.
+     */
+    private static boolean bundledEngineLooksRunnable(String platform) {
+        try (InputStream bundled = VaultLootEngine.class.getResourceAsStream(bundledResourcePath(platform))) {
+            if (bundled == null) {
+                return false;
+            }
+            return matchesPlatformMagic(platform, bundled.readNBytes(4));
+        } catch (IOException unreadableResource) {
+            return false;
+        }
+    }
+
+    private static boolean matchesPlatformMagic(String platform, byte[] magic) {
+        if (magic.length < 4) {
+            return false;
+        }
+        if (platform.startsWith("windows")) {
+            return magic[0] == 'M' && magic[1] == 'Z';
+        }
+        if (platform.startsWith("linux")) {
+            return magic[0] == 0x7F && magic[1] == 'E' && magic[2] == 'L' && magic[3] == 'F';
+        }
+        // Mach-O: thin little-endian (cffaedfe), thin big-endian (feedfacf), or fat (cafebabe).
+        int first = magic[0] & 0xFF;
+        int second = magic[1] & 0xFF;
+        int third = magic[2] & 0xFF;
+        int fourth = magic[3] & 0xFF;
+        return (first == 0xCF && second == 0xFA && third == 0xED && fourth == 0xFE)
+                || (first == 0xFE && second == 0xED && third == 0xFA && fourth == 0xCF)
+                || (first == 0xCA && second == 0xFE && third == 0xBA && fourth == 0xBE);
     }
 
     private static Path toolDirectory() {
@@ -113,10 +150,6 @@ public final class VaultLootEngine {
 
     private static String bundledResourcePath(String platform) {
         return RESOURCE_PREFIX + platform + (platform.startsWith("windows") ? ".exe" : "");
-    }
-
-    private static java.net.URL bundledResource(String platform) {
-        return VaultLootEngine.class.getResource(bundledResourcePath(platform));
     }
 
     /** Returns a runnable engine path, extracting the bundled build on first use. */
@@ -145,6 +178,9 @@ public final class VaultLootEngine {
                 throw new IOException("Bundled loot engine resource is missing: " + resourcePath);
             }
             byte[] data = bundled.readAllBytes();
+            if (!matchesPlatformMagic(platform, data)) {
+                throw new IOException("Bundled loot engine has the wrong format for " + platform);
+            }
             boolean unchanged = Files.isRegularFile(executable) && Files.size(executable) == data.length;
             if (!unchanged) {
                 Files.write(executable, data, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
