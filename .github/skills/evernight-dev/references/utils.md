@@ -394,3 +394,20 @@ float radius)`、`collectSphereBlocks(Vec3 center, float radius, boolean exclude
 | `BlockRegistryGroupMatcher` 方块版 `RegistryGroupMatcher` | `getRegistryId`、`getGroupNames`、`getGroupEntries` |
 | `Season` 季节枚举（`UIModule`/`ClientScreen` 主题） | `WINTER/SPRING/SUMMER/AUTUMN`；`fromMonth`、`containsMonth` |
 | `ItemFrameContainerLocator` 展示框标记容器 | `findMarkedFrames`、`findNearestFrame(Predicate<ItemStack>, double)`、`findAllContainers`、`findNearestContainer(Predicate<ItemStack>\|Item, double)`、`resolveContainer(ItemFrame)`、`isContainer(BlockPos)`；按玩家距离升序，只认 `Container` 方块实体 |
+
+## 10. utils/search
+
+统一搜索（`utils/search/`），行为由 `UI > Search` 的 `SearchMode`（`settings/options/SearchMode.java`）决定：
+`effective()` 解析 `AUTO` → 当前 Evernight 语言；`CHINESE` 匹配中文名 + 智能拼音，`ENGLISH` 匹配英文名 + 注册名。
+
+| 类 | 关键 API |
+| --- | --- |
+| `SearchQuery` 一次查询（不可变） | `of(String)` / `of(String, SearchMode)`、`isBlank`、`text`、`mode`、`matchesEnglish(String...)`（大小写不敏感 `contains`）、`matchesChinese(String...)`（字面或拼音）；内置按候选串的结果缓存，**同一实例可每帧复用** |
+| `SearchQueryHolder` 搜索框缓存 | `update(String rawText)`：文本或生效模式变化才重建 `SearchQuery`，布局循环里直接调 |
+| `SearchKey` 条目名字集合 | `of(Collection, Collection)`、`empty`、`matches(SearchQuery)`（按模式选英文/中文一侧）、`english()`、`chinese()`、`allTexts()` |
+| `SearchNames` 条目 → `SearchKey` | `forItem`、`forBlock`、`forEntityType`、`forMobEffect`、`forPotion`、`forSound`、`forEnchantment(Enchantment, Identifier)`、`forItemStack`（含附魔/药水效果/自定义名）、`forModule`、`forRegistryEntry(Identifier, entry, label)`；注册表对象带缓存 |
+| `LocalizedNames` 固定语言名 | `english` / `chinese`（资源管理器 `en_us` / `zh_cn` 表，含模组键）、`clientEnglish` / `clientChinese`（Evernight 自带语言文件） |
+| `PinyinMatcher` 拼音匹配 | `contains(text, query)`（首次调用解析内置 PinIn 字典）、`preloadAsync()`（客户端初始化已异步预热） |
+
+**坑**：`PinyinMatcher` 的 PinIn 上下文只在客户端线程匹配；`LocalizedNames` 首次使用会在客户端线程解析语言表（一次性）。
+

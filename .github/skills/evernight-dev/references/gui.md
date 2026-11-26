@@ -167,6 +167,20 @@ new RegistrySetScreen<>(ClientAccess.evernightMinecraft.screen, this.registrySet
 `RegistryEntryCatalog` 是**包私有**类，外部不可调用；只为 `BLOCK` / `ITEM` / `ENTITY_TYPE` 提供精选排序清单
 （`entriesFor(Registry<?>)` → `EntryList`，含 `orderedEntries()` / `contains(Object)`），其它注册表返回空清单。
 
+## 7.1 搜索框（统一搜索模式）
+
+所有搜索框（Registry 集合编辑器、ClickGUI 模块搜索、`ChestSearchBar` 箱子搜索、交易物品/附魔选择）共用
+`client/utils/search/`，行为由 `UI > Search` 的 `SearchMode` 决定：`AUTO` 跟随 Evernight 界面语言，
+`CHINESE` 匹配中文名 + 智能拼音（全拼、首字母、中英混输），`ENGLISH` 匹配英文名 + 注册名（`modid:path`、`path`）。
+
+- `SearchQuery`：归一化后的查询 + 解析后的模式 + 每个候选字符串的结果缓存；`matchesEnglish(...)` 只做大小写不敏感
+  `contains`，`matchesChinese(...)` = 字面 `contains` 或拼音匹配（`PinyinMatcher` → 内置裁剪版 PinIn，无索引）。
+- `SearchQueryHolder`：每个搜索框一个，`update(文本)` 只在文本或生效模式变化时重建 `SearchQuery`，**布局循环里可以每帧调**。
+- `SearchKey`：某条目的 `english[]` / `chinese[]` 名字集合；`matches(query)` 按当前模式选一侧。
+- `SearchNames`：为 item / block / entity / effect / potion / sound / enchantment / `ItemStack`（含附魔与药水效果）/
+  `Module` 构建 `SearchKey`，英文名与中文名分别通过 `LocalizedNames`（资源管理器的 `en_us` / `zh_cn` 语言表，
+  含模组键）查询，并补注册名。中文模式**不会**命中英文名，英文模式**不会**命中中文名。
+
 ## 8. 打开界面的标准写法
 
 核心：`gui/screens/core/ClientScreen.java`、`client/ClientContext.java`。
