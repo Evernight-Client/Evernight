@@ -79,8 +79,21 @@ public class Module extends NamedFeature implements Toggleable, ClientAccess, Re
     }
 
     /**
-     * @return whether the optional mods declared through {@link #requiresMod(String...)} are installed;
-     * always {@code true} for modules without such a requirement
+     * Marks this module as unsupported on the current platform, for features that need something the
+     * platform cannot provide (a bundled native helper, for example). The module stays registered so
+     * its config survives, but it is hidden from the GUI and commands and cannot be enabled. Call this
+     * once from the module constructor.
+     *
+     * @param supported whether the current platform can run everything this module needs
+     */
+    protected final void requiresPlatform(boolean supported) {
+        this.available = this.available && supported;
+    }
+
+    /**
+     * @return whether the optional mods declared through {@link #requiresMod(String...)} are installed
+     * and the platform declared through {@link #requiresPlatform(boolean)} is supported; always
+     * {@code true} for modules without such requirements
      */
     public boolean isAvailable() {
         return this.available;
