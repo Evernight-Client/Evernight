@@ -21,7 +21,7 @@ import java.util.Set;
  * <p>Packet order matters: when a vault switches to {@code EJECTING} the opening is tracked, every
  * item entity spawned inside the vault's inflated box is remembered, and each set-entity-data packet
  * for one of those ids appends the stack. The list therefore follows the ejection order, which the
- * prediction reverses before comparing it with the engine output. Polling entities per tick or
+ * prediction reverses before comparing it with the Java core output. Polling entities per tick or
  * sorting by id would silently reorder the drops and break detection, so do not replace this with a
  * tick loop.
  *

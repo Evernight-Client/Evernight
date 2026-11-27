@@ -14,11 +14,11 @@ public final class VaultLootLogic {
     }
 
     /** One target item drop reported by the engine: the N-th ominous vault opened worldwide. */
-    public record Hit(int offset, String itemId, int count) {
+    public record Hit(long offset, String itemId, int count) {
     }
 
     /** A hit resolved for reporting, with the same offset semantics as {@link Hit}. */
-    public record Occurrence(int offset, String itemId, int count) {
+    public record Occurrence(long offset, String itemId, int count) {
     }
 
     /**
