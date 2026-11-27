@@ -160,3 +160,19 @@ tasks.named('runClient') {
 tasks.named('test', Test) {
     useJUnitPlatform()
 }
+
+// Tests are intentionally not part of `build`: a normal compile/package must not launch the client
+// or spend time on the suite. `releaseTest` is the explicit pre-release gate.
+tasks.named('build') {
+    setDependsOn([tasks.named('assemble')])
+}
+
+tasks.register('releaseTest') {
+    group = 'verification'
+    description = 'Pre-release gate: build, unit tests and client GameTests.'
+    dependsOn 'build', 'test', 'runClientGameTest'
+}
+
+tasks.named('runClientGameTest') {
+    mustRunAfter 'test'
+}

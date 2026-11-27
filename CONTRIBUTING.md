@@ -16,9 +16,25 @@ Loom 1.19.3 要求 Gradle 跑在 JDK 25 上；`options.release = 21` 保证产�
 ## 构建与校验
 
 ```bash
-# 任何改动完成后都完整构建
+# 任何改动完成后都完整构建；只编译/打包，不跑测试
 gradlew.bat build
+
+# 单元测试；按需单独运行
+gradlew.bat test
+
+# 发版前必须在本机运行：构建 + 单元测试 + 真实客户端 GameTest
+gradlew.bat releaseTest
 ```
+
+测试不挂在 `build` 上，避免普通构建启动客户端或拖慢打包；`releaseTest` 是发版门槛。GameTest 依赖真实客户端/GPU，只能在本地跑，GitHub Actions 工作流不跑测试。
+
+发版流程：
+
+1. 本地运行 `gradlew.bat releaseTest` 并确认通过；
+2. 推送与 `gradle.properties` 的 `mod_version` 一致的 tag，例如 `v1.2.7`；
+3. `.github/workflows/release.yml` 在 tag 上构建并创建 GitHub Release（不会重复跑测试）。
+
+也可以在 Actions 里手动执行 `Release` 工作流：输入 tag，并勾选“已在本地运行 releaseTest”。
 
 构建产物：`build/libs/evernight-<version>.jar`（生产/插件依赖）与 `build/devlibs/evernight-<version>-dev.jar`（本体联调调试用；不要交给插件的 `mod*` 配置）。
 
