@@ -6,14 +6,17 @@ import evernight.client.events.core.EventHandler;
 import evernight.client.events.network.MinecraftDisconnectEvent;
 import evernight.client.events.network.MultiPlayerGameModeUseItemOnEvent;
 import evernight.client.events.player.LocalPlayerTickEvent;
+import evernight.client.events.render.HudRenderEvent;
 import evernight.client.events.render.WorldRenderEvent;
 import evernight.client.managers.player.RotationManager;
 import evernight.client.modules.Module;
 import evernight.client.modules.ModuleCategory;
 import evernight.client.render.color.ColorUtils;
-import evernight.client.render.mesh.LineMeshRenderer;
+import evernight.client.render.gui.GuiDrawUtils;
+import evernight.client.render.mesh.VertexGeometry;
 import evernight.client.render.mesh.WorldBoxRenderer;
 import evernight.client.render.text.Translations;
+import evernight.client.render.util.RenderUtils;
 import evernight.client.settings.core.NamedEntry;
 import evernight.client.settings.core.Setting;
 import evernight.client.settings.types.ActionSetting;
@@ -36,6 +39,8 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -277,18 +282,15 @@ public class VaultESPModule extends Module {
         double range = this.rangeSetting.getValue();
         double squaredRange = range * range;
         Vec3 eye = evernightMinecraft.player.getEyePosition();
-        Vec3 camera = evernightMinecraft.gameRenderer.getMainCamera().position();
         List<BlockPos> visible = this.nearest(eye, squaredRange);
         if (visible.isEmpty()) {
             return;
         }
         MarkerMode marker = this.markerSetting.getValue();
-        boolean drawTracer = marker == MarkerMode.TRACER || marker == MarkerMode.BOTH;
         boolean drawBeam = marker == MarkerMode.BEAM || marker == MarkerMode.BOTH;
         boolean drawFill = this.fillSetting.getValue() > 0;
         boolean drawOutline = this.outlineSetting.getValue() > 0;
         PoseStack poseStack = event.getPoseStack();
-        LineMeshRenderer.begin(poseStack, 1.0F);
         for (BlockPos position : visible) {
             BlockState state = evernightMinecraft.level.getBlockState(position);
             if (!isOminous(state)) {
@@ -311,16 +313,87 @@ public class VaultESPModule extends Module {
                 WorldBoxRenderer.outlineBox(poseStack, bounds, ColorUtils.multiplyAlpha(color,
                         this.outlineSetting.getValue() / 100.0F), 1.0F);
             }
-            if (drawTracer) {
-                // A 3D line from the camera avoids the near-plane unprojection that made the
-                // screen-space tracer jitter while moving.
-                LineMeshRenderer.addLine(camera, Vec3.atCenterOf(position), color);
-            }
             if (drawBeam) {
                 this.drawBeam(poseStack, position, color);
             }
         }
-        LineMeshRenderer.draw();
+    }
+
+    /**
+     * Draws tracers in the 2D HUD layer: a straight screen-space line from the crosshair to each
+     * vault. This avoids unprojecting a near-plane world point every frame, which made the old
+     * world-space tracer jitter while moving.
+     */
+    @EventHandler
+    private void onHudRender(HudRenderEvent.Before event) {
+        if (this.isWorldUnavailable() || this.vaultPositions.isEmpty()) {
+            return;
+        }
+        MarkerMode marker = this.markerSetting.getValue();
+        if (marker != MarkerMode.TRACER && marker != MarkerMode.BOTH) {
+            return;
+        }
+        double range = this.rangeSetting.getValue();
+        Vec3 eye = evernightMinecraft.player.getEyePosition();
+        List<BlockPos> visible = this.nearest(eye, range * range);
+        if (visible.isEmpty()) {
+            return;
+        }
+        Vec3 camera = evernightMinecraft.gameRenderer.getMainCamera().position();
+        Matrix4f projection = new Matrix4f();
+        Matrix4f view = new Matrix4f(event.getPoseStack().last().pose());
+        RenderUtils.applyCameraRotation(view);
+        RenderUtils.WORLD_PROJECTION_MATRIX.mul(view, projection);
+        int screenWidth = evernightMinecraft.getWindow().getScreenWidth();
+        int screenHeight = evernightMinecraft.getWindow().getScreenHeight();
+        float centerX = screenWidth * 0.5F;
+        float centerY = screenHeight * 0.5F;
+        PoseStack poses = event.getPoseStack();
+        poses.pushPose();
+        try {
+            float scale = 1.0F / evernightMinecraft.getWindow().getGuiScale();
+            poses.scale(scale, scale, scale);
+            boolean drewAny = false;
+            for (BlockPos position : visible) {
+                BlockState state = evernightMinecraft.level.getBlockState(position);
+                if (!isOminous(state)) {
+                    continue;
+                }
+                boolean opened = this.isOpened(position, state);
+                if (this.onlyUnopenedSetting.getValue() && opened) {
+                    continue;
+                }
+                Vector4f clip = projectPoint(projection, camera, Vec3.atCenterOf(position));
+                if (clip == null) {
+                    continue;
+                }
+                float ndcX = clip.x / clip.w;
+                float ndcY = clip.y / clip.w;
+                float extent = Math.max(Math.abs(ndcX), Math.abs(ndcY));
+                if (extent > 1.0F) {
+                    ndcX /= extent;
+                    ndcY /= extent;
+                }
+                float targetX = (ndcX + 1.0F) * screenWidth * 0.5F;
+                float targetY = (1.0F - ndcY) * screenHeight * 0.5F;
+                Color color = opened ? this.openedColorSetting.getValue() : this.unopenedColorSetting.getValue();
+                VertexGeometry.appendLine(GuiDrawUtils.getLineVertices(), poses.last(), centerX, centerY, 0.0F,
+                        targetX, targetY, 0.0F, 1.0F, color.hashCode());
+                drewAny = true;
+            }
+            if (drewAny) {
+                GuiDrawUtils.flush();
+            }
+        } finally {
+            poses.popPose();
+        }
+    }
+
+    private static Vector4f projectPoint(Matrix4f projection, Vec3 camera, Vec3 position) {
+        Vector4f clip = new Vector4f((float) (position.x - camera.x), (float) (position.y - camera.y),
+                (float) (position.z - camera.z), 1.0F);
+        projection.transform(clip);
+        return clip.w <= 1.0E-4F ? null : clip;
     }
 
     /** Positions inside the range sorted by distance, capped so a large vault cluster cannot stall a frame. */
