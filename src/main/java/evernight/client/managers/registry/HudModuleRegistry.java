@@ -37,6 +37,7 @@ import evernight.client.modules.hud.Position.PositionModule;
 import evernight.client.modules.hud.TextRadar.TextRadarModule;
 import evernight.client.modules.hud.Totems.TotemsModule;
 import evernight.client.modules.hud.VaultOpenedHud.VaultOpenedHudModule;
+import evernight.client.modules.hud.VaultPredictionHud.VaultPredictionHudModule;
 import evernight.client.modules.hud.Watermark.WatermarkModule;
 import evernight.client.modules.hud.Welcomer.WelcomerModule;
 
@@ -69,6 +70,7 @@ public final class HudModuleRegistry implements ClientAccess, JsonConfigurable {
         ClientContext.moduleRegistry.registerModule(new CryptoModule());
         ClientContext.moduleRegistry.registerModule(new IndicatorModule());
         ClientContext.moduleRegistry.registerModule(new VaultOpenedHudModule());
+        ClientContext.moduleRegistry.registerModule(new VaultPredictionHudModule());
     }
 
     private static Module findConfiguredModule(Entry configurationEntry) {
