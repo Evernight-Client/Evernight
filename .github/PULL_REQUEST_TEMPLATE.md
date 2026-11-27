@@ -5,7 +5,7 @@
 ## 验证
 
 - [ ] `gradlew.bat build` 通过
-- [ ] 动过语言表：`python .github/skills/evernight-dev/scripts/check-lang.py` 0 error
+- [ ] 动过语言表：已完整构建（`gradlew.bat build`）并核对键集/占位符
 - [ ] 动过 `evernight/addon`：同步更新 `docs/addons.md` 与插件 skill，并说明兼容性
 
 > 游戏内行为、界面观感与交互手感请由维护者人工验收，PR 中不要声称已验证。

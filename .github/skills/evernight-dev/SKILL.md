@@ -25,7 +25,7 @@ description: Evernight（Minecraft 1.21.11 Fabric 客户端）内部开发速查
 1. **可见文本只存在于语言表**：Java 里只写键，`en_us.json` 与 `zh_cn.json` 键集必须一致；查找链固定为「当前语言 → 英文 → 完整键」，不要自造英文名或空串兜底。
 2. **标识符绝不翻译**：`getName()` / `getConfigName()` / 枚举名 / 指令字面量 / 配置键保持英文原拼写，显示用 `getDisplayName()`。
 3. **注册点唯一**：新模块进 `managers/ModuleRegistry` 构造器（字母序）；新 mixin 放 `mixin/minecraft/<域>/` 或 `mixin/mods/<模组>/`，并登记到对应 `evernight.mixins.<分类>.json`，否则静默不生效。
-4. **改完必须编译**：只改 Java 用 `gradlew.bat compileJava`；动资源或语言表必须 `gradlew.bat build` 并跑 `python .github/skills/evernight-dev/scripts/check-lang.py`。
+4. **改完必须完整构建**：任何改动完成后都跑 `gradlew.bat build`。
 
 ## 3. 代码骨架
 
@@ -142,13 +142,11 @@ public abstract class AvatarMixin {
 ## 4. 校验与提交
 
 ```bash
-python .github/skills/evernight-dev/scripts/check-lang.py   # 语言表：键集/空值/占位符，0 error
-gradlew.bat compileJava                                     # 只改 Java
-gradlew.bat build                                           # 改资源或语言表
+gradlew.bat build   # 任何改动完成后都完整构建
 ```
 
 编码与排版：UTF-8（无 BOM）、LF 行尾、空格缩进（Java 4 空格，JSON/YAML 2 空格；`.bat` 检出为 CRLF），由根目录 `.gitattributes` 与 `.editorconfig` 约束；不要提交 CRLF、tab 或 BOM。
 
 提交格式 `type(scope): 中文简述`，如 `feat(hud): 新增坐标显示组件`；代码与对应语言表改动放同一提交。
 
-**AI 的验证边界**：只跑上面三条命令，不启动游戏、不声称验证过界面效果，游戏内行为由人验收。Gradle 需写 `~/.gradle`，受限沙箱里被拒时按提示申请一次工作区外写权限。
+**AI 的验证边界**：只跑完整构建，不启动游戏、不声称验证过界面效果，游戏内行为由人验收。Gradle 需写 `~/.gradle`，受限沙箱里被拒时按提示申请一次工作区外写权限。

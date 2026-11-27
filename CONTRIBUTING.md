@@ -16,14 +16,8 @@ Loom 1.19.3 要求 Gradle 跑在 JDK 25 上；`options.release = 21` 保证产�
 ## 构建与校验
 
 ```bash
-# 只改 Java
-gradlew.bat compileJava
-
-# 改资源 / 语言表 / 发布前
+# 任何改动完成后都完整构建
 gradlew.bat build
-
-# 语言表键集合、空值、占位符检查
-python .github/skills/evernight-dev/scripts/check-lang.py
 ```
 
 构建产物：`build/libs/evernight-<version>.jar`（生产/插件依赖）与 `build/devlibs/evernight-<version>-dev.jar`（本体联调调试用；不要交给插件的 `mod*` 配置）。

@@ -142,9 +142,7 @@ public final class ExampleModule extends AddonModule {
 ## 8. 构建、联调、排错
 
 ```bash
-gradlew.bat build            # 产出 build/libs/evernight-<version>.jar（本体）
-gradlew.bat compileJava      # 只改 Java
-python .github/skills/evernight-dev/scripts/check-lang.py
+gradlew.bat build   # 任何改动完成后都完整构建（产出 build/libs/evernight-<version>.jar）
 ```
 
 联调：插件 jar 放进 `run/mods/` 后 `gradlew.bat runClient`；日志出现 `Loaded addon <name> <version> (<id>)` 即成功，失败打印 `Addon <id> failed to initialize` 与堆栈。游戏内 `;addons` 查看插件、版本与模块数；插件分类排在内置分类之后。
@@ -168,7 +166,7 @@ python .github/skills/evernight-dev/scripts/check-lang.py
 
 ## 10. 提交前检查
 
-1. 改了 API：`gradlew.bat compileJava` + `gradlew.bat build`。
-2. 动了语言表：`check-lang.py` 必须 0 error。
+1. 任何改动：完整构建 `gradlew.bat build`。
+2. 动了语言表：完整构建 `gradlew.bat build` 通过，并人工核对键集与占位符。
 3. 改了 `AddonContext` / `EvernightAddon` 公开签名：同步更新本 skill 与 `references/api.md`。
 4. 不启动游戏、不声称验证过游戏内观感；构建与静态检查为止，行为由人验收。
