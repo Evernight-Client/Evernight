@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -178,7 +179,8 @@ class EventBusTest {
         this.bus.subscribe(subscriber);
         PingEvent instanceEvent = new PingEvent();
         this.bus.post(instanceEvent);
-        assertEquals(List.of("static", "instance"), instanceEvent.calls);
+        // 同优先级 handler 的先后顺序来自 getDeclaredMethods()，JVM 不保证；这里只校验两者都被触发。
+        assertEquals(Set.of("static", "instance"), Set.copyOf(instanceEvent.calls));
         this.bus.unsubscribe(subscriber);
         PingEvent afterUnsubscribe = new PingEvent();
         this.bus.post(afterUnsubscribe);
