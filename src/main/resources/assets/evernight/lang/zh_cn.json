@@ -4045,7 +4045,6 @@
   "evernight.ui.modules.VaultPrediction.PredictEmpty": "接下来 %d 次开箱里没有出现 %s（可调大「最大尝试次数」）。",
   "evernight.ui.modules.VaultPrediction.PredictHeader": "战利品预测：全服第 %d 次",
   "evernight.ui.modules.VaultPrediction.PreliminaryLocated": "初步定位：全服第 %d 次开的不祥宝库。请再开一个宝库做精准校验（按时间窗口查第 %d ~ %d 次）。",
-  "evernight.ui.modules.VaultPrediction.Progress": "已扫描到第 %d 次…",
   "evernight.ui.modules.VaultPrediction.RefoundEmpty": "没有候选：这 %d 次里没有一组掉落和本次一致。",
   "evernight.ui.modules.VaultPrediction.RefoundMany": "候选 %d 个（重新全范围）。请再开一个不祥宝库继续缩小。",
   "evernight.ui.modules.VaultPrediction.SearchEmpty": "没有候选：这 %d 次里没有一组掉落和本次一致（范围不够就调大「最大尝试次数」）。",

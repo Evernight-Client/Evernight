@@ -2,7 +2,6 @@ package evernight.client.utils.vault;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.LongConsumer;
 
 /**
  * Facade over the pure-Java prediction core.
@@ -24,10 +23,9 @@ public final class VaultLootEngine {
      * hits for the semicolon-separated item ids in {@code targetSpec}.
      */
     public static List<VaultLootLogic.Hit> search(long seed, boolean ominous, long offset, long limit,
-                                                  int amount, String targetSpec,
-                                                  LongConsumer progress) {
+                                                  int amount, String targetSpec) {
         List<VaultLootCore.Hit> hits = VaultLootCore.search(seed, ominous, offset, limit, amount,
-                targetSpec, progress);
+                targetSpec);
         List<VaultLootLogic.Hit> result = new ArrayList<>(hits.size());
         for (VaultLootCore.Hit hit : hits) {
             result.add(new VaultLootLogic.Hit(hit.offset(), hit.itemId(), hit.count()));
@@ -36,9 +34,8 @@ public final class VaultLootEngine {
     }
 
     /** Every 1-based offset in {@code [1, maxScan]} whose full drop sequence matches {@code spec}. */
-    public static List<Long> matches(long seed, boolean ominous, long maxScan, String spec,
-                                     LongConsumer progress) {
-        return VaultLootCore.matches(seed, ominous, maxScan, spec, progress);
+    public static List<Long> matches(long seed, boolean ominous, long maxScan, String spec) {
+        return VaultLootCore.matches(seed, ominous, maxScan, spec);
     }
 
     /**
@@ -46,16 +43,13 @@ public final class VaultLootEngine {
      * {@code rangeStart} and {@code rangeEnd} are 0-based indices; results are 1-based offsets.
      */
     public static List<Long> narrow(long seed, boolean ominous, long rangeStart, long rangeEnd,
-                                    long delta, String spec, List<Long> candidates,
-                                    LongConsumer progress) {
-        return VaultLootCore.narrow(seed, ominous, rangeStart, rangeEnd, delta, spec, candidates,
-                progress);
+                                    long delta, String spec, List<Long> candidates) {
+        return VaultLootCore.narrow(seed, ominous, rangeStart, rangeEnd, delta, spec, candidates);
     }
 
     /** First matching offset in {@code [start, start + maxAttempts)}, or {@code -1}. */
-    public static long detect(long seed, boolean ominous, long start, long maxAttempts, String spec,
-                              LongConsumer progress) {
-        return VaultLootCore.detect(seed, ominous, start, maxAttempts, spec, progress);
+    public static long detect(long seed, boolean ominous, long start, long maxAttempts, String spec) {
+        return VaultLootCore.detect(seed, ominous, start, maxAttempts, spec);
     }
 
     /** Clears checkpoint state, e.g. when the module is disabled or the seed changes. */

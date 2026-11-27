@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
-import java.util.function.LongConsumer;
 
 /**
  * Pure-Java vault loot prediction core.
@@ -31,7 +30,6 @@ import java.util.function.LongConsumer;
 public final class VaultLootCore {
     private static final int MAX_MATCHES = 2_000_000;
     private static final int MAX_THREADS = 32;
-    private static final long PROGRESS_STEP = 1L << 20;
 
     private VaultLootCore() {
     }
@@ -45,14 +43,14 @@ public final class VaultLootCore {
      * occurrences of any item in {@code targetSpec} ({@code "all"} matches everything).
      */
     public static List<Hit> search(long seed, boolean ominous, long offset, long limit, int amount,
-                                   String targetSpec, LongConsumer progress) {
+                                   String targetSpec) {
         if (limit <= 0 || amount <= 0) {
             return List.of();
         }
         int[] targets = VaultLootSpec.targetItems(targetSpec);
         long indexStart = Math.max(0L, offset);
         long indexEnd = saturatedAdd(indexStart, limit);
-        List<Task> tasks = tasks(seed, ominous, indexStart, indexEnd, null, targets, amount, progress);
+        List<Task> tasks = tasks(seed, ominous, indexStart, indexEnd, null, targets, amount);
         List<Hit> hits = new ArrayList<>(Math.min(amount, 64));
         int threads = threadCount(tasks.size());
         for (int base = 0; base < tasks.size(); base += threads) {
@@ -74,9 +72,8 @@ public final class VaultLootCore {
     }
 
     /** Every opening offset in {@code [1, maxScan]} whose full drop sequence matches {@code spec}. */
-    public static List<Long> matches(long seed, boolean ominous, long maxScan, String spec,
-                                     LongConsumer progress) {
-        return scanSequence(seed, ominous, 0L, Math.max(0L, maxScan), spec, null, 0L, progress);
+    public static List<Long> matches(long seed, boolean ominous, long maxScan, String spec) {
+        return scanSequence(seed, ominous, 0L, Math.max(0L, maxScan), spec, null, 0L);
     }
 
     /**
@@ -84,8 +81,7 @@ public final class VaultLootCore {
      * previous candidate within {@code delta} openings. Indices are 0-based; results are 1-based.
      */
     public static List<Long> narrow(long seed, boolean ominous, long rangeStart, long rangeEnd,
-                                    long delta, String spec, List<Long> candidates,
-                                    LongConsumer progress) {
+                                    long delta, String spec, List<Long> candidates) {
         long[] sortedCandidates = new long[candidates.size()];
         for (int i = 0; i < sortedCandidates.length; i++) {
             sortedCandidates[i] = candidates.get(i);
@@ -93,25 +89,23 @@ public final class VaultLootCore {
         Arrays.sort(sortedCandidates);
         long start = Math.max(0L, rangeStart);
         long end = Math.max(start, rangeEnd);
-        return scanSequence(seed, ominous, start, end, spec, sortedCandidates, Math.max(1L, delta), progress);
+        return scanSequence(seed, ominous, start, end, spec, sortedCandidates, Math.max(1L, delta));
     }
 
     /** First match in {@code [start, start + maxAttempts)}, or {@code -1}. */
-    public static long detect(long seed, boolean ominous, long start, long maxAttempts, String spec,
-                              LongConsumer progress) {
+    public static long detect(long seed, boolean ominous, long start, long maxAttempts, String spec) {
         List<Long> found = scanSequence(seed, ominous, Math.max(0L, start),
-                saturatedAdd(Math.max(0L, start), Math.max(0L, maxAttempts)), spec, null, 0L, progress);
+                saturatedAdd(Math.max(0L, start), Math.max(0L, maxAttempts)), spec, null, 0L);
         return found.isEmpty() ? -1L : found.get(0);
     }
 
     private static List<Long> scanSequence(long seed, boolean ominous, long indexStart, long indexEnd,
-                                           String spec, long[] candidates, long delta,
-                                           LongConsumer progress) {
+                                           String spec, long[] candidates, long delta) {
         if (indexEnd <= indexStart) {
             return List.of();
         }
         VaultLootSpec parsed = VaultLootSpec.parse(spec);
-        List<Task> tasks = tasks(seed, ominous, indexStart, indexEnd, parsed, null, 0, progress);
+        List<Task> tasks = tasks(seed, ominous, indexStart, indexEnd, parsed, null, 0);
         int threads = threadCount(tasks.size());
         List<Long> matches = new ArrayList<>();
         List<TaskResult> results = run(tasks, threads);
@@ -147,8 +141,7 @@ public final class VaultLootCore {
     }
 
     private static List<Task> tasks(long seed, boolean ominous, long indexStart, long indexEnd,
-                                    VaultLootSpec spec, int[] targets, int amount,
-                                    LongConsumer progress) {
+                                    VaultLootSpec spec, int[] targets, int amount) {
         long firstCheckpoint = indexStart / VaultSequenceCache.INTERVAL;
         long lastCheckpoint = (indexEnd - 1) / VaultSequenceCache.INTERVAL;
         int count = (int) Math.min(Integer.MAX_VALUE, lastCheckpoint - firstCheckpoint + 1);
@@ -156,7 +149,7 @@ public final class VaultLootCore {
         for (long checkpoint = firstCheckpoint; checkpoint <= lastCheckpoint; checkpoint++) {
             long taskStart = Math.max(indexStart, checkpoint * VaultSequenceCache.INTERVAL);
             long taskEnd = Math.min(indexEnd, saturatedMultiply(checkpoint + 1, VaultSequenceCache.INTERVAL));
-            tasks.add(new Task(seed, ominous, checkpoint, taskStart, taskEnd, spec, targets, amount, progress));
+            tasks.add(new Task(seed, ominous, checkpoint, taskStart, taskEnd, spec, targets, amount));
         }
         return tasks;
     }
@@ -231,10 +224,9 @@ public final class VaultLootCore {
         private final VaultLootSpec spec;
         private final int[] targets;
         private final int amount;
-        private final LongConsumer progress;
 
         Task(long seed, boolean ominous, long checkpoint, long start, long end, VaultLootSpec spec,
-             int[] targets, int amount, LongConsumer progress) {
+             int[] targets, int amount) {
             this.seed = seed;
             this.ominous = ominous;
             this.checkpoint = checkpoint;
@@ -243,7 +235,6 @@ public final class VaultLootCore {
             this.spec = spec;
             this.targets = targets;
             this.amount = amount;
-            this.progress = progress;
         }
 
         @Override
@@ -260,7 +251,6 @@ public final class VaultLootCore {
 
             LongList offsets = new LongList();
             List<Hit> hits = new ArrayList<>();
-            long nextProgress = this.start + PROGRESS_STEP;
             for (long index = this.start; index < this.end; index++) {
                 generator.generate(this.ominous ? VaultLootData.OMINOUS : VaultLootData.NORMAL);
                 long offset = index + 1;
@@ -281,10 +271,6 @@ public final class VaultLootCore {
                     if (hits.size() >= this.amount) {
                         break;
                     }
-                }
-                if (this.progress != null && index >= nextProgress) {
-                    this.progress.accept(index);
-                    nextProgress = index + PROGRESS_STEP;
                 }
             }
             return new TaskResult(offsets.toArray(), hits);

@@ -4045,7 +4045,6 @@
   "evernight.ui.modules.VaultPrediction.PredictEmpty": "No %s in the next %d openings (raise the scan limit).",
   "evernight.ui.modules.VaultPrediction.PredictHeader": "Vault prediction: worldwide opening #%d",
   "evernight.ui.modules.VaultPrediction.PreliminaryLocated": "Preliminary guess: worldwide ominous vault opening #%d. Open one more vault to verify (time window: openings %d-%d).",
-  "evernight.ui.modules.VaultPrediction.Progress": "Scanned up to opening #%d…",
   "evernight.ui.modules.VaultPrediction.RefoundEmpty": "No candidates: none of the %d openings matches these drops.",
   "evernight.ui.modules.VaultPrediction.RefoundMany": "%d candidates (full range). Open one more ominous vault to narrow.",
   "evernight.ui.modules.VaultPrediction.SearchEmpty": "No candidates: none of the %d openings matches these drops (raise the scan limit if the range is too short).",
