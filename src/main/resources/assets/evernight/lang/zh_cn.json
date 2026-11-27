@@ -437,7 +437,7 @@
   "evernight.names.modules.AutoTransport": "自动搬运",
   "evernight.names.modules.PearlBot": "珍珠机器人",
   "evernight.names.modules.VaultESP": "不祥宝库 ESP",
-  "evernight.names.modules.VaultOpenedHud": "已开宝库",
+  "evernight.names.modules.VaultOpenedHud": "宝库记录",
   "evernight.names.modules.VaultPrediction": "宝库预测",
   "evernight.names.modules.VaultPredictionHud": "宝库预测 HUD",
   "evernight.descriptions.settings.AimAssist.Friends": "选择目标时跳过好友",

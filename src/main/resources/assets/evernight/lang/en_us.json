@@ -437,7 +437,7 @@
   "evernight.names.modules.AutoTransport": "AutoTransport",
   "evernight.names.modules.PearlBot": "PearlBot",
   "evernight.names.modules.VaultESP": "VaultESP",
-  "evernight.names.modules.VaultOpenedHud": "OpenedVaults",
+  "evernight.names.modules.VaultOpenedHud": "VaultRecords",
   "evernight.names.modules.VaultPrediction": "VaultPrediction",
   "evernight.names.modules.VaultPredictionHud": "VaultPredictionHud",
   "evernight.descriptions.settings.AimAssist.Friends": "Skips friends when choosing a target.",
