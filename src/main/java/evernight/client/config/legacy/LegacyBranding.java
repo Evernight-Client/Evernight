@@ -7,9 +7,7 @@ import evernight.client.EvernightClient;
 /**
  * 前身客户端（Mio）的品牌兼容：{@code mio-fabric} 数据目录与 {@code "client": "mio-fabric"} 预设。
  *
- * <p>这层是受支持的前身版本数据入口，长期保留。真正的旧配置键/旧值换算集中在
- * {@link LegacyConfigMigrations}；本类的 {@link #canonicalModuleName}、{@link #findModuleConfig} 和
- * {@link #migrateModule} 只是为兼容既有调用方保留的委托，新代码请直接用
+ * <p>这层是受支持的前身版本数据入口，长期保留。旧配置键/旧值换算在
  * {@link LegacyConfigMigrations}。
  */
 public final class LegacyBranding {
@@ -40,20 +38,5 @@ public final class LegacyBranding {
         JsonObject normalized = preset.deepCopy();
         normalized.addProperty("client", EvernightClient.MOD_ID);
         return normalized;
-    }
-
-    /** @see LegacyConfigMigrations#canonicalModuleName(String) */
-    public static String canonicalModuleName(String name) {
-        return LegacyConfigMigrations.canonicalModuleName(name);
-    }
-
-    /** @see LegacyConfigMigrations#findModuleConfig(JsonObject, String) */
-    public static JsonElement findModuleConfig(JsonObject config, String moduleName) {
-        return LegacyConfigMigrations.findModuleConfig(config, moduleName);
-    }
-
-    /** @see LegacyConfigMigrations#migrateModule(String, JsonElement) */
-    public static JsonElement migrateModule(String moduleName, JsonElement input) {
-        return LegacyConfigMigrations.migrateModule(moduleName, input);
     }
 }
