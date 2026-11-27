@@ -1,16 +1,16 @@
 root = true
 
+# 统一约定：UTF-8（无 BOM）、LF 换行、空格缩进、文件末尾保留一个换行。
+# 行尾同时由 .gitattributes 强制，避免不同机器 core.autocrlf 造成字节差异。
 [*]
 charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.java]
-indent_style = space
-indent_size = 4
-
-[*.{json,yml,yaml}]
-indent_style = space
+[*.{json,yml,yaml,mcmeta}]
 indent_size = 2
 
 [*.md]
