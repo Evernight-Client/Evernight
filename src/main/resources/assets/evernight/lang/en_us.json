@@ -4320,6 +4320,5 @@
   "evernight.ui.commands.Arguments.UnknownEntry": "Item %s doesn't exists",
   "evernight.ui.commands.Arguments.UnknownEnum": "%s %s doesn't exist",
   "evernight.ui.commands.Arguments.UnknownKit": "Kit %s doesn't exist",
-  "evernight.ui.commands.Arguments.UnknownMacro": "Macro %s doesn't exists",
-  "evernight.ui.commands.Arguments.UnknownWaypoint": "Waypoint %s doesn't exists"
+  "evernight.ui.commands.Arguments.UnknownMacro": "Macro %s doesn't exists"
 }

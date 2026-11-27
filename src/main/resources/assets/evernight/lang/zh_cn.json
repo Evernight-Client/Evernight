@@ -4320,6 +4320,5 @@
   "evernight.ui.commands.Arguments.UnknownEntry": "物品 %s 不存在",
   "evernight.ui.commands.Arguments.UnknownEnum": "%s %s 不存在",
   "evernight.ui.commands.Arguments.UnknownKit": "套装 %s 不存在",
-  "evernight.ui.commands.Arguments.UnknownMacro": "宏 %s 不存在",
-  "evernight.ui.commands.Arguments.UnknownWaypoint": "路径点 %s 不存在"
+  "evernight.ui.commands.Arguments.UnknownMacro": "宏 %s 不存在"
 }
