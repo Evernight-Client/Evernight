@@ -20,8 +20,12 @@ public final class PrivateMessageParser {
      * Plugin style whisper: {@code 📨 sender ➡ content}. The sender capture allows decorated names
      * such as {@code [VIP] name}; callers that match names should also split the capture on
      * non-name characters.
+     *
+     * <p>Servers may pad the icon with U+FFFC object-replacement placeholders and spaces before and
+     * after the envelope, so the prefix normalises both instead of plain whitespace.
      */
-    private static final Pattern EMOJI_PRIVATE_MESSAGE = Pattern.compile("^\\s*📨\\s*(.+?)\\s*➡\\s*(.+)$");
+    private static final Pattern EMOJI_PRIVATE_MESSAGE =
+            Pattern.compile("^[\\s\\uFFFC]*📨[\\s\\uFFFC]*(.+?)\\s*➡\\s*(.+)$");
     /**
      * Plain whisper formats, narrowed to the incoming direction. All patterns are matched with
      * {@link Matcher#matches()} and expose exactly two groups.

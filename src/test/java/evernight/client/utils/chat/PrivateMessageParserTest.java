@@ -29,6 +29,15 @@ class PrivateMessageParserTest {
     }
 
     @Test
+    @DisplayName("emoji 私聊容忍行首空白与 U+FFFC 占位符")
+    void emojiWhisperIgnoresPlaceholders() {
+        assertMessage("  📨  Steve  ➡  hi  ", "Steve", "hi");
+        assertMessage("\uFFFC📨 [VIP] Steve ➡ 拉", "[VIP] Steve", "拉");
+        assertMessage("📨\uFFFCSteve ➡ hello", "Steve", "hello");
+        assertMessage(" \uFFFC 📨 \uFFFC Steve ➡ hello", "Steve", "hello");
+    }
+
+    @Test
     @DisplayName("公开聊天、短名、缺分隔符不识别为私聊")
     void publicChatIsNotAWhisper() {
         assertNull(PrivateMessageParser.parse("Steve says: hello"));
