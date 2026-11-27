@@ -8,7 +8,9 @@ import evernight.client.render.font.FontRenderer;
 import evernight.client.render.gui.GuiDrawUtils;
 import evernight.client.render.hud.ResizableHudWidgetRenderer;
 import evernight.client.render.text.Translations;
+import evernight.client.settings.core.Setting;
 import evernight.client.settings.options.HudAnchor;
+import evernight.client.settings.types.BooleanSetting;
 import evernight.client.utils.chat.ChatUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -17,18 +19,26 @@ import net.minecraft.world.item.Items;
 
 /**
  * Standard HUD widget for {@link VaultPredictionModule}: the next target's item icon plus either
- * the absolute worldwide opening (and distance) or only the distance, depending on the module's
- * count-display setting. While VaultPrediction is disabled it shows a reminder instead of data.
+ * the absolute worldwide opening (and distance) or only the distance. Its display options are
+ * independent from the module's chat notification settings.
  */
 public class VaultPredictionHudModule extends HudWidgetModule {
     private static final float ICON_SIZE = 16.0F;
     private static final float ICON_GAP = 2.0F;
+    private static final float ROW_GAP = 1.0F;
+
+    private final Setting<Boolean> showCountSetting;
+    private final Setting<Boolean> showLastSetting;
+    private final Setting<Boolean> showIconSetting;
 
     private String cachedItemId;
     private ItemStack cachedIcon;
 
     public VaultPredictionHudModule() {
         super("VaultPredictionHud");
+        this.showCountSetting = this.add(new BooleanSetting("ShowCount", true));
+        this.showLastSetting = this.add(new BooleanSetting("ShowLast", true).dependsOn(this.showCountSetting));
+        this.showIconSetting = this.add(new BooleanSetting("ShowIcon", true));
         this.setRenderer(new ResizableHudWidgetRenderer(this));
         this.getRenderer().setAnchor(HudAnchor.TOP_LEFT);
     }
@@ -50,23 +60,30 @@ public class VaultPredictionHudModule extends HudWidgetModule {
     public float[] calculateDimensions() {
         Snapshot snapshot = this.snapshot();
         float textWidth = FontRenderer.INSTANCE.getWidth(snapshot.text());
-        float iconWidth = snapshot.itemId() == null ? 0.0F : ICON_SIZE + ICON_GAP;
-        float height = Math.max(snapshot.itemId() == null ? 0.0F : ICON_SIZE, FontRenderer.INSTANCE.getHeight());
-        return new float[]{iconWidth + textWidth, height};
+        float mainWidth = textWidth + (snapshot.itemId() == null ? 0.0F : ICON_GAP + ICON_SIZE);
+        float mainHeight = Math.max(snapshot.itemId() == null ? 0.0F : ICON_SIZE, FontRenderer.INSTANCE.getHeight());
+        float lastWidth = snapshot.lastText() == null ? 0.0F : FontRenderer.INSTANCE.getWidth(snapshot.lastText());
+        float width = Math.max(mainWidth, lastWidth);
+        float height = mainHeight + (snapshot.lastText() == null ? 0.0F : ROW_GAP + FontRenderer.INSTANCE.getHeight());
+        return new float[]{width, height};
     }
 
     @Override
     public void renderContent(PoseStack poses) {
         Snapshot snapshot = this.snapshot();
+        float textWidth = FontRenderer.INSTANCE.getWidth(snapshot.text());
         ItemStack icon = this.icon(snapshot.itemId());
-        float textX = 0.0F;
-        float textY = 0.0F;
+        float mainHeight = Math.max(icon == null ? 0.0F : ICON_SIZE, FontRenderer.INSTANCE.getHeight());
+        float textY = icon == null ? 0.0F : (ICON_SIZE - FontRenderer.INSTANCE.getHeight()) / 2.0F;
+        FontRenderer.INSTANCE.drawWithShadow(poses, snapshot.text(), 0.0F, textY, this.getHudColor(0.0F));
         if (icon != null) {
-            GuiDrawUtils.drawItem(poses, icon, 0.0F, 0.0F, -150.0F, true);
-            textX = ICON_SIZE + ICON_GAP;
-            textY = (ICON_SIZE - FontRenderer.INSTANCE.getHeight()) / 2.0F;
+            // The icon follows the "N 次后" text, and z=0 keeps 3D items such as the heavy core visible.
+            GuiDrawUtils.drawItem(poses, icon, textWidth + ICON_GAP, 0.0F, 0.0F, true);
         }
-        FontRenderer.INSTANCE.drawWithShadow(poses, snapshot.text(), textX, textY, this.getHudColor(0.0F));
+        if (snapshot.lastText() != null) {
+            float lastY = mainHeight + ROW_GAP;
+            FontRenderer.INSTANCE.drawWithShadow(poses, snapshot.lastText(), 0.0F, lastY, this.getHudColor(lastY));
+        }
     }
 
     private ItemStack icon(String itemId) {
@@ -89,25 +106,39 @@ public class VaultPredictionHudModule extends HudWidgetModule {
     private Snapshot snapshot() {
         VaultPredictionModule prediction = ClientContext.getModule(VaultPredictionModule.class);
         if (prediction == null || !prediction.isToggled()) {
-            return new Snapshot(Translations.ui("modules.VaultPredictionHud.EnablePrediction"), null);
+            return new Snapshot(Translations.ui("modules.VaultPredictionHud.EnablePrediction"), null, null);
         }
+        boolean showCount = this.showCountSetting.getValue();
+        boolean showIcon = this.showIconSetting.getValue();
         long distance = prediction.getNextDistance();
+        long nextOffset = prediction.getNextOffset();
         String itemId = prediction.getNextItemId();
-        boolean hasTarget = distance >= 0 && itemId != null;
-        if (prediction.isCountDisplayOn()) {
+        boolean hasTarget = distance >= 0 && nextOffset >= 0 && itemId != null;
+        String text;
+        String iconItem = null;
+        if (showCount) {
             if (hasTarget) {
-                return new Snapshot(Translations.format("modules.VaultPredictionHud.CountDistance",
-                        prediction.getCurrentOpening(), distance), itemId);
+                text = Translations.format("modules.VaultPredictionHud.CountDistance", nextOffset, distance);
+                iconItem = showIcon ? itemId : null;
+            } else {
+                text = Translations.ui("modules.VaultPredictionHud.Waiting");
             }
-            return new Snapshot(Translations.format("modules.VaultPrediction.Info",
-                    prediction.getCurrentOpening()), null);
+        } else if (hasTarget) {
+            text = Translations.format("modules.VaultPredictionHud.Distance", distance);
+            iconItem = showIcon ? itemId : null;
+        } else {
+            text = Translations.ui("modules.VaultPredictionHud.Waiting");
         }
-        if (hasTarget) {
-            return new Snapshot(Translations.format("modules.VaultPredictionHud.Distance", distance), itemId);
+        String lastText = null;
+        if (showCount && this.showLastSetting.getValue()) {
+            long last = prediction.getLastDetectedOpening();
+            if (last > 0) {
+                lastText = Translations.format("modules.VaultPredictionHud.LastOpening", last);
+            }
         }
-        return new Snapshot(Translations.ui("modules.VaultPredictionHud.Waiting"), null);
+        return new Snapshot(text, iconItem, lastText);
     }
 
-    private record Snapshot(String text, String itemId) {
+    private record Snapshot(String text, String itemId, String lastText) {
     }
 }
