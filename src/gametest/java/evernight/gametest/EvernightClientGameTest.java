@@ -29,7 +29,7 @@ public final class EvernightClientGameTest implements FabricClientGameTest {
 
     @Override
     public void runTest(ClientGameTestContext context) {
-        context.runOnClient(client -> {
+        GameTestSupport.runGuarded(context, () -> context.runOnClient(client -> {
             FabricLoader loader = FabricLoader.getInstance();
 
             require(loader.isModLoaded("fabric-api"), "Fabric API is not loaded");
@@ -65,7 +65,7 @@ public final class EvernightClientGameTest implements FabricClientGameTest {
             BaritoneModule baritone = ClientContext.getModule(BaritoneModule.class);
             require(baritone != null, "BaritoneModule is not registered");
             require(baritone.isAvailable(), "BaritoneModule is unavailable although Baritone is loaded");
-        });
+        }));
     }
 
     private static void require(boolean condition, String message) {
