@@ -9,7 +9,7 @@ example-addon/
 ├── build.gradle
 ├── gradle.properties
 ├── settings.gradle
-├── libs/evernight-1.0.2.jar
+├── libs/evernight-1.2.7.jar
 └── src/main/
     ├── java/com/example/exampleaddon/
     │   ├── ExampleAddon.java
@@ -56,7 +56,7 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:0.141.6+1.21.11"
 
     // 本体发行 jar（GitHub Release）；Loom 会把它重映射到开发用的 named
-    modImplementation files("libs/evernight-1.0.2.jar")
+    modImplementation files("libs/evernight-1.2.7.jar")
 }
 
 java {
@@ -92,11 +92,11 @@ org.gradle.jvmargs=-Xmx2G
     "evernight-addon": ["com.example.exampleaddon.ExampleAddon"]
   },
   "depends": {
-    "fabricloader": ">=0.19.5",
+    "fabricloader": ">=0.20.1",
     "minecraft": "1.21.11",
     "java": ">=21",
     "fabric-api": "*",
-    "evernight": ">=4.0.0"
+    "evernight": ">=1.2.7"
   }
 }
 ```
@@ -146,7 +146,7 @@ public final class ExampleModule extends AddonModule {
 
     public ExampleModule() {
         super("exampleaddon", "ExampleAddon", "Demonstrates the addon API.",
-                ModuleCategory.MISC, "exampleaddon", "exaddon");
+                ModuleCategory.MISC, "exaddon");
         this.announceSetting = this.add(new BooleanSetting("Announce", false));
         this.intervalSetting = this.add(
                 new NumberSetting<>("Interval", 20, 1, 200).dependsOn(this.announceSetting));
@@ -222,7 +222,7 @@ public final class ExampleCommand extends Command {
 ## 构建
 
 ```bash
-# 准备本体发行 jar：GitHub Release 的 evernight-1.0.2.jar，或本体构建产物 build/libs/evernight-1.0.2.jar
+# 准备本体发行 jar：GitHub Release 的 evernight-1.2.7.jar，或本体构建产物 build/libs/evernight-1.2.7.jar
 # 放进插件工程的 libs/ 后构建
 gradlew.bat build
 ```

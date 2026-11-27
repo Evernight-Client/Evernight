@@ -27,7 +27,7 @@ description: 开发 Evernight 插件（Addon）的完整工作流：evernight-ad
 
 1. **入口键只能是 `evernight-addon`**，入口类是 `evernight.addon.EvernightAddon` 的子类，`environment` 必须为 `client`。
 2. **模块名全局唯一**：`new Module("Name", ...)` 的 `Name` 同时是配置键、预设键与指令别名来源，发布后不能改名；重名会让整个插件 `FAILED`。
-3. **玩家可见文本只存在于语言表，键只用 `addons.<id>.*`**：`assets/<mod id>/lang/en_us.json` 与 `zh_cn.json` 键集一致；**不要用 `evernight.`**（本体保留命名空间）。Java 里只写键，不要自造英文显示名。
+3. **玩家可见文本只存在于语言表，键只用 `addons.<id>.*`**：`assets/<mod id>/lang/en_us.json` 与 `zh_cn.json` 键集一致；**不要用 `evernight.`**（本体保留命名空间）。Java 里只写键，不要自造英文显示名。**唯一例外**是设置 tooltip：`SettingComponent` 固定查 `evernight.descriptions.settings.<模块>.<设置 configName>`，`AddonModule` 没有 addons 侧 tooltip 键；需要 tooltip 就按本体键补，否则界面会显示完整键。
 4. **只注册、不硬塞**：模块、指令、配置、语言都经 `AddonContext` 注册；不要直接改 `ModuleRegistry.entries`、`CommandDispatcher` 内部结构。
 5. **初始化后不改结构**：结构注册只在 `onInitialize` 内一次性完成；运行期动态增删模块/指令不受支持（设置值与配置随时可改）。
 
@@ -44,10 +44,10 @@ description: 开发 Evernight 插件（Addon）的完整工作流：evernight-ad
   "environment": "client",
   "entrypoints": { "evernight-addon": ["com.example.exampleaddon.ExampleAddon"] },
   "depends": {
-    "fabricloader": ">=0.19.5",
+    "fabricloader": ">=0.20.1",
     "minecraft": "1.21.11",
     "java": ">=21",
-    "evernight": ">=4.0.0"
+    "evernight": ">=1.2.7"
   }
 }
 ```
@@ -93,7 +93,7 @@ public final class ExampleAddon extends EvernightAddon {
 | `void loadLanguageFiles()` | 重读 `assets/<id>/lang/{en_us,zh_cn}.json`，初始化时已自动调用 |
 | `Path dataDirectory()` | `evernight/addons/<id>/`，自动创建 |
 
-注册失败抛 `IllegalStateException`（分类/模块/指令重名），`AddonManager` 记为 `FAILED` 并继续加载其他插件；**已成功的注册不回滚**，所以分类注册要在使用它的模块之前，易失败的注册尽量放在 `onInitialize` 末尾。`registerModule` 会校验模块声明的 addon id 与当前插件一致。
+注册失败抛 `IllegalStateException`（分类/模块/指令重名），`AddonManager` 记为 `FAILED` 并继续加载其他插件；**已成功的注册不回滚**，所以分类注册要在使用它的模块之前，易失败的注册尽量放在 `onInitialize` 末尾。`registerModule` 对 `AddonModule` 会校验其 addon id 与当前插件一致，不一致抛 `IllegalArgumentException`（普通 `Module` 不校验）。
 
 模块基类：`Module`（纯英文标识、不本地化）或 `AddonModule`（自动把模块名、描述、设置标签解析到 `addons.<id>.*`）。绝大多数插件用后者。
 
@@ -105,7 +105,7 @@ public final class ExampleModule extends AddonModule {
 
     public ExampleModule(ModuleCategory category) {
         super("exampleaddon", "ExampleAddon", "Demonstrates the addon API.",
-                category, "exampleaddon", "exaddon");
+                category, "exaddon");
         this.announce = this.add(new BooleanSetting("Announce", false));
         this.add(new NumberSetting<>("Interval", 20, 1, 200).dependsOn(this.announce));
     }
@@ -121,16 +121,16 @@ public final class ExampleModule extends AddonModule {
 - HUD 组件继承 `HudWidgetModule`、构造器里 `setRenderer(...)`，用 `registerHudModule`。
 - 指令继承 `Command`，在 `exec(LiteralArgumentBuilder root)` 里 `root.executes(action)`，别名用 `setAliases(...)`。
 - 模块的 `enable()` 自动订阅、`disable()` 自动退订——**不要再** `context.subscribe(module)`，会重复触发。
-- 模块整块依赖可选模组时，构造器调 `requiresMod("modid", ...)`：缺失时模块仍注册（配置保留），但 ClickGUI、搜索、模块名补全与 `;<alias>` 隐藏且 `enable()` 拒绝启用；单个设置用 `Setting#hideUnlessModLoaded(...)`。可选模组类不要写进模块的字段类型、`implements` 列表或 `@EventHandler` 签名，注册时反射解析字段类型会加载对应类，缺失即启动崩溃。
+- 模块整块依赖可选模组时，构造器调 `requiresMod("modid", ...)`（继承自 `Module`）：缺失时模块仍注册（配置保留），但 ClickGUI、搜索、模块名补全与 `;<alias>` 隐藏且 `enable()` 拒绝启用；平台能力不足用 `requiresPlatform(boolean)`；单个设置用 `Setting#hideUnlessModLoaded(...)`。可选模组类不要写进模块的字段类型、`implements` 列表或 `@EventHandler` 签名，注册时反射解析字段类型会加载对应类，缺失即启动崩溃。
 
 ## 6. 语言与配置
 
 - 语言文件 `assets/<id>/lang/en_us.json` + `zh_cn.json`，UTF-8 扁平 JSON，键集必须一致，全部放 `addons.<id>.*`。查找链：当前语言 → 英文 → 完整键（中文缺键回退英文，两份都缺才显示完整键，方便发现漏翻）。只写 `en_us.json` 可以跑，但推荐两份都写。
 - `AddonModule` 自动解析模块名/描述/设置标签；私有文案用 `Translations.get("addons.<id>.xxx")`。自定义枚举可覆写 `NamedEntry#getDisplayName()` 读自己的命名空间。
-- ClickGUI 搜索覆盖插件模块：英文模式匹配模块名/别名，中文模式匹配 `addons.<id>.names.modules.*` 的中文名与智能拼音；插件模块里的 `RegistrySetSetting` 物品列表、箱子搜索与交易选择同样使用统一的英文名/注册名/拼音匹配。
+- ClickGUI 搜索覆盖插件模块：英文模式匹配模块名/别名；当前语言为中文时，中文模式匹配模块显示名（`addons.<id>.names.modules.*`）与智能拼音。**跨语言不覆盖**：中文界面下搜不到插件的英文名，英文界面下也读不到 `addons` 中文名（`SearchNames.forModule` 只查 `evernight.names.modules.*` 与当前显示名）。插件模块里的 `RegistrySetSetting` 物品列表、箱子搜索与交易选择走统一的英文名/注册名/中文名/拼音匹配。
 - 模块开关/按键/设置自动进 `evernight/modules.json`，HUD 进 `evernight/hud.json`，无需额外代码。
-- 插件自有状态实现 `JsonConfigurable`（`toJson` / `fromJson` / `getConfigName`，必须覆写最后者）后 `context.registerConfig(...)`，文件落在 `evernight/<name>`，建议 `<id>.json` 避免与本体撞名。`ConfigurationManager` 尚未创建时该调用会被暂存，初始化后自动注册并读盘。
-- 大文件或非配置数据放 `dataDirectory()`。`;reload` 会重读所有配置源，包括插件配置。
+- 插件自有状态实现 `JsonConfigurable`（`toJson` / `fromJson` / `getConfigName`，必须覆写最后者）后 `context.registerConfig(...)`，文件落在 `evernight/<name>`，建议 `<id>.json` 避免与本体撞名。**在 `onInitialize` 里注册**：调用会被暂存，`ConfigurationManager` 建好后、`load()` 之前注册，因此会读盘恢复；初始化完成后再注册只影响下次 `save()`，不会读回已有文件。
+- 大文件或非配置数据放 `dataDirectory()`。**`;reload` 只重载资源（shader/音效/贴图/目录），不会重读 `modules.json`/插件配置**；改配置后需要重启客户端。
 
 ## 7. 生命周期与线程
 
