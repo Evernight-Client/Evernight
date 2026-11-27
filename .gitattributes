@@ -2,6 +2,9 @@
 # 不依赖各机器的 core.autocrlf，保证 Windows / Linux / macOS 检出的字节一致。
 * text=auto eol=lf
 
+# Windows 批处理例外：按惯例检出为 CRLF（仓库内仍存 LF）。
+*.bat text eol=crlf
+
 # 二进制资源：禁止行尾转换与文本 diff。
 *.png binary
 *.jpg binary

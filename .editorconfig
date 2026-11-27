@@ -1,6 +1,6 @@
 root = true
 
-# 统一约定：UTF-8（无 BOM）、LF 换行、空格缩进、文件末尾保留一个换行。
+# 统一约定：UTF-8（无 BOM）、LF 换行（`.bat` 用 CRLF）、空格缩进、文件末尾保留一个换行。
 # 行尾同时由 .gitattributes 强制，避免不同机器 core.autocrlf 造成字节差异。
 [*]
 charset = utf-8
@@ -15,3 +15,6 @@ indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = false
+
+[*.bat]
+end_of_line = crlf
