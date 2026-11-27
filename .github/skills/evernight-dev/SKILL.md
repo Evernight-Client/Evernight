@@ -147,6 +147,8 @@ gradlew.bat compileJava                                     # 只改 Java
 gradlew.bat build                                           # 改资源或语言表
 ```
 
+编码与排版：UTF-8（无 BOM）、LF 行尾、空格缩进（Java 4 空格，JSON/YAML 2 空格），由根目录 `.gitattributes` 与 `.editorconfig` 约束；不要提交 CRLF、tab 或 BOM。
+
 提交格式 `type(scope): 中文简述`，如 `feat(hud): 新增坐标显示组件`；代码与对应语言表改动放同一提交。
 
 **AI 的验证边界**：只跑上面三条命令，不启动游戏、不声称验证过界面效果，游戏内行为由人验收。Gradle 需写 `~/.gradle`，受限沙箱里被拒时按提示申请一次工作区外写权限。
