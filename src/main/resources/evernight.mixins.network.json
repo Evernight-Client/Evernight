@@ -24,7 +24,6 @@
     "MultiPlayerGameModeMixin",
     "PacketDecoderMixin",
     "PlayerInfoMixin",
-    "ServerboundChatCommandPacketAccessor",
     "ServerboundChatPacketAccessor",
     "ServerboundCustomPayloadPacketAccessor",
     "ServerboundInteractPacketAccessor",

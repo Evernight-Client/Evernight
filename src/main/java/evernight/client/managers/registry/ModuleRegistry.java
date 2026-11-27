@@ -96,7 +96,6 @@ import evernight.client.modules.exploit.XCarry.XCarryModule;
 import evernight.client.modules.misc.Announcer.AnnouncerModule;
 import evernight.client.modules.misc.AntiAFK.AntiAFKModule;
 import evernight.client.modules.misc.AntiAim.AntiAimModule;
-import evernight.client.modules.misc.AntiCyrillic.AntiCyrillicModule;
 import evernight.client.modules.misc.AntiQuit.AntiQuitModule;
 import evernight.client.modules.misc.AntiSpam.AntiSpamModule;
 import evernight.client.modules.misc.AutoReconnect.AutoReconnectModule;
@@ -242,8 +241,6 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected AntiBotModule");
         if (!this.registerModule(new evernight.client.modules.client.AntiCheat.AntiCheatModule()))
             throw new IllegalStateException("Registration rejected AntiCheatModule");
-        if (!this.registerModule(new evernight.client.modules.misc.AntiCyrillic.AntiCyrillicModule()))
-            throw new IllegalStateException("Registration rejected AntiCyrillicModule");
         if (!this.registerModule(new evernight.client.modules.combat.AntiFeetPlace.AntiFeetPlaceModule()))
             throw new IllegalStateException("Registration rejected AntiFeetPlaceModule");
         if (!this.registerModule(new evernight.client.modules.exploit.AntiHunger.AntiHungerModule()))
