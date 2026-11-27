@@ -22,7 +22,6 @@ import evernight.client.settings.types.ColorSetting;
 import evernight.client.settings.types.EnumSetting;
 import evernight.client.settings.types.NumberSetting;
 import evernight.client.utils.chat.ChatUtils;
-import evernight.client.utils.core.WaypointServerKey;
 import evernight.client.utils.world.ChunkScanner;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -132,26 +131,14 @@ public class VaultESPModule extends Module {
         this.lastDimension = null;
     }
 
-    // ==================== Scope and opened records ====================
-
-    /** Current scope: server plus dimension, so records of different worlds never mix. */
-    private String currentScope() {
-        if (this.isWorldUnavailable()) {
-            return null;
-        }
-        Identifier dimension = evernightMinecraft.level.dimension().identifier();
-        return WaypointServerKey.getCurrent() + "|" + dimension;
-    }
+    // ==================== Opened records ====================
 
     private String openedStatus() {
-        String scope = this.currentScope();
-        int inScope = scope == null ? 0 : this.openedStore.count(scope);
-        return Translations.format("modules." + this.getName() + ".OpenedStatus", this.openedStore.totalCount(),
-                inScope);
+        return Translations.format("modules." + this.getName() + ".OpenedStatus", this.openedStore.count());
     }
 
     private void clearOpenedRecords() {
-        int removed = this.openedStore.totalCount();
+        int removed = this.openedStore.count();
         this.openedStore.clearAll();
         this.openedStore.saveIfDirty();
         this.notify("Cleared", removed);
@@ -161,8 +148,7 @@ public class VaultESPModule extends Module {
         if (state.getValueOrElse(VaultBlock.STATE, VaultState.INACTIVE) != VaultState.INACTIVE) {
             return true;
         }
-        String scope = this.currentScope();
-        return scope != null && this.openedStore.isOpened(scope, position.getX(), position.getY(), position.getZ());
+        return this.openedStore.isOpened(position.getX(), position.getY(), position.getZ());
     }
 
     /** Any right-click on an ominous vault counts as "opened", matching what the player expects to see. */
@@ -175,15 +161,13 @@ public class VaultESPModule extends Module {
         if (!isOminous(evernightMinecraft.level.getBlockState(position))) {
             return;
         }
-        String scope = this.currentScope();
-        if (scope == null) {
-            return;
-        }
-        if (!this.openedStore.mark(scope, position.getX(), position.getY(), position.getZ())) {
+        if (!this.openedStore.mark(position.getX(), position.getY(), position.getZ())) {
             return;
         }
         this.openedStore.saveIfDirty();
-        this.notify("Recorded", position.getX(), position.getY(), position.getZ(), this.openedStore.count(scope));
+        if (this.notifySetting.getValue()) {
+            this.notify("Recorded", position.getX(), position.getY(), position.getZ(), this.openedStore.count());
+        }
     }
 
     // ==================== Scanning ====================
