@@ -107,13 +107,6 @@ processResources {
     inputs.property 'version', modVersion
     filesMatching('fabric.mod.json') { expand version: modVersion }
 
-    // 宝库引擎二进制由 CI 从 evernight-vault-engine 的 release 下载到 native/vault-dist，
-    // 仓库里不存二进制；本地没有该目录时打出的 jar 不含引擎（宝库预测模块自动隐藏）。
-    from('native/vault-dist') {
-        include 'vaulttool-*'
-        into 'assets/evernight/vault'
-    }
-
     // 许可与第三方声明随 jar 一起分发，满足 GPL-3.0 与各组件许可证的随附要求。
     from('LICENSE') { into 'META-INF' }
     from('licenses') { into 'META-INF/licenses' }

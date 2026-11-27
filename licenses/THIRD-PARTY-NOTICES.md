@@ -12,7 +12,6 @@ Evernight 本体以 [GPL-3.0-only](../LICENSE) 发布。本文件记录本体中
 | [MIT-OpenZio.txt](MIT-OpenZio.txt) | 上游 Open Zio 基础代码 |
 | [PinIn-MIT.txt](PinIn-MIT.txt) | 内置的裁剪版 PinIn 拼音匹配库及其拼音字典 |
 | [MiSans.txt](MiSans.txt) | 内置 MiSans 字体（字体许可，非开源许可，按原协议要求随附） |
-| [cubiomes-MIT.txt](cubiomes-MIT.txt) | 宝库战利品引擎（vaulttool，构建自 evernight-vault-engine 的上游 cubiomes + 补丁） |
 | [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) | 本文件：逐项说明来源、许可证与已知风险 |
 
 分发本项目的任何构建产物时，必须把 `LICENSE`、本文件与同目录下的许可证文本一并提供；`build` 会把它们打进 jar 的 `META-INF/`。
