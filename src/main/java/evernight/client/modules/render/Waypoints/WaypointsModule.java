@@ -31,7 +31,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 import evernight.client.render.color.ColorUtils;
 import evernight.client.render.font.FontRenderer;
-import evernight.client.render.mesh.LineMeshRenderer;
+import evernight.client.render.mesh.HudTracerRenderer;
 import evernight.client.render.mesh.WorldBoxRenderer;
 import evernight.client.render.util.RenderUtils;
 import evernight.client.settings.core.NamedEntry;
@@ -179,7 +179,7 @@ public class WaypointsModule extends Module {
             WorldBoxRenderer.outlineBox(poseStack, box, color, lineWidth);
         }
         if (this.tracersSetting.getValue()) {
-            LineMeshRenderer.addTracer(renderPosition, this.colorSetting.getValue());
+            HudTracerRenderer.add(renderPosition, this.colorSetting.getValue(), this.lineWidthSetting.getValue());
         }
         if (this.nameSetting.getValue()) {
             this.renderWaypointName(poseStack, cameraPosition, renderPosition, waypointPosition, waypoint);
@@ -212,14 +212,12 @@ public class WaypointsModule extends Module {
         }
         PoseStack poseStack = event.getPoseStack();
         Vec3 cameraPosition = ClientAccess.evernightMinecraft.gameRenderer.getMainCamera().position();
-        LineMeshRenderer.begin(event, this.lineWidthSetting.getValue());
         for (Waypoint waypoint : this.visibleWaypoints) {
             if (waypoint != null && waypoint.getDimension() != null
                     && waypoint.getName() != null && waypoint.getServer() != null) {
                 this.renderWaypoint(poseStack, cameraPosition, waypoint);
             }
         }
-        LineMeshRenderer.draw();
     }
 
     private enum InfoChoice implements NamedEntry {

@@ -8,7 +8,7 @@ import evernight.client.modules.Module;
 import evernight.client.modules.ModuleCategory;
 import evernight.client.modules.client.Colors.ColorsModule;
 import evernight.client.render.color.ColorUtils;
-import evernight.client.render.mesh.LineMeshRenderer;
+import evernight.client.render.mesh.HudTracerRenderer;
 import evernight.client.render.mesh.WorldBoxRenderer;
 import evernight.client.settings.options.ColorsSchemeChoice;
 import evernight.client.utils.core.ElapsedTimer;
@@ -402,7 +402,7 @@ public class SearchModule extends Module {
             }
             if (drawTracers) {
                 float alpha = this.tracersSetting.getValue() * 0.01F;
-                LineMeshRenderer.addTracer(result.center, ARGB.color(alpha, result.argb));
+                HudTracerRenderer.add(result.center, ARGB.color(alpha, result.argb));
             }
         });
     }
@@ -454,7 +454,7 @@ public class SearchModule extends Module {
                 float alpha = this.tracersSetting.getValue() * 0.01F;
                 Color tracerColor = ColorUtils.withAlpha(color, alpha);
                 Color transformedTracerColor = (colorsModule.schemeSetting.getValue()).transform(tracerColor);
-                LineMeshRenderer.addTracer(bounds.getCenter(), transformedTracerColor);
+                HudTracerRenderer.add(bounds.getCenter(), transformedTracerColor);
             }
         }
     }
@@ -475,7 +475,6 @@ public class SearchModule extends Module {
 
     @EventHandler
     private void onRenderWorld(WorldRenderEvent.Main event) {
-        LineMeshRenderer.begin(event.getPoseStack(), 1.0F);
         Boolean searchEntities = this.entitiesSetting.getValue();
         if (searchEntities) {
             this.renderEntities(event);
@@ -486,7 +485,6 @@ public class SearchModule extends Module {
                 this.renderBlocks(event);
             }
         }
-        LineMeshRenderer.draw();
     }
 
     private boolean shouldSearchBlock(BlockState state) {

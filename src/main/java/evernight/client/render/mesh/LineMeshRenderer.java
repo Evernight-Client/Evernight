@@ -21,7 +21,6 @@ public final class LineMeshRenderer implements ClientAccess {
     private static final Matrix4f inverseProjectionMatrix = new Matrix4f();
     private static final Vector3f positionVector = new Vector3f();
     private static final Vector2f projectedPosition = new Vector2f();
-    private static final Vector2f tracerPosition = new Vector2f();
     private static final Vector4f clipPosition = new Vector4f();
     private static final Vector3f pendingPosition = new Vector3f();
     static PoseStack poseStack;
@@ -86,14 +85,8 @@ public final class LineMeshRenderer implements ClientAccess {
     }
 
     public static void addTracer(Vec3 position, int color) {
-        Vector2f projected = projectTracer(position);
-        if (projected == null) {
-            return;
-        }
-        Vector3f origin = unproject(0.0F, 0.0F);
-        Vector3f target = unproject(projected.x, projected.y);
-        addVertex(origin.x, origin.y, origin.z, color, false, false);
-        addVertex(target.x, target.y, target.z, color, false, false);
+        // Kept for source compatibility; screen-space tracers now live in HudTracerRenderer.
+        HudTracerRenderer.add(position, color);
     }
 
     public static void addLine(Vec3 from, Vec3 to, Color color) {
@@ -127,34 +120,5 @@ public final class LineMeshRenderer implements ClientAccess {
         clipPosition.mul(inverseProjectionMatrix);
         return clipPosition.w == 0.0F ? positionVector
                 : new Vector3f(clipPosition.x, clipPosition.y, clipPosition.z).div(clipPosition.w);
-    }
-
-    private static Vector3f unproject(float x, float y) {
-        clipPosition.set(x, y, 0.0F, 1.0F);
-        inverseProjectionMatrix.transform(clipPosition);
-        return new Vector3f(clipPosition.x, clipPosition.y, clipPosition.z).div(clipPosition.w);
-    }
-
-    private static Vector2f projectTracer(Vec3 position) {
-        Vec3 cameraPosition = ClientAccess.evernightMinecraft.getEntityRenderDispatcher().camera.position();
-        projectionMatrix.transform(clipPosition.set((float) (position.x - cameraPosition.x),
-                (float) (position.y - cameraPosition.y), (float) (position.z - cameraPosition.z), 1.0F));
-        float w = clipPosition.w;
-        boolean behind = w <= 1.0E-4F;
-        float x = behind ? clipPosition.x : clipPosition.x / w;
-        float y = behind ? clipPosition.y : clipPosition.y / w;
-        float extent = Math.max(Math.abs(x), Math.abs(y));
-        if (behind && extent < 1.0E-6F) {
-            x = 0.0F;
-            y = -1.0F;
-            extent = 1.0F;
-        }
-        if (behind || extent > 1.0F) {
-            x /= extent;
-            y /= extent;
-        } else if (extent < 1.0E-5F) {
-            return null;
-        }
-        return tracerPosition.set(x, y);
     }
 }

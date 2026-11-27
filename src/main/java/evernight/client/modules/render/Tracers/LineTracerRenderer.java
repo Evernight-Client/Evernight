@@ -2,6 +2,7 @@ package evernight.client.modules.render.Tracers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import evernight.client.ClientAccess;
+import evernight.client.render.mesh.HudTracerRenderer;
 import evernight.client.render.mesh.LineMeshRenderer;
 import evernight.client.settings.core.Setting;
 import evernight.client.settings.options.TracersHitboxChoice;
@@ -35,7 +36,7 @@ public final class LineTracerRenderer extends TracerRenderer {
                 Vec3 capturedEnd = endpoints.end();
                 Vec3 hitboxPosition = Vec3Utils.lerp(configuredHitboxFraction, start, capturedEnd);
                 Color color = this.module.getColor(player, hitboxPosition);
-                LineMeshRenderer.addTracer(hitboxPosition, color);
+                HudTracerRenderer.add(hitboxPosition, color, this.module.lineWidthSetting.getValue());
                 Setting<Boolean> stemSetting = this.module.stemSetting;
                 Boolean drawStem = stemSetting.getValue();
                 if (drawStem) {

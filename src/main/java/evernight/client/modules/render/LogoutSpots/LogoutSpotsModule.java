@@ -71,7 +71,7 @@ import evernight.client.managers.world.ServerStateManager;
 import evernight.client.render.esp.EntityChamsRenderer;
 import evernight.client.render.font.FontRenderer;
 import evernight.client.render.gui.GuiDrawUtils;
-import evernight.client.render.mesh.LineMeshRenderer;
+import evernight.client.render.mesh.HudTracerRenderer;
 import evernight.client.render.mesh.WorldBoxRenderer;
 import evernight.client.render.util.RenderUtils;
 import evernight.client.settings.core.NamedEntry;
@@ -401,7 +401,6 @@ public class LogoutSpotsModule extends Module {
     @EventHandler
     private void onRenderWorld(WorldRenderEvent.Main event) {
         GuiDrawUtils.flush();
-        LineMeshRenderer.begin(event, this.tracerWidthSetting.getValue());
         synchronized (this.spotsByName) {
             ObjectIterator<Entry<String, LogoutSpot>> spotIterator = this.spotsByName.entrySet().iterator();
             while (spotIterator.hasNext()) {
@@ -468,7 +467,8 @@ public class LogoutSpotsModule extends Module {
                             AABB tracerBox = tracerSpot.boundingBox();
                             Vec3 tracerPosition = tracerBox.getCenter();
                             Setting<Color> tracerColorOption = this.modelLineSetting;
-                            LineMeshRenderer.addTracer(tracerPosition, tracerColorOption.getValue());
+                            HudTracerRenderer.add(tracerPosition, tracerColorOption.getValue(),
+                                    this.tracerWidthSetting.getValue());
                         }
                         Setting<Boolean> nameTagOption = this.nameTagSetting;
                         Boolean drawNameTag = nameTagOption.getValue();
@@ -531,7 +531,6 @@ public class LogoutSpotsModule extends Module {
                 }
             }
         }
-        LineMeshRenderer.draw();
         RenderStateManager.addStates(RenderStateManager.POLYGON_OFFSET_THROUGH_WALLS);
         GuiDrawUtils.flush();
         RenderStateManager.reset();
