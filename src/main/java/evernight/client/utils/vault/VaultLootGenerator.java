@@ -181,7 +181,7 @@ final class VaultLootGenerator {
                     int max = VaultLootData.FUNCTION_C[function];
                     int level = this.nextIntInclusive(min, max);
                     int selected = VaultEnchantments.select(this.random, item, level, this.enchantScratch);
-                    if (item == VaultLootData.ITEM_BOOK) {
+                    if (selected > 0 && item == VaultLootData.ITEM_BOOK) {
                         item = VaultLootData.ITEM_ENCHANTED_BOOK;
                     }
                     componentHash += enchantmentHash(selected);
