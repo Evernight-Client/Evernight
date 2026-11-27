@@ -33,8 +33,10 @@ public class BooleanSettingComponent extends SettingComponent<Boolean> {
                     + Math.max(this.panel.getWidth() * enabledProgress - 1.0F, 2.0F), this.panel.getY()
                     + this.yOffset + this.getHeight() - 0.5F, this.getUiModule().colorSetting.getValue());
         }
-        String settingName = this.setting.getDisplayName();
-        if (!settingName.isEmpty()) {
+        // Internal sub-controls (color picker Sync/Rainbow) pass an empty name and draw their own
+        // translated label; looking up the empty name would render the raw language key.
+        if (!this.setting.getName().isEmpty()) {
+            String settingName = this.setting.getDisplayName();
             this.renderWithTextScroll(poseStack, settingName, () -> FontRenderer.INSTANCE.drawWithShadow(
                     poseStack, settingName, this.panel.getX() + (4), this.panel.getY() + this.getTextYOffset()
                             - this.getHoverAnimationValue()
