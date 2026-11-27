@@ -277,6 +277,7 @@ public class VaultESPModule extends Module {
         double range = this.rangeSetting.getValue();
         double squaredRange = range * range;
         Vec3 eye = evernightMinecraft.player.getEyePosition();
+        Vec3 camera = evernightMinecraft.gameRenderer.getMainCamera().position();
         List<BlockPos> visible = this.nearest(eye, squaredRange);
         if (visible.isEmpty()) {
             return;
@@ -311,7 +312,9 @@ public class VaultESPModule extends Module {
                         this.outlineSetting.getValue() / 100.0F), 1.0F);
             }
             if (drawTracer) {
-                LineMeshRenderer.addTracer(Vec3.atCenterOf(position), color);
+                // A 3D line from the camera avoids the near-plane unprojection that made the
+                // screen-space tracer jitter while moving.
+                LineMeshRenderer.addLine(camera, Vec3.atCenterOf(position), color);
             }
             if (drawBeam) {
                 this.drawBeam(poseStack, position, color);
