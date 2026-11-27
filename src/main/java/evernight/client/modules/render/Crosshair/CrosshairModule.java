@@ -1,7 +1,5 @@
 package evernight.client.modules.render.Crosshair;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.mojang.blaze3d.vertex.PoseStack;
 import evernight.client.ClientAccess;
 import evernight.client.events.core.EventHandler;
@@ -164,19 +162,6 @@ public class CrosshairModule extends Module {
             GuiDrawUtils.fillRect(pose, centerX + gap, centerY - halfWidth, centerX + gap + length, centerY + halfWidth, color);
             GuiDrawUtils.fillRect(pose, centerX - gap - length, centerY - halfWidth, centerX - gap, centerY + halfWidth, color);
             GuiDrawUtils.fillRect(pose, centerX - halfWidth, centerY + gap, centerX + halfWidth, centerY + gap + length, color);
-        }
-    }
-
-    @Override
-    public void fromJson(JsonElement json) {
-        JsonObject object = json.getAsJsonObject();
-        JsonObject settings = object.getAsJsonObject("settings");
-        if (settings != null && !settings.has("Mode") && settings.has("Vanilla")) {
-            JsonObject migrated = object.deepCopy();
-            migrated.getAsJsonObject("settings").addProperty("Mode", settings.get("Vanilla").getAsBoolean() ? "Vanilla" : "Custom");
-            super.fromJson(migrated);
-        } else {
-            super.fromJson(json);
         }
     }
 

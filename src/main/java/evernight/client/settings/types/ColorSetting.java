@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import evernight.client.ClientContext;
 import evernight.client.config.json.ColorJsonConverter;
+import evernight.client.config.legacy.LegacyConfigMigrations;
 import evernight.client.managers.registry.ModuleRegistry;
 import evernight.client.modules.client.Colors.ColorsModule;
 import evernight.client.render.color.ColorUtils;
@@ -71,7 +72,7 @@ public final class ColorSetting extends Setting<Color> {
 
     @Override
     public void fromJson(JsonElement json) {
-        if (json.isJsonArray()) {
+        if (LegacyConfigMigrations.isLegacyColorJson(json)) {
             ColorJsonConverter codec = this.colorCodec;
             this.setColor(codec.fromJson(json));
         } else {

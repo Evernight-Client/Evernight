@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import evernight.client.ClientAccess;
 import evernight.client.ClientContext;
-import evernight.client.config.legacy.LegacyBranding;
+import evernight.client.config.legacy.LegacyConfigMigrations;
 import evernight.client.modules.Module;
 import evernight.client.settings.core.JsonConfigurable;
 import net.minecraft.world.entity.player.Player;
@@ -31,7 +31,7 @@ public final class AliasRegistry implements ClientAccess, JsonConfigurable {
             JsonObject moduleObject = json.getAsJsonObject("module");
             moduleObject.asMap().forEach((configuredModuleName, aliasElement) -> {
                 Optional<Module> moduleMatch = ClientContext.moduleRegistry.findFirst(module -> {
-                    return module.getName().equalsIgnoreCase(LegacyBranding.canonicalModuleName(configuredModuleName));
+                    return module.getName().equalsIgnoreCase(LegacyConfigMigrations.canonicalModuleName(configuredModuleName));
                 });
                 moduleMatch.ifPresent(module -> {
                     String alias = aliasElement.getAsString();

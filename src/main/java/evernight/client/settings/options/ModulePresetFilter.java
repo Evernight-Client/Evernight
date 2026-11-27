@@ -3,7 +3,7 @@ package evernight.client.settings.options;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import evernight.client.ClientContext;
-import evernight.client.config.legacy.LegacyBranding;
+import evernight.client.config.legacy.LegacyConfigMigrations;
 import evernight.client.managers.registry.AbstractRegistry;
 import evernight.client.modules.Module;
 import evernight.client.modules.render.LogoutSpots.LogoutSpotsModule;
@@ -58,7 +58,7 @@ public final class ModulePresetFilter {
             if (modulesJson.get(moduleName) instanceof JsonObject moduleJson) {
                 AbstractRegistry modules = ClientContext.moduleRegistry;
                 Predicate<Module> modulePredicate = module -> {
-                    return module.getConfigName().equals(LegacyBranding.canonicalModuleName(moduleName));
+                    return module.getConfigName().equals(LegacyConfigMigrations.canonicalModuleName(moduleName));
                 };
                 Optional matchingModule = modules.findFirst(modulePredicate);
                 if (!matchingModule.isEmpty()) {

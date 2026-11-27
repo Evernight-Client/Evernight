@@ -43,7 +43,7 @@ import evernight.client.commands.arguments.ModuleArgumentType;
 import evernight.client.commands.arguments.ModuleCategoryArgumentType;
 import evernight.client.commands.arguments.PresetArgumentType;
 import evernight.client.commands.arguments.PresetCategoryArgument;
-import evernight.client.config.legacy.LegacyBranding;
+import evernight.client.config.legacy.LegacyConfigMigrations;
 import evernight.client.config.preset.ModulePresetCodec;
 import evernight.client.config.preset.PresetData;
 import evernight.client.config.preset.PresetUndoAction;
@@ -368,7 +368,7 @@ public final class PresetCommand extends Command {
                     JsonObject presetContents = preset.contents();
                     JsonObject contentsObject = presetContents.getAsJsonObject();
                     String moduleConfigName = module.getConfigName();
-                    JsonElement moduleConfig = LegacyBranding.findModuleConfig(contentsObject, moduleConfigName);
+                    JsonElement moduleConfig = LegacyConfigMigrations.findModuleConfig(contentsObject, moduleConfigName);
                     module.fromJson(moduleConfig);
                 } catch (Exception ignoredLoadFailure) {
                 }

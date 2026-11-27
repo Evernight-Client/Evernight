@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Base64.Encoder;
 import java.util.function.Predicate;
-import evernight.client.config.legacy.LegacyBranding;
+import evernight.client.config.legacy.LegacyConfigMigrations;
 
 public final class ModulePresetCodec {
     public ModulePresetCodec.DecodedPreset decode(String encodedPreset) {
@@ -23,7 +23,8 @@ public final class ModulePresetCodec {
             throw new IllegalArgumentException();
         }
         JsonObject presetJson = parsedJson.getAsJsonObject();
-        String moduleConfigName = LegacyBranding.canonicalModuleName(this.readModuleConfigName(presetJson));
+        String moduleConfigName = LegacyConfigMigrations.canonicalModuleName(
+                LegacyConfigMigrations.presetModuleName(presetJson));
         AbstractRegistry registry = ClientContext.moduleRegistry;
         Predicate<Module> matchesModule = candidateModule -> {
             String candidateName = candidateModule.getConfigName();
@@ -34,16 +35,6 @@ public final class ModulePresetCodec {
             throw new IllegalArgumentException();
         }
         return new ModulePresetCodec.DecodedPreset(module, presetJson);
-    }
-
-    private String readModuleConfigName(JsonObject presetJson) {
-        if (presetJson.has("m")) {
-            return presetJson.get("m").getAsString();
-        } else if (presetJson.has("module")) {
-            return presetJson.get("module").getAsString();
-        } else {
-            throw new IllegalArgumentException();
-        }
     }
 
     public String encode(Module module) {

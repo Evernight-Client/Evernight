@@ -219,6 +219,7 @@ private void onSomeEvent(SomeEvent event) { ... }   // void、恰好 1 个非基
 ### 8.1 配置文件在哪、键怎么来
 
 - 根目录 `<gameDir>/evernight`（`ConfigurationManager.ROOT_DIRECTORY`）；旧目录 `mio-fabric` 由 `ClientDataDirectory.migrateLegacy` 启动时迁移。
+- **旧配置键/旧格式的读取期迁移集中在 `client/config/legacy/LegacyConfigMigrations`**：模块名改名（`AntiVoid`→`Avoid` 等）、各模块旧设置键与旧值格式、`webhook.json` 旧 Telegram 地址、剪贴板预设旧字段 `module`、颜色裸数组、`friends.json`→`socials.json`、`autoez/`→`killsay/`。新增旧格式兼容只改这里，不要再往模块里写 `fromJson` 覆盖。`mio-fabric` 目录与预设品牌（`"client":"mio-fabric"`）由 `LegacyBranding` 单独负责。
 - 每个 `JsonConfigurable` 一个文件，文件名 = `getConfigName()`：`evernight/modules.json`、`evernight/hud.json`。
 - 凭据：`ExtraScreenshot` 的 `ClientId` 走 `evernight/screenshot.json`（`ScreenshotCredentialStore`），模块设置 `setExcludedFromConfig(true)`，故配置、预设与剪贴板预设都不带该凭据。
 - 写盘 `ConfigurationManager.save()` 遍历 `ConfigurableRegistry`，`mixin/MinecraftMixin.java` 在 `Minecraft.destroy` 调用；读盘在 `configuration.load()`。

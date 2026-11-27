@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import evernight.client.config.legacy.LegacyBranding;
+import evernight.client.config.legacy.LegacyConfigMigrations;
 import evernight.client.modules.client.AntiCheat.AntiCheatModule;
 import evernight.client.modules.client.Capes.CapesModule;
 import evernight.client.modules.client.Colors.ColorsModule;
@@ -665,7 +665,7 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
                 try {
                     JsonObject configObject = config.getAsJsonObject();
                     String moduleConfigName = module.getConfigName();
-                    JsonElement moduleConfig = evernight.client.config.legacy.LegacyBranding.findModuleConfig(configObject, moduleConfigName);
+                    JsonElement moduleConfig = LegacyConfigMigrations.findModuleConfig(configObject, moduleConfigName);
                     module.fromJson(moduleConfig);
                 } catch (Exception ignoredFailure) {
                 }

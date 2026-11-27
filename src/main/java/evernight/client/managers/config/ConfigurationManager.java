@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import evernight.client.ClientAccess;
 import evernight.client.commands.control.Panic.PanicCommand;
-import evernight.client.config.legacy.LegacySocialMigration;
+import evernight.client.config.legacy.LegacyConfigMigrations;
 import evernight.client.config.preset.ModulePresetCodec;
 import evernight.client.config.preset.PresetUndoState;
 import evernight.client.render.resource.BundledResourceInstaller;
@@ -88,7 +88,7 @@ public final class ConfigurationManager implements ClientAccess {
         for (PresetCategory category : PresetCategory.values()) directories.add(category.getDirectory());
         this.prepareDirectories();
         try {
-            LegacySocialMigration.migrate();
+            LegacyConfigMigrations.migrateSocialsFile(ROOT_DIRECTORY);
         } catch (Throwable ignoredBootstrapFailure) {
         }
         Iterator<?> configurableIterator = this.configurables.iterator();
@@ -114,15 +114,7 @@ public final class ConfigurationManager implements ClientAccess {
     }
 
     public void prepareDirectories() {
-        try {
-            Path legacyAutoEzPath = ROOT_DIRECTORY.resolve("autoez");
-            File legacyAutoEz = legacyAutoEzPath.toFile();
-            if (legacyAutoEz.isDirectory()) {
-                File killsayTarget = KILLSAY_DIRECTORY.toFile();
-                legacyAutoEz.renameTo(killsayTarget);
-            }
-        } catch (Exception ignoredMigrationFailure) {
-        }
+        LegacyConfigMigrations.migrateDataDirectories(ROOT_DIRECTORY, KILLSAY_DIRECTORY);
         for (Path path : directories) {
             try {
                 Files.createDirectories(path);

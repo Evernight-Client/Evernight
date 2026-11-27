@@ -1,7 +1,5 @@
 package evernight.client.modules.render.ESP;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
@@ -675,43 +673,6 @@ public class ESPModule extends Module {
         return (this.modeSetting.getValue() == ESPModeChoice.PLAIN
                 || this.modeSetting.getValue() == ESPModeChoice.BOTH)
                 && this.entitiesSetting.isExpanded() && this.itemsSetting.isExpanded();
-    }
-
-    @Override
-    public void fromJson(JsonElement json) {
-        JsonObject object = json.getAsJsonObject();
-        JsonObject settings = object.getAsJsonObject("settings");
-        boolean legacyDraw = settings != null && !settings.has("DrawItems") && settings.has("Items");
-        boolean legacyMode = settings != null && settings.has("ItemsMode")
-                && "Box".equalsIgnoreCase(settings.get("ItemsMode").getAsString());
-        boolean legacyColors = settings != null && List.of("Players", "Hostiles", "Animals", "Exp", "Items").stream()
-                .anyMatch(group -> settings.has(group + "Outline") || settings.has(group + "Fill"));
-        boolean legacyPearls = settings != null && List.of("Fill", "Outline").stream()
-                .anyMatch(key -> settings.has(key) && (settings.get(key).isJsonArray() || settings.get(key).isJsonObject()));
-        if (legacyDraw || legacyMode || legacyColors || legacyPearls) {
-            JsonObject migrated = object.deepCopy();
-            JsonObject migratedSettings = migrated.getAsJsonObject("settings");
-            if (legacyDraw) migratedSettings.add("DrawItems", settings.get("Items").deepCopy());
-            if (legacyMode) migratedSettings.addProperty("ItemsMode", "Plain");
-            for (String group : List.of("Players", "Hostiles", "Animals", "Exp", "Items")) {
-                if (!settings.has(group + "Color")) {
-                    JsonElement legacyColor = settings.has(group + "Outline") ? settings.get(group + "Outline") : settings.get(group + "Fill");
-                    if (legacyColor != null) migratedSettings.add(group + "Color", legacyColor.deepCopy());
-                }
-                migratedSettings.remove(group + "Outline");
-                migratedSettings.remove(group + "Fill");
-            }
-            for (String key : List.of("Fill", "Outline")) {
-                JsonElement legacyColor = settings.get(key);
-                if (legacyColor != null && (legacyColor.isJsonArray() || legacyColor.isJsonObject())) {
-                    if (!settings.has("Pearls" + key)) migratedSettings.add("Pearls" + key, legacyColor.deepCopy());
-                    migratedSettings.remove(key);
-                }
-            }
-            super.fromJson(migrated);
-        } else {
-            super.fromJson(json);
-        }
     }
 
     private boolean isEntity2D() {

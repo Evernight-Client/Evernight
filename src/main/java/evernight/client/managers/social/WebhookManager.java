@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import evernight.client.ClientAccess;
 import evernight.client.EvernightClient;
+import evernight.client.config.legacy.LegacyConfigMigrations;
 import evernight.client.settings.core.JsonConfigurable;
 import evernight.client.settings.options.NotificationMode;
 import evernight.client.utils.network.HttpRequests;
@@ -199,19 +200,16 @@ public final class WebhookManager implements JsonConfigurable {
 
     @Override
     public void fromJson(JsonElement json) {
-        if (!(json instanceof JsonObject object)) {
+        if (!(json instanceof JsonObject rawObject)) {
             return;
         }
-        String storedUrl = readString(object, "url");
-        String telegramToken = "";
-        String telegramChat = "";
-        if (object.get("telegram") instanceof JsonObject telegram) {
-            telegramToken = readString(telegram, "botToken");
-            telegramChat = readString(telegram, "chatId");
-        }
-        if (telegramChat.isEmpty() && object.has("telegramChatId")) {
-            telegramChat = readString(object, "telegramChatId");
-        }
+        JsonObject object = LegacyConfigMigrations.migrateWebhookConfig(rawObject);
+        this.url = readString(object, "url");
+        JsonObject telegram = object.get("telegram") instanceof JsonObject storedTelegram
+                ? storedTelegram
+                : new JsonObject();
+        this.telegramBotToken = readString(telegram, "botToken");
+        this.telegramChatId = readString(telegram, "chatId");
         String storedAppId = "";
         String storedSecret = "";
         String storedOpenId = "";
@@ -220,25 +218,6 @@ public final class WebhookManager implements JsonConfigurable {
             storedSecret = readString(qq, "clientSecret");
             storedOpenId = readString(qq, "openId");
         }
-        if (!storedUrl.isEmpty()) {
-            try {
-                TelegramEndpoint legacyEndpoint = parseTelegramUrl(storedUrl);
-                if (legacyEndpoint != null) {
-                    if (telegramToken.isEmpty()) {
-                        telegramToken = legacyEndpoint.botToken();
-                    }
-                    if (telegramChat.isEmpty()) {
-                        telegramChat = legacyEndpoint.chatId();
-                    }
-                    storedUrl = "";
-                }
-            } catch (IllegalArgumentException invalidLegacyUrl) {
-                storedUrl = "";
-            }
-        }
-        this.url = storedUrl;
-        this.telegramBotToken = telegramToken;
-        this.telegramChatId = telegramChat;
         this.qqAppId = storedAppId;
         this.qqClientSecret = storedSecret;
         this.qqOpenId = storedOpenId;

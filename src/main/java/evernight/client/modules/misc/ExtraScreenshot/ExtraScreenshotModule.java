@@ -112,39 +112,9 @@ public class ExtraScreenshotModule extends Module {
         }
     }
 
-    /**
-     * Moves a {@code ClientId} written by older versions out of modules.json once, and only during
-     * the normal config load. Preset imports must never pull a credential out of someone else's
-     * preset, so {@link ClientContext#configurationLoading} gates this migration.
-     */
-    private void migrateLegacyClientId(JsonElement json) {
-        ScreenshotCredentialStore store = ClientContext.screenshotCredentialStore;
-        if (store == null || store.isLoadedFromFile() || !ClientContext.configurationLoading
-                || !(json instanceof JsonObject moduleJson)) {
-            return;
-        }
-        JsonElement settings = moduleJson.get("settings");
-        if (!(settings instanceof JsonObject settingsJson)) {
-            return;
-        }
-        JsonElement legacy = settingsJson.get("ClientId");
-        if (legacy == null || legacy.isJsonNull()) {
-            return;
-        }
-        String legacyClientId = legacy.getAsString();
-        store.setClientId(legacyClientId);
-        this.syncingCredential = true;
-        try {
-            this.clientIdSetting.setValue(legacyClientId);
-        } finally {
-            this.syncingCredential = false;
-        }
-    }
-
     @Override
     public void fromJson(JsonElement json) {
         super.fromJson(json);
-        this.migrateLegacyClientId(json);
         this.syncClientIdFromStore();
     }
 

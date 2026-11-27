@@ -18,7 +18,7 @@ import net.minecraft.ChatFormatting;
 
 import java.util.*;
 import java.util.function.Function;
-import evernight.client.config.legacy.LegacyBranding;
+import evernight.client.config.legacy.LegacyConfigMigrations;
 
 /**
  * Base class for every toggleable client feature.
@@ -181,7 +181,7 @@ public class Module extends NamedFeature implements Toggleable, ClientAccess, Re
 
     @Override
     public void fromJson(JsonElement json) {
-        json = evernight.client.config.legacy.LegacyBranding.migrateModule(getName(), json);
+        json = LegacyConfigMigrations.migrateModule(getName(), json);
         if (!(json instanceof JsonObject moduleJson)) {
             return;
         }

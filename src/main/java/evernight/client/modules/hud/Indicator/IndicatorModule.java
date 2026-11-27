@@ -1,8 +1,5 @@
 package evernight.client.modules.hud.Indicator;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.mojang.blaze3d.vertex.PoseStack;
 import evernight.client.ClientAccess;
 import evernight.client.ClientContext;
@@ -74,33 +71,6 @@ public class IndicatorModule extends HudWidgetModule {
     private static boolean hasShorterDuration(MobEffectInstance current, MobEffectInstance incoming) {
         return !current.isInfiniteDuration()
                 && (current.getDuration() < incoming.getDuration() || incoming.isInfiniteDuration());
-    }
-
-    @Override
-    public void fromJson(JsonElement json) {
-        if (json instanceof JsonObject module && module.get("settings") instanceof JsonObject settings
-                && (settings.has("Display") || settings.get("Indicators") instanceof JsonArray)) {
-            JsonObject migrated = module.deepCopy();
-            JsonArray selected = new JsonArray();
-            if (settings.get("Indicators") instanceof JsonArray array) selected = array;
-            else selected.add(settings.get("Display"));
-            JsonObject migratedSettings = migrated.getAsJsonObject("settings");
-            migratedSettings.remove("Indicators");
-            for (DisplayMode mode : DisplayMode.values()) {
-                migratedSettings.addProperty(mode.getName(), false);
-            }
-            for (JsonElement entry : selected) {
-                DisplayMode matched = null;
-                for (DisplayMode mode : DisplayMode.values()) {
-                    if (mode.getName().equalsIgnoreCase(entry.getAsString())) matched = mode;
-                }
-                if (matched == null) throw new IllegalArgumentException("Unknown indicator: " + entry.getAsString());
-                migratedSettings.addProperty(matched.getName(), true);
-            }
-            super.fromJson(migrated);
-        } else {
-            super.fromJson(json);
-        }
     }
 
     private List<DisplayMode> selectedIndicators() {

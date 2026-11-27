@@ -2,8 +2,6 @@ package evernight.client.modules.client.Baritone;
 
 import baritone.api.BaritoneAPI;
 import baritone.api.Settings;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import evernight.client.ClientAccess;
 import evernight.client.ClientContext;
 import evernight.client.events.core.EventHandler;
@@ -64,19 +62,6 @@ public class BaritoneModule extends PermanentModule {
         }
         EventBus eventBus = ClientAccess.eventBus;
         eventBus.subscribe(this);
-    }
-
-    @Override
-    public void fromJson(JsonElement json) {
-        super.fromJson(json);
-        if (json instanceof JsonObject moduleJson
-                && moduleJson.get("settings") instanceof JsonObject settingsJson
-                && settingsJson.has("CensorCoords")) {
-            try {
-                CoordinateHiderModule.applyLegacyBaritoneCensor(settingsJson.get("CensorCoords").getAsBoolean());
-            } catch (Exception ignoredLegacyValue) {
-            }
-        }
     }
 
     public static void bindModuleDependencies(ModuleRegistry registry) {

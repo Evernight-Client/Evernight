@@ -1,8 +1,5 @@
 package evernight.client.modules.movement.NoSlow;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import evernight.client.ClientAccess;
 import evernight.client.ClientContext;
 import evernight.client.gui.screens.clickgui.ClickGuiScreen;
@@ -113,11 +110,6 @@ public class NoSlowModule extends Module {
         this.strictInventoryModes.register(NoSlowStrictInventoryChoice.NCP, new NoSlowInventoryNcpMode(this));
         this.strictInventoryModes.register(NoSlowStrictInventoryChoice.GRIM_STRICT, new NoSlowInventoryGrimStrictMode(this));
         this.setDrawn(false);
-    }
-
-    private static boolean isLegacyMode(JsonElement value, String retiredName) {
-        return value instanceof JsonPrimitive primitive && primitive.isString()
-                && retiredName.equalsIgnoreCase(primitive.getAsString());
     }
 
     public static void bindReferencedModules(ModuleRegistry registry) {
@@ -381,27 +373,5 @@ public class NoSlowModule extends Module {
             this.yawInterpolation.setValue(player.getYRot());
             this.pitchInterpolation.setValue(player.getXRot());
         }
-    }
-
-    @Override
-    public void fromJson(JsonElement json) {
-        if (json instanceof JsonObject moduleJson && moduleJson.get("settings") instanceof JsonObject settings) {
-            String itemModeKey = this.modeSetting.getConfigName();
-            String inventoryModeKey = this.strictInventorySetting.getConfigName();
-            boolean retiredItemMode = isLegacyMode(settings.get(itemModeKey), "GrimStrict");
-            boolean retiredInventoryMode = isLegacyMode(settings.get(inventoryModeKey), "Constantiam");
-            if (retiredItemMode || retiredInventoryMode) {
-                JsonObject migrated = moduleJson.deepCopy();
-                JsonObject migratedSettings = migrated.getAsJsonObject("settings");
-                if (retiredItemMode) {
-                    migratedSettings.addProperty(itemModeKey, NoSlowModeChoice.GRIMV3.getName());
-                }
-                if (retiredInventoryMode) {
-                    migratedSettings.addProperty(inventoryModeKey, NoSlowStrictInventoryChoice.NCP.getName());
-                }
-                json = migrated;
-            }
-        }
-        super.fromJson(json);
     }
 }
