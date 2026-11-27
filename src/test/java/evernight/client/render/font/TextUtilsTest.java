@@ -6,21 +6,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TextUtilsTest {
-    @Test
-    @DisplayName("西里尔字母键盘布局映射到拉丁键位（QWERTY），未知字符不变")
-    void normalizesCyrillicToLatinKeyboardLayout() {
-        assertEquals("qwerty", TextUtils.normalizeKeyboardLayout("йцукен"));
-        assertEquals("QWERTY", TextUtils.normalizeKeyboardLayout("ЙЦУКЕН"));
-        assertEquals("`~", TextUtils.normalizeKeyboardLayout("ёЁ"));
-        assertEquals("Ghbdtn", TextUtils.normalizeKeyboardLayout("Привет"));
-        assertEquals("abc!", TextUtils.normalizeKeyboardLayout("abc!"));
-        assertNull(TextUtils.normalizeKeyboardLayout(null));
-    }
-
     @Test
     @DisplayName("带引号参数拆分保留引号内空格")
     void splitsQuotedArguments() {

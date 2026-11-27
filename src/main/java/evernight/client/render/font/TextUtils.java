@@ -1,42 +1,12 @@
 package evernight.client.render.font;
 
-import it.unimi.dsi.fastutil.chars.Char2CharMap;
-import it.unimi.dsi.fastutil.chars.Char2CharMaps;
-import it.unimi.dsi.fastutil.chars.Char2CharOpenHashMap;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 
 public class TextUtils {
-    private static final String WIDTH_PROBE_PATTERN;
-    private static final Char2CharMap CYRILLIC_KEYBOARD_LAYOUT;
-
-    static {
-        WIDTH_PROBE_PATTERN = "\1\1";
-        Char2CharOpenHashMap keyboardLayout = new Char2CharOpenHashMap();
-        String latinKeys = "qwertyuiop[]asdfghjkl;'zxcvbnm,.QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>`~";
-        String cyrillicKeys = "йцукенгшщзхъфывапролджэячсмитьбюЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮёЁ";
-        keyboardLayout.defaultReturnValue((char) 0);
-        for (int index = 0; index < latinKeys.length(); index++) {
-            keyboardLayout.put(cyrillicKeys.charAt(index), latinKeys.charAt(index));
-        }
-        CYRILLIC_KEYBOARD_LAYOUT = Char2CharMaps.unmodifiable(keyboardLayout);
-    }
-
-    public static String normalizeKeyboardLayout(String text) {
-        if (text == null) {
-            return null;
-        }
-        StringBuilder normalized = new StringBuilder();
-        for (int index = 0; index < text.length(); index++) {
-            char character = text.charAt(index);
-            char replacement = CYRILLIC_KEYBOARD_LAYOUT.get(character);
-            normalized.append(replacement != 0 ? replacement : character);
-        }
-        return normalized.toString();
-    }
+    private static final String WIDTH_PROBE_PATTERN = "\1\1";
 
     public static List wrapToWidth(String text, double maximumWidth) {
         ArrayList<String> lines = new ArrayList<>();

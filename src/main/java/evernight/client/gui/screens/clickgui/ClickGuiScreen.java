@@ -38,7 +38,6 @@ import evernight.client.gui.screens.preset.PresetImportScreen;
 import evernight.client.render.color.Catppuccin;
 import evernight.client.render.color.ColorUtils;
 import evernight.client.render.font.FontRenderer;
-import evernight.client.render.font.TextUtils;
 import evernight.client.render.gui.GuiDrawUtils;
 import evernight.client.render.gui.GuiScaleUtils;
 import evernight.client.settings.options.SearchMode;
@@ -285,7 +284,7 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
                 if (this.searchBox.isFocused()) {
                     EditBox completionBox = this.searchBox;
                     String currentCompletion = this.searchCompletion;
-                    completionBox.setValue(TextUtils.normalizeKeyboardLayout(searchText + currentCompletion));
+                    completionBox.setValue(searchText + currentCompletion);
                 }
                 break;
             case GLFW.GLFW_KEY_BACKSPACE:
@@ -339,7 +338,7 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
      * first row matched by the search query (which also covers pinyin input in Chinese mode).
      */
     private void openMatchingModule(String typedText) {
-        String normalizedText = TextUtils.normalizeKeyboardLayout(typedText);
+        String normalizedText = typedText;
         SearchQuery query = SearchQuery.of(typedText, SearchMode.effective());
         ModuleComponent exactMatch = null;
         ModuleComponent firstMatch = null;
@@ -381,7 +380,7 @@ public class ClickGuiScreen extends ClientScreen implements ClientAccess {
         if (searchText == null || searchText.isEmpty()) {
             return "";
         }
-        String normalizedText = TextUtils.normalizeKeyboardLayout(searchText);
+        String normalizedText = searchText;
         SearchMode mode = SearchMode.effective();
         for (Object moduleEntry : ClientContext.moduleRegistry.getRegistry()) {
             Module module = (Module) moduleEntry;

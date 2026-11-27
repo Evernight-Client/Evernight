@@ -1,6 +1,5 @@
 package evernight.client.utils.search;
 
-import evernight.client.render.font.TextUtils;
 import evernight.client.settings.options.SearchMode;
 
 import java.util.HashMap;
@@ -44,7 +43,7 @@ public final class SearchQuery {
         if (rawText == null) {
             return "";
         }
-        return TextUtils.normalizeKeyboardLayout(rawText.trim()).toLowerCase(Locale.ROOT);
+        return rawText.trim().toLowerCase(Locale.ROOT);
     }
 
     public boolean isBlank() {
