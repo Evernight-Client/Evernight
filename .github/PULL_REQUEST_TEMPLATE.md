@@ -6,7 +6,7 @@
 
 - [ ] `gradlew.bat build` 通过
 - [ ] 动过语言表：已完整构建（`gradlew.bat build`）并核对键集/占位符
-- [ ] 动过 `evernight/addon`：同步更新 `docs/addons.md` 与插件 skill，并说明兼容性
+- [ ] 动过 `evernight/addon`：同步更新插件 skill（`.github/skills/evernight-addon-dev/`）与语言表，并说明兼容性
 
 > 游戏内行为、界面观感与交互手感请由维护者人工验收，PR 中不要声称已验证。
 

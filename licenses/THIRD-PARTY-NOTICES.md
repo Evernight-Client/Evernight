@@ -99,17 +99,11 @@ Evernight 与 Xaero 无任何隶属或授权关系；如原作者提出要求，
 
 ### 音效
 
-全部内置音效都由本仓库的脚本生成，不含任何第三方录音：
+全部内置音效均由本项目生成，不含任何第三方录音：
 
-- 界面音效由 [scripts/audio/generate.py](../scripts/audio/generate.py) 用 numpy 合成后编码为 Ogg Vorbis。
-- 连杀播报由 [scripts/audio/render_tts.ps1](../scripts/audio/render_tts.ps1) 调用系统语音合成渲染，再由同一个脚本编码。
-
-重新生成：
-
-```
-scripts/audio/render_tts.ps1
-python scripts/audio/generate.py --tts-dir build/audio-tts
-```
+- 界面音效由 numpy 合成后编码为 Ogg Vorbis。
+- 连杀播报由系统语音合成渲染，再编码为 Ogg Vorbis。
+- 生成脚本已不再随仓库分发，仓库只保留成品音效；音量/编码调整需重新制作素材并在此登记。
 
 ## 4. Minecraft 与 Mojang
 
@@ -129,6 +123,6 @@ Minecraft 及其游戏资产、官方映射与商标归 Mojang Studios / Microso
 ## 5. 维护约定
 
 - 新增或替换第三方代码、素材时，在同一个 PR 内更新本文件与同目录下的许可证文本。
-- 音效不要直接提交外部音频文件；改 `scripts/audio/` 里的脚本并重新生成。
+- 音效不要直接提交外部录音；新增音效须能证明由本项目生成或已获再分发授权，并在此登记。
 - 不得移除 `LICENSE`、本文件或 本目录下的许可文本。
 - 移植前先确认上游许可证；无许可证（保留所有权利）或与 GPL-3.0 不兼容的代码不得合并。

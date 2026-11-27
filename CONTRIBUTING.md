@@ -8,10 +8,10 @@
 | --- | --- |
 | JDK | 25（构建；字节码目标 Java 21） |
 | Minecraft | 1.21.11 |
-| Fabric Loader | 0.19.5+ |
+| Fabric Loader | 0.20.1 |
 | Fabric API | 0.141.6+1.21.11 |
 
-Loom 1.19.3 要求 Gradle 跑在 JDK 25 上；`options.release = 21` 保证产物仍是 Java 21 字节码。运行 `gradlew.bat runClient`（Linux/macOS 为 `./gradlew runClient`）启动开发客户端，运行目录是 `run/`。
+Loom 1.19.3 要求 Gradle 跑在 JDK 25 上；`options.release = 21` 保证产物仍是 Java 21 字节码。`runClient` 的 Java 工具链固定为 21 且 `auto-download=false`，本机需同时安装 JDK 21。运行 `gradlew.bat runClient`（Linux/macOS 为 `./gradlew runClient`）启动开发客户端，运行目录是 `run/`。
 
 ## 构建与校验
 
@@ -50,7 +50,7 @@ gradlew.bat releaseTest
 
 ## 分支与提交
 
-- 从 `master` 切出功能分支，PR 目标为 `master`。
+- 从 `main` 切出功能分支，PR 目标为 `main`。
 - 提交信息格式：`type(scope): 中文简述`，例如 `feat(hud): 新增坐标显示组件`、`fix(i18n): 补全漏翻的设置标签`。
 - 代码与对应的语言表改动放在同一个提交。
 - 一个 PR 只做一件事；重构与功能分开提交，便于审查。

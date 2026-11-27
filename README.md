@@ -17,7 +17,7 @@ Evernight 把战斗、移动、渲染、玩家、自动、杂项、漏洞利用�
 1. 为 Minecraft 1.21.11 安装 Fabric Loader。
 2. 把 Fabric API 与 `evernight-<version>.jar` 放进 `.minecraft/mods`。
 3. 启动游戏，首次运行会在游戏目录生成 `evernight/` 配置文件夹。
-4. 可选集成：Baritone、ViaFabricPlus、Xaero's Minimap、EntityCulling、Sodium / Lithium / ImmediatelyFast。
+4. 可选集成：Baritone、ViaFabricPlus、Xaero's Minimap、EntityCulling、Sodium / Lithium / ImmediatelyFast、Litematica（前置 MaLiLib）。缺失时对应模块与配置项自动隐藏。
 
 ## 快速上手
 
@@ -41,7 +41,7 @@ Evernight 把战斗、移动、渲染、玩家、自动、杂项、漏洞利用�
 
 ## 从源码构建
 
-需要 JDK 25 运行 Gradle（Loom 1.19.3 要求；产物字节码目标 Java 21）：
+需要 JDK 25 运行 Gradle（Loom 1.19.3 要求；产物字节码目标 Java 21）；`runClient` 的工具链固定为 Java 21 且不自动下载，所以本机还需安装 JDK 21。
 
 ```bash
 ./gradlew build        # Linux / macOS
