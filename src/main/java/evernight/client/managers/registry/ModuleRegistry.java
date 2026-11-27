@@ -12,7 +12,6 @@ import evernight.client.modules.Module;
 import evernight.client.modules.client.Baritone.BaritoneModule;
 import evernight.client.modules.movement.ObstaclePasser.ObstaclePasserModule;
 import evernight.client.settings.core.JsonConfigurable;
-import evernight.client.utils.core.ExperimentalFeatures;
 import evernight.client.utils.core.KeyUtils;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -751,11 +750,6 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
     }
 
     public boolean registerModule(Module module) {
-        Class moduleType = module.getClass();
-        if (ExperimentalFeatures.isClassHidden(moduleType)) {
-            return false;
-        }
-        ExperimentalFeatures.unregisterHiddenSettings(module);
         Object2ObjectOpenHashMap<Class<?>, Module> cache = this.modulesByClass;
         Class moduleClass = module.getClass();
         cache.put(moduleClass, module);

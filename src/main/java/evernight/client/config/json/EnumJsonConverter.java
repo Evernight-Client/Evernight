@@ -3,7 +3,6 @@ package evernight.client.config.json;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import evernight.client.settings.core.NamedEntry;
-import evernight.client.utils.core.ExperimentalFeatures;
 
 public final class EnumJsonConverter<E extends Enum<E>> {
     private final Class<E> enumClass;
@@ -21,12 +20,10 @@ public final class EnumJsonConverter<E extends Enum<E>> {
             }
             Class classForRead = value.getDeclaringClass();
             Enum candidate = ((Enum[]) classForRead.getEnumConstants())[index];
-            if (!ExperimentalFeatures.isEnumConstantHidden(candidate)) {
-                String candidateName = candidate.name();
-                String valueName = value.name();
-                if (candidateName.equalsIgnoreCase(valueName)) {
-                    return index;
-                }
+            String candidateName = candidate.name();
+            String valueName = value.name();
+            if (candidateName.equalsIgnoreCase(valueName)) {
+                return index;
             }
             index++;
         }
@@ -43,7 +40,7 @@ public final class EnumJsonConverter<E extends Enum<E>> {
             }
             Class classForRead = value.getDeclaringClass();
             Enum candidate = (Enum) classForRead.getEnumConstants()[index];
-            if (!ExperimentalFeatures.isEnumConstantHidden(candidate) && index > currentIndex) {
+            if (index > currentIndex) {
                 return candidate;
             }
             index++;
@@ -71,12 +68,10 @@ public final class EnumJsonConverter<E extends Enum<E>> {
             if (!(candidate instanceof NamedEntry namedCandidate)) {
                 throw new IllegalArgumentException();
             }
-            if (!ExperimentalFeatures.isEnumConstantHidden(candidate)) {
-                String jsonName = json.getAsString();
-                String candidateName = namedCandidate.getName();
-                if (jsonName.equalsIgnoreCase(candidateName)) {
-                    return candidate;
-                }
+            String jsonName = json.getAsString();
+            String candidateName = namedCandidate.getName();
+            if (jsonName.equalsIgnoreCase(candidateName)) {
+                return candidate;
             }
         }
         return this.enumClass.getEnumConstants()[0];

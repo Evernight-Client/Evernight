@@ -12,7 +12,6 @@ import evernight.client.ClientAccess;
 import evernight.client.ClientContext;
 import evernight.client.managers.audio.SoundManager;
 import evernight.client.modules.Module;
-import evernight.client.utils.core.ExperimentalFeatures;
 import evernight.client.utils.collections.NamedIdentifier;
 import evernight.client.utils.collections.RegistryGroupMatcher;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -22,7 +21,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import evernight.client.settings.core.NamedEntry;
 import evernight.client.settings.core.Setting;
@@ -82,10 +80,8 @@ public class SettingValueArgument implements ArgumentType, ClientAccess {
             Class enumClass = defaultEnumValue.getDeclaringClass();
             Enum[] enumConstants = (Enum[]) enumClass.getEnumConstants();
             Stream<Enum> enumValues = Arrays.stream(enumConstants);
-            Predicate<Enum> enumFilter = enumCandidate -> !ExperimentalFeatures.isEnumConstantHidden(enumCandidate);
-            Stream<Enum> visibleEnumValues = enumValues.filter(enumFilter);
             Function<Enum, String> enumNames = SettingValueArgument::getEnumSuggestionName;
-            Stream<String> suggestedEnumNames = visibleEnumValues.map(enumNames);
+            Stream<String> suggestedEnumNames = enumValues.map(enumNames);
             return SharedSuggestionProvider.suggest(suggestedEnumNames, builder);
         } else if (setting instanceof NumberSetting<?> numberSetting) {
             Number currentNumber = numberSetting.getValue();

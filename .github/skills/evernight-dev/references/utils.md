@@ -24,8 +24,6 @@ movement、network、world 9 个子包 + 根目录），路径相对仓库根。
 | --- | --- |
 | `ClampedInterpolatedFloat` 0~1 开关动画 | 继承 `InterpolatedFloat`；`setTarget`、`setValue`、`reset` |
 | `CompressionUtils` zlib | `inflate`、`deflate` |
-| `Experimental` 实验注解 | 配合 `ExperimentalFeatures` 隐藏 |
-| `ExperimentalFeatures` 实验开关（`--evernight-allow-experimental` / `-Devernight.allowExperimental=true`） | `isExperimentalDisabled`、`isFieldHidden`、`isClassHidden`、`unregisterHiddenSettings` |
 | `FrameTiming` 帧率/插值（`ClientContext.frameTiming`） | `recordFrame`、`getFrameFactor`、`getFramesPerSecond` |
 | `ServerAddressUtils` | `getCurrentServerAddress`（失败/本地 → `singleplayer`） |
 | `SoftwareKeyMapping` | 继承 `KeyMapping`，覆写 `isDown`/`setDown` |

@@ -129,7 +129,7 @@ public abstract class AvatarMixin {
 - 当前映射：缺 Baritone 隐藏模块 `Baritone`、`AutoMining`、`AutoSand`、`ObstaclePasser`，以及 `PearlBot.Return` 等单项；`AutoTransport`、`PearlBot` 保留（近距离仍可用）。缺 Xaero 隐藏 `StashFinder.Xaero`、`WaypointSettings.WaypointSync` 与 `CoordinateHider` 的 Minimap 组。
 - 新增可选模组支持时，先按上面的隐藏规则接 `requiresMod` / `hideUnlessModLoaded`，再补桥接与 mixin。
 
-**实现上，模块的字段类型、方法签名不要直接引用可选模组的类。** `ModuleRegistry` 注册模块时会经 `ExperimentalFeatures` 反射 `getDeclaredFields()`，解析字段类型会加载该类型；字段类型若依赖可选模组，未安装时启动即 `NoClassDefFoundError`（典型：`EntityControlModule.pathfinder` 声明成 `EntityControlPathfinder`，而它 `implements AbstractGameEventListener`）。
+**实现上，模块的字段类型、方法签名不要直接引用可选模组的类。** 模块 `enable()` 时 `EventBus` 会用 `getDeclaredMethods()` 扫描 `@EventHandler` 并解析参数类型，字段/父类类型在构造或首次触碰时加载；任一环节碰上可选模组类型，未安装时即 `NoClassDefFoundError`（典型：`EntityControlModule.pathfinder` 声明成 `EntityControlPathfinder`，而它 `implements AbstractGameEventListener`）。
 
 统一走现成桥接：`ClientContext.baritoneBridge`（`BaritoneBridge` + `BaritoneAdapter` / `DisabledBaritoneBridge`）、`ClientContext.waypointAdapter`（`WaypointAdapter` + `XaeroWaypointAdapter` / `DisabledWaypointAdapter`）。
 

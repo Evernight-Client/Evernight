@@ -96,7 +96,7 @@ public boolean isAvailable();                            // 依赖是否满足
 - 设置标签由 `add` 写入 `Setting#setDisplayNameKey`，解析 `addons.<id>.names.settings.<SettingName>`；设置 tooltip 仍走本体的 `evernight.descriptions.settings.*` 逻辑。
 - `AddonContext.registerModule` 会校验模块声明的 addon id 与当前插件一致，不一致直接抛 `IllegalArgumentException`。
 - 插件模块整块依赖某个可选模组时，在构造器调 `requiresMod("modid", ...)`（任一 id 加载即算可用）：模块仍注册、配置保留，但 ClickGUI、搜索、模块名补全与 `;<alias>` 隐藏，`enable()` 拒绝启用。单个设置依赖可选模组用 `Setting#hideUnlessModLoaded(String...)`。
-- 可选模组的类不要写进模块字段类型、`implements` 列表或 `@EventHandler` 方法签名：注册时 `ExperimentalFeatures` 会反射 `getDeclaredFields()`，解析字段类型会加载对应类，缺失即导致启动崩溃。需要能力时走 `ClientContext.baritoneBridge` 等桥接。
+- 可选模组的类不要写进模块字段类型、`implements` 列表或 `@EventHandler` 方法签名：模块 `enable()` 时事件总线会用 `getDeclaredMethods()` 扫描 handler 并解析参数类型，字段/父类类型在构造或首次触碰时加载，缺模组即 `NoClassDefFoundError`。需要能力时走 `ClientContext.baritoneBridge` 等桥接。
 
 ### `ModuleCategory`（final，implements NamedEntry）
 
@@ -152,7 +152,7 @@ Minecraft.destroy()
 
 ## 3. 模块与指令的注册细节
 
-- `registerModule` 使用 `ModuleRegistry.registerModule`，它会拒绝被 `ExperimentalFeatures` 隐藏的类、清理隐藏设置；插件注册的重名模块返回 `false`。
+- `registerModule` 使用 `ModuleRegistry.registerModule`；插件注册的重名模块返回 `false`，`AddonContext` 随即抛 `IllegalStateException`。
 - 注册成功后调用 `CommandRegistry.registerModuleAliasCommands(module)`：为模块的每个别名注册 `;<alias>`，若已存在同名指令则跳过。
 - 模块的 `@EventHandler` 由 `Module.enable()` 自动订阅；不要再用 `context.subscribe(module)`，否则会重复触发。
 - 模块分类是 final class：内置 8 类可直接复用，插件可用 `context.registerCategory("X")` 新增并在 `onInitialize` 内传给模块构造器；分类名全局唯一（含内置、大小写不敏感），空白/重名抛 `IllegalStateException`，插件记为 `FAILED`。

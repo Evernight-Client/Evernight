@@ -11,9 +11,9 @@ import org.jetbrains.annotations.Nullable;
  * <p>This is the only type the module layer is allowed to know about. The concrete Litematica
  * implementation lives in {@link LitematicaProjectionSource} and is the single place in the whole
  * repository that references {@code fi.dy.masa.litematica.*}; every other class must go through
- * this interface so a missing optional mod can never trigger {@code NoClassDefFoundError} during
- * module construction (module fields are resolved reflectively by
- * {@code ExperimentalFeatures}). The layout mirrors {@code BaritoneBridge}.
+ * this interface so a missing optional mod can never trigger {@code NoClassDefFoundError} when the
+ * module class is constructed or its event handlers are scanned. The layout mirrors
+ * {@code BaritoneBridge}.
  */
 public interface ProjectionSource {
     /**

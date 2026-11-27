@@ -10,7 +10,6 @@ import evernight.client.render.gui.GuiDrawUtils;
 import evernight.client.settings.types.EnumSetting;
 import evernight.client.settings.core.NamedEntry;
 import evernight.client.utils.core.ClampedInterpolatedFloat;
-import evernight.client.utils.core.ExperimentalFeatures;
 import evernight.client.utils.core.InterpolatedFloat;
 
 import java.util.ArrayList;
@@ -34,11 +33,9 @@ public class EnumSettingComponent<E extends Enum<E> & NamedEntry> extends Settin
         int rowYOffset = this.getBaseHeight();
         int selectableIndex = 0;
         for (E candidate : this.setting.getDefaultValue().getDeclaringClass().getEnumConstants()) {
-            if (!ExperimentalFeatures.isEnumConstantHidden(candidate)) {
-                this.optionRows.add(new EnumOptionRow<>(this, candidate, rowYOffset, selectableIndex));
-                rowYOffset += this.getBaseHeight();
-                selectableIndex++;
-            }
+            this.optionRows.add(new EnumOptionRow<>(this, candidate, rowYOffset, selectableIndex));
+            rowYOffset += this.getBaseHeight();
+            selectableIndex++;
         }
         this.selectableValueCount = selectableIndex;
     }
@@ -168,9 +165,7 @@ public class EnumSettingComponent<E extends Enum<E> & NamedEntry> extends Settin
                         this.selectedIndex = selectableIndex;
                         break;
                     }
-                    if (!ExperimentalFeatures.isEnumConstantHidden(candidate)) {
-                        selectableIndex++;
-                    }
+                    selectableIndex++;
                 }
                 this.expanded = !this.expanded;
                 this.getPanel().updateLayout();
