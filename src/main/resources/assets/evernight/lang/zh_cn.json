@@ -2215,7 +2215,7 @@
   "evernight.descriptions.settings.VaultPrediction.PredictCount": "预判到的目标物品总共列出几个，1 到 20。",
   "evernight.descriptions.settings.VaultPrediction.ScanLimitWan": "每次查询向后扫描多少万次开箱（50 = 50 万 = 500,000 次，最多 5000 万 = 50,000,000 次）；\n纯 Java 核心每秒能跑几百万次，找不到结果时可以调大。",
   "evernight.descriptions.settings.VaultPrediction.Seed": "服务器世界种子，填整数。",
-  "evernight.descriptions.settings.VaultPrediction.StartOffsetWan": "当前全服已经开出多少万次不祥宝库，没开过填 0；\n例如 500 表示 500 万次。检测成功后会自动更新。",
+  "evernight.descriptions.settings.VaultPrediction.StartOffsetWan": "当前全服已经开出多少万次不祥宝库，默认 20 = 20 万次，没开过填 0；\n最多 5000 万 = 50,000,000 次。检测成功后会自动更新。",
   "evernight.descriptions.settings.VaultPrediction.Target": "要找的战利品：附魔金苹果、沉重核心，或两者都要。",
   "evernight.descriptions.settings.VaultPredictionHud.ShowCount": "HUD 是否显示全服绝对次数；关闭时只显示距离。",
   "evernight.descriptions.settings.VaultPredictionHud.ShowIcon": "是否在 HUD 里显示下一个目标物品的贴图。",

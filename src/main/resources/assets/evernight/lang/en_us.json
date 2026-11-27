@@ -2215,7 +2215,7 @@
   "evernight.descriptions.settings.VaultPrediction.PredictCount": "How many predicted target items to list in total, 1 to 20.",
   "evernight.descriptions.settings.VaultPrediction.ScanLimitWan": "How many 万 (10,000) openings to scan per query (50 = 500,000, up to 5000 = 50,000,000);\nthe Java core handles millions per second, raise this when nothing is found.",
   "evernight.descriptions.settings.VaultPrediction.Seed": "World seed of the server, as an integer.",
-  "evernight.descriptions.settings.VaultPrediction.StartOffsetWan": "How many 万 (10,000) ominous vaults were already opened worldwide, 0 when none.\nExample: 500 means 5,000,000 openings. Detection updates it once the offset is known.",
+  "evernight.descriptions.settings.VaultPrediction.StartOffsetWan": "How many 万 (10,000) ominous vaults were already opened worldwide, default 20 = 200,000, 0 when none.\nUp to 5000 = 50,000,000. Detection updates it once the offset is known.",
   "evernight.descriptions.settings.VaultPrediction.Target": "Which drop to locate: enchanted golden apple, heavy core, or both.",
   "evernight.descriptions.settings.VaultPredictionHud.ShowCount": "Whether the HUD shows the absolute worldwide opening number; off shows only the distance.",
   "evernight.descriptions.settings.VaultPredictionHud.ShowIcon": "Whether to show the next target item's icon in the HUD.",
