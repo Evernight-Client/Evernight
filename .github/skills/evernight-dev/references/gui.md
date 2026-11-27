@@ -7,20 +7,20 @@
 
 ### 1.1 GuiElement：所有界面元素的最小契约
 
-`GuiElement`（GuiElement.java）是 `Panel` 与所有组件的根接口，方法全为 default 空实现。
+`GuiElement`（`gui/core/GuiElement.java`）是 `Panel` 与所有组件的根接口，方法全部有 default 实现：
 **组件不保存绝对坐标**，只存相对所属 `Panel` 的 `yOffset`，由 Panel 布局下发。
 
 - `init()`：`Screen.init()` 时同步数据。
 - `render(PoseStack, double, double)`：只画；**不要改布局**。
 - `update(double mouseX, double mouseY)`：Panel 在 render 前对可见子元素调用。
-- `getBaseHeight()` / `getHeight()`：基础行高 = `UIModule.styleSetting` 的 HeightPadding + `FontRenderer.getHeight()`；可展开组件重写 `getHeight()`。
-- `getTextYOffset()`：文本垂直居中偏移。
+- `getBaseHeight()` / `getHeight()`：默认实现取 `UIModule.styleSetting` 的 HeightPadding + `FontRenderer.getHeight()`；可展开组件重写 `getHeight()`。
+- `getTextYOffset()` / `getUiModule()`：默认实现，通常不用覆写。
 - `getYOffset()/setYOffset(int)`：容器下发位置；自定义容器必须继续传给子元素。
 - `isMouseOver(double, double)`：默认 false，**必须重写，否则收不到点击**。
-- `mouseClicked/mouseReleased/mouseScrolled/keyPressed/charTyped`：Panel 冒泡转发，参数为原始键码/字符。
+- `mouseClicked/mouseReleased/mouseScrolled/keyPressed/charTyped`：Panel 冒泡转发，参数为原始键码/字符；这些生命周期/输入方法是空实现。
 
-`ScissorStack`：`push(x, y, width, height)`、`pop()`、
-`pushIntersection(...)`（与栈顶求交，**要求栈非空**——源码直接 `regions.getLast()`）。
+`ScissorStack`（`gui/core/ScissorStack.java`）：`push(x, y, width, height)`、`pop()`、
+`pushIntersection(...)`（与栈顶求交；**栈为空时等价于 `push(x,y,w,h)`**，可安全调用）。
 推/弹前必须 `GuiDrawUtils.flush()`，否则批量绘制被裁错（`gui/panels/Panel.java`）。
 
 `CursorType`：`STANDARD` / `POINTER` / `INPUT`，`apply()` 才设 GLFW 光标；组件在 `render` 里**登记**下一帧光标
@@ -45,15 +45,22 @@
 
 ## 3. 现成组件
 
-源码：`gui/components/`（ButtonComponent、ActionButtonComponent、ColorActionButton、ModuleComponent、HudModulePanel）。
+源码按包拆分：`gui/components/`（`ModuleComponent`、`ItemListComponent`）、`gui/components/base/`
+（`ButtonComponent`、`ActionButtonComponent`、`LabelComponent`、`AbstractItemListComponent`）、
+`gui/components/setting/`（`ColorActionButton` 与全部 `*SettingComponent`）、`gui/panels/`（`HudModulePanel`、`ModuleCategoryPanel`、预设面板）。
 
 | 类 | 构造器 | 行为 / 可用方法 |
 | --- | --- | --- |
-| `ButtonComponent` | `(Panel, String)` / `(Panel, Supplier<String>)` | 文本按钮；`getLabel()`；`setHoverOffsetEnabled(true)` hover 上移 1px；`"\n"` 自动增高；protected `renderButtonBackground` |
-| `ActionButtonComponent extends ButtonComponent` | `(Panel, String, Runnable)` / `(Panel, Supplier<String>, Runnable)` | 左键执行 `Runnable`；`isHighlighted()` 控高亮底（默认 true） |
+| `ButtonComponent` | `(Panel, String[, boolean translateLabel])` / `(Panel, Supplier<String>[, boolean])` | 文本按钮；`getLabel()`；`setHoverOffsetEnabled(true)` hover 上移 1px；`"\n"` 自动增高；protected `renderButtonBackground` |
+| `ActionButtonComponent extends ButtonComponent` | `(Panel, String, Runnable[, boolean])` / `(Panel, Supplier<String>, Runnable[, boolean])` | 左键执行 `Runnable`；`isHighlighted()` 控高亮底（默认 true） |
 | `ColorActionButton` | `(int yOffset, ColorSettingComponent editor, String label, Runnable action)` | **abstract**，子类实现 `float getLabelOffsetX()`；editor 不可用时自动不响应/不绘制 |
+| `LabelComponent` | `(Panel, String[, boolean])` | 纯文本、不可交互（`isMouseOver` 恒 false） |
 | `ModuleComponent` | `(Module module, Panel panel, int yOffset)` | 左键 `module.toggle()`，右键 `toggleOpen()`；`getModule()`、`setOpen(boolean)`、`isOpen()`、`isClosed()`、`startSearchHighlight()`；字段 `children`、`heightAnimation`、`animatedHeight`；自动为每个 Setting 建行，非 `HudWidgetModule`/`PermanentModule` 追加 `KeybindComponent` |
 | `HudModulePanel` | `HudModulePanel()` | 固定 `ModuleCategory.HUD`，只给 HUD 编辑器用；`getHeightLimit()` 按各行 baseHeight+1 累计 |
+| `ItemListComponent` / `AbstractItemListComponent` | 交易/附魔选择器用 | 固定显示 8 行、自管滚动 |
+
+**标签翻译是硬约束**：`ButtonComponent`/`ActionButtonComponent` 的 `translateLabel` 默认 `true`，标签按 `Translations.ui(...)`
+查 `evernight.ui.*`；传条目名、文件名、交易名、注册表名等**已经本地化**的文本必须传 `false`，否则会被二次翻译。
 
 加动作按钮：`panel.registerChild(new ActionButtonComponent(panel, "Clear", () -> setting.getValue().clear()))`。
 
@@ -75,12 +82,13 @@
 | `NumberSetting<?>` → `NumericSettingComponent<N>` | `(Panel, CloseState, NumberSetting<N>)`：左键拖滑条（Integer/浮点取整，clamp 到 min/max）；右键文本输入，Enter 提交、Esc 取消；字符只收 `1234567890.,-` |
 | `EnumSetting<?>` → `EnumSettingComponent<E>` | `(Panel, CloseState, EnumSetting<E>)`：左键切下一个值；右键展开/收起选项 |
 | `StringSetting` → `StringSettingComponent` | `(Panel, CloseState, Setting<String>)`：左键编辑，Enter 提交、Esc 取消、Ctrl+V 粘贴；`getText()`、`beginEditing()`（搜索框用）、`setText(String)`、`getCursorMarker()` |
-| `StringListSetting` → `StringListSettingComponent` | `(Panel, ModuleComponent, StringListSetting)`：显示 `名称 [条目数]`；左/右键打开 `StringListScreen` |
+| `StringSetSetting` → `StringSetSettingComponent` | `(Panel, ModuleComponent, StringSetSetting)`：显示 `名称 [条目数]`；左/右键打开 `StringSetScreen` |
+| `StringListSetting` → `StringListSettingComponent` | `(Panel, ModuleComponent, StringListSetting)`：显示 `名称 [条目数]`；左/右键先 `setting.prepare()` 再打开 `StringListScreen` |
 | `ActionSetting` → `ActionSettingComponent` | `(Panel, ModuleComponent, ActionSetting)`：显示名称与 `withInfo(...)` 动态文本；左/右键执行动作 |
 | `ColorSetting` → `ColorSettingComponent` | `(Panel, CloseState, Setting<Color>)`：右键标题行展开/收起 HSV+Alpha 取色器；Copy/Paste/Sync/Rainbow（主题色不建 Sync）；实现 `CloseState`；`isHeaderHovered(...)`、`isClosed()` |
-| `IdentifierSetting` → `SoundSettingComponent` | `(Panel, CloseState, Setting<NamedIdentifier>)`：显示 `setting.getValue().getName()`；左键打开 `SoundSelectionScreen(setting, getClickGui())` |
+| `IdentifierSetting` → `SoundSettingComponent` | `(Panel, CloseState, Setting<NamedIdentifier>)`：显示 `Translations.sound(identifier.getName())`（键 `evernight.names.sounds.<name>`）；左键打开 `SoundSelectionScreen(setting, getClickGui())` |
 | `RegistrySetSetting<?>` → `RegistrySetSettingComponent<E>` | `(Panel, ModuleComponent, RegistrySetSetting<E>)`：显示 `名称 [已选数量]`；左/右键打开 `RegistrySetScreen` |
-| 其它（如 `StringSetSetting`） | `default -> null`，**不渲染**：新增 Setting 子类 = 新增组件 + 补 case，否则能看到值却看不到行 |
+| 其它未知 Setting 子类 | `default -> null`，**不渲染**：新增 Setting 子类 = 新增组件 + 补 case，否则能看到值却看不到行 |
 
 设置行折叠/依赖：`markVisibilityDependency()` + `dependsOn(...)`，右键展开子设置（见 `module-settings.md` 第 4.2 节）。
 `KeybindComponent(int index, ModuleComponent moduleRow[, Setting<Keybind>])` 不在 switch 里，由 `ModuleComponent`
@@ -90,14 +98,17 @@
 
 ## 5. 面板 Panel
 
-`Panel` 实现 `GuiElement` + `NamedEntry` + `RegistryContainer<GuiElement>`。构造器 `Panel(String name)`：
-`name` 是稳定英文名，标题由 `getTitle()` 走 `Translations.panel(name)` 实时解析（键见 `i18n.md` 第 3 节）。
+`Panel` 实现 `GuiElement` + `NamedEntry` + `RegistryContainer<GuiElement>`。构造器 `Panel(String name)` /
+`Panel(String name, Supplier<String> titleSupplier)`：`name` 是稳定英文名，标题默认由 `getTitle()` 走
+`Translations.panel(name)` 实时解析（键见 `i18n.md` 第 3 节）；`titleSupplier` 用于临时面板（`PresetImportScreen`）。
 默认宽 `92 + UIModule.styleSetting 的 widthPadding`，默认位置 (5,5)，右击标题栏折叠。
 
 API：`getX()/getY()/setX()/setY()`、`getWidth()/getHeight()`、`getHeaderHeight()`、`getChildren()`、
 字段 `children`、`addChild(GuiElement)`、`addChildren(GuiElement...)`、`registerChild(GuiElement)`、
 `updateLayout()`（按 children 高度重排 yOffset，每帧末尾自动调）、`setExpanded(boolean)/isFullyExpanded()`、
-`disableHeightLimit()`、`isMouseOverHeader(...)`。`render` 推 scissor、只渲染可视子元素。
+`getExpansionValue()`、`disableHeightLimit()`、`setHeightLimitDisabled(boolean)`（tiling 关高度上限并清零滚动）、
+`isDragging()/setDragging(boolean)/updateDragPosition()`、`isMouseOverHeader(...)`。
+`render` 推 scissor、只渲染可视子元素。
 
 `ModuleCategoryPanel(ModuleCategory category)`：构造时把该分类模块按 `getName()` 排序生成 `ModuleComponent`；
 `isChildVisible` 用 ClickGUI 搜索框过滤（匹配 aliases）。
@@ -116,21 +127,27 @@ API：`getX()/getY()/setX()/setY()`、`getWidth()/getHeight()`、`getHeaderHeigh
 - `getPanels()` / `getParentScreen()/setParentScreen(Screen)` / `resetPanelPositions()`：面板列表 / 父屏 / 横向重排。
 - `setTooltipText(String)` / `markHovered()` / `suppressEscapeClose()`：tooltip / 刷新存活 / Esc 不关闭。
 - `getGuiScale()` / `hasMenuParent()` / `isClosing()` / `getTransitionOpacity()`：缩放 / 父屏是否菜单 / 关闭动画状态。
+- `isPanelDraggingAllowed()`：tiling 布局下返回 false，禁止面板自由拖拽。
 - `onMouseClick(double,double,int)` / `onMouseRelease(...)` / `renderBackgroundOverlay(PoseStack)`：钩子 / 背景 tint。
 - `public static CursorType cursor`：屏幕级光标寄存器，`onClose()` 恢复 STANDARD。
 
-全部 Screen（`gui/screens/` 下，`RegistrySetScreen` 在 `gui/registry/`）：
+主要 Screen（`gui/screens/` 下，`RegistrySetScreen` 在 `gui/registry/`）：
 
-- `ClickGuiScreen()`：`getSearchBox()`、`getEditingSetting()/setEditingSetting(SettingComponent<?>)`、字段
+- `ClickGuiScreen()`：`getSearchBox()`、`getSearchQuery()`（面板过滤实际入口）、`getEditingSetting()/setEditingSetting(SettingComponent<?>)`、
+  `applyTilingLayout()`、`resetGuiLayout()`、`isHintLegendVisible()`、`getHintLegendHeight()`、`getHintHudOffset()`，字段
   `searchBox`/`openModuleComponents`；用 `ClientContext.getClickGui().open()`。
 - `HudEditorScreen()`：`addWidget(HudAnchor, HudWidgetRenderer)`、`addWidget(HudWidgetRenderer)`、`removeWidget(...)`、
-  `getAnchorGroup(HudAnchor)`、`getAnchorGroups()`、`requestDirectionRefresh()`、`renderWidgets(...)`；静态 `hoverLabel`。
+  `getAnchorGroup(HudAnchor)`（未知锚点返回 `null`）、`getAnchorGroups()`（static，跨界面保留）、`requestDirectionRefresh()`、
+  `renderWidgets(...)`；静态 `hoverLabel`（`HudHoverLabel`）；HUD 边距由 `HudMarginController` 拖动调整。
 - `PresetScreen()`：`getListPanel()`、`getPresetPanel()`、`getSelectedCategory()/setSelectedCategory(PresetCategory)`。
 - `RegistrySetScreen(Screen parentScreen, RegistrySetSetting<E> registrySetting)`：集合设置编辑器，见第 7 节。
+- `StringListScreen(Screen parentScreen, StringListSetting setting)` / `StringSetScreen(Screen parentScreen, StringSetSetting setting)`：
+  列表/集合字符串编辑器（打开前先 `prepare()`）。
 - `SoundSelectionScreen(Setting<NamedIdentifier> selectedSetting, Screen parentScreen)`：`getSelectedSetting()`；
   `closeWithTransition()` 回父屏。
 - `ShulkerPreviewScreen(ShulkerBoxMenu menu, Inventory inventory, Component title, Screen parentScreen)`
   （`extends ShulkerBoxScreen`）：`rejectMouseClick(...)`、静态 `isRenderingPreview()`；Esc 回父屏。
+- `FakeplayerScreen(FakeplayerModule module)`：假人录制/回放控制。
 - `TradeManagerScreen()`：`requestPanelChange(TradePanelRequest)`（`forCreate()` / `forEdit(trade)`）。
 - `TradeEditorScreen(String tradeName)` / `TradeEditorScreen(TradeDefinition trade)`：`setTooltipStack(ItemStack)`；
   先 `setParentScreen(managerScreen)` 再 `setScreen`。
@@ -143,17 +160,19 @@ API：`getX()/getY()/setX()/setY()`、`getWidth()/getHeight()`、`getHeaderHeigh
 
 坑：
 
-- `ClickGuiScreen`：Ctrl+F 聚焦搜索框、Enter 定位并展开模块、Ctrl+V 解析剪贴板模块预设；
+- `ClickGuiScreen`：Ctrl+F 聚焦搜索框，已聚焦时再按清空并失焦；Enter 定位并展开模块、Ctrl+V 解析剪贴板模块预设；
+  支持 Ctrl+滚轮缩放（0.1–2.0）、Shift+滚轮水平平移、方向键平移、Shift+F1 重置布局。
   `openModuleComponents` 最多留 3 个展开模块，超出自动收起最早的。
 - `HudEditorScreen` 的模块面板是 `HudModulePanel`；左右键在 HUD 组件上分别触发拖动/展开设置行。
   它由 `HUDModule` 的 `HudEditor` 设置回调打开，**不要自己 new**。
 - `PresetScreen` / `SoundSelectionScreen` / `ClickGuiScreen` 覆写 `onFilesDrop(List)`；`ClientScreen` 不拦截。
 - `TradeManagerScreen.requestPanelChange` 只登记请求，真正换面板在下一次 `renderContents`。
 - `ShulkerPreviewScreen.keyPressed` 用 Esc 直接 `setScreen(parentScreen)`，不走关闭动画。
+- `ConfirmGameCloseScreen` / `DisconnectConfirmationScreen` 直接继承原版 `ConfirmScreen`，没有 panels 与关闭动画。
 
 ## 7. 集合编辑器 Registry
 
-`RegistrySetSetting<E>(String name, Registry<E> entryRegistry, E... defaultEntries)`（`settings/RegistrySetSetting.java`，
+`RegistrySetSetting<E>(String name, Registry<E> entryRegistry, E... defaultEntries)`（`settings/types/RegistrySetSetting.java`，
 另有带 visibility 谓词的重载）：`getRegistry()`、`modifyEntries(Consumer<Set<E>>)`。设置行里打开：
 
 ```java
@@ -179,12 +198,16 @@ new RegistrySetScreen<>(ClientAccess.evernightMinecraft.screen, this.registrySet
 - `SearchQuery`：归一化后的查询 + 解析后的模式 + 每个候选字符串的结果缓存；`matchesEnglish(...)` 只做大小写不敏感
   `contains`，`matchesChinese(...)` = 字面 `contains` 或拼音匹配（`PinyinMatcher` → 内置裁剪版 PinIn，无索引；
   模糊音按 `UI > 搜索` 的开关生效，默认全开）。
-- `SearchQueryHolder`：每个搜索框一个，`update(文本)` 只在文本或生效模式变化时重建 `SearchQuery`，**布局循环里可以每帧调**。
+- `SearchQueryHolder`：每个搜索框一个，`update(文本)` 只在文本、生效模式或模糊音掩码变化时重建 `SearchQuery`，
+  **布局循环里可以每帧调**。
 - `SearchKey`：某条目的 `english[]` / `chinese[]` 名字集合；`matches(query)` 按当前模式选一侧。
 - `SearchNames`：为 item / block / entity / effect / potion / sound / enchantment / `ItemStack`（含附魔与药水效果）/
-  `Module` 构建 `SearchKey`，英文名与中文名分别通过 `LocalizedNames`（资源管理器的 `en_us` / `zh_cn` 语言表，
+  `Module` / 注册表条目构建 `SearchKey`，英文名与中文名分别通过 `LocalizedNames`（资源管理器的 `en_us` / `zh_cn` 语言表，
   含模组键）查询，并补注册名；客户端 / 插件自有键（`evernight.*`、`addons.<id>.*`）先查 `LanguageTable`
-  的 overlay，所以插件模块的中英文名与拼音也被覆盖。中文模式**不会**命中英文名，英文模式**不会**命中中文名。
+  的 overlay，所以插件模块的中英文名与拼音也被覆盖。中文模式只匹配中文名与拼音；**完全没有中文名的条目**会把英文名
+  并入中文集合（保证未翻译模组仍可搜），英文模式则**不会**命中中文名。
+- `ChestSearchBar` 不走 `SearchQueryHolder`，由 `ChestSearchController` 自带 `cachedFilter/cachedFilterMode`，
+  额外支持 `exact` 与 `/regex/` 写法，并递归匹配潜影盒/收纳袋内容。
 
 ## 8. 打开界面的标准写法
 
@@ -194,8 +217,8 @@ new RegistrySetScreen<>(ClientAccess.evernightMinecraft.screen, this.registrySet
 ClickGUI / HUD 编辑器是单例：`ClientContext.getClickGui().open()`、
 `ClientAccess.evernightMinecraft.setScreen(ClientContext.getHudEditor())`，**不要 new**。
 
-- 不在渲染线程/要等下一个 tick：`ClientContext.taskScheduler.scheduleScreenChange(screen)` 或
-  `scheduleRotationTask(runnable, 0)`；`TradeCommand` 就这么开交易屏。
+- 不在渲染线程/要等下一个 tick：`ClientContext.taskScheduler.scheduleScreenChange(screen)`（= 下一个客户端 tick）或
+  `scheduleRotationTask(runnable, 0)`（= 转向请求队列）；两者语义不同，不要混用。`TradeCommand` 用前者开交易屏。
 - 开界面前检查 `ClientAccess` 的 `isWorldUnavailable()`（player/level 为空）。
 - `ClientScreen.keyPressed` 的 Esc：先广播给所有面板，未被 `suppressEscapeClose()` 取消才 `closeWithTransition()`。
 
@@ -206,8 +229,9 @@ MessagePriority)`、`createSignature(int)`、`moduleSignature(Module)`、`sendCh
 `HudNotification(String text, long durationMillis, Color color)`（`getText()`、`getColor()`、`getStartTimeMillis()`、
 `getEndTimeMillis()`，子类 `LagNotification` / `MusicNotification` / `GreetingNotification`）。
 `NotificationsModule` 公开入口只有 `shouldNotifyCommands(NotificationsModule)`、`getBracketColor()`、
-`getWatermarkColor()`（另有 public 字段 `watermarkSetting` / `bracketsSetting`），**没有**「发一条通知」的公共方法；
-`WelcomerModule` 的通知列表也无公共推送入口，不要从别的模块往里塞对象。详见 `runtime.md` 第 8 节。
+`getWatermarkColor()`（后两者返回 ARGB `int`；另有 public 字段 `watermarkSetting` / `bracketsSetting`），
+**没有**「发一条通知」的公共方法；`WelcomerModule` 的通知列表也无公共推送入口，不要从别的模块往里塞对象。
+详见 `runtime.md` 第 8 节。
 
 **确认框**：原版 `ConfirmScreen(BooleanConsumer, Component, Component)` + `setScreen`；
 断连/关游戏/导入确认的封装见第 6 节 Screen 表；「再点一次才生效」的确认用计时器（`TradeActionsPanel.deleteIfConfirmed`）。

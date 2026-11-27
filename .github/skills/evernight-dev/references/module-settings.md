@@ -4,7 +4,7 @@
 
 ## 1. 文件地图
 
-源码在 `src/main/java/evernight/client/`：`modules/`、`settings/` 与 `settings/options/`、`managers/`（注册表/配置）、`events/` 与 `events/bus/`、`bootstrap/`（`ClientInitializer`、`ModuleDependencies`）。语言表在 `src/main/resources/assets/evernight/lang/`（`en_us.json`、`zh_cn.json`）。
+源码在 `src/main/java/evernight/client/`：`modules/`、`settings/`（`core/` 放 `Setting`、`NamedEntry`、`JsonConfigurable` 等契约，`types/` 放各设置类型，`options/` 放选项枚举）、`managers/`（注册表/配置）、`events/` 与 `events/bus/`、`bootstrap/`（`ClientInitializer`、`ModuleDependencies`）、`config/`（`json/` 编码器、`preset/` 预设、`legacy/` 旧配置迁移）。语言表在 `src/main/resources/assets/evernight/lang/`（`en_us.json`、`zh_cn.json`）。
 
 ## 2. Module 基类
 
@@ -13,12 +13,11 @@
 ### 2.1 构造器与身份
 
 ```java
-public Module(String name, String description, ModuleCategory category, String... aliases)
 public Module(String name, ModuleCategory category, String... aliases)
 ```
 
-- `name` = `getName()`，**稳定英文标识**（命令/别名/配置键/预设依赖），永不翻译；构造器追加进 `aliases`，无别名传 `new String[0]`（`getAliases()` 至少 1 项）。
-- `getConfigName()` 默认 `getName()`；`getDisplayName()` = `Translations.module(getName())`；`getDescription()` = `Translations.moduleDescription(getName(), super.getDescription())`，Java description 是 fallback。
+- `name` = `getName()`，**稳定英文标识**（命令/别名/配置键/预设依赖），永不翻译；构造器追加进 `aliases`，无别名传 `new String[0]`（`getAliases()` 至少 1 项）。**没有带 description 参数的构造器**。
+- `getConfigName()` 默认 `getName()`；`getDisplayName()` = `Translations.module(getName())`；`getDescription()` = `Translations.moduleDescription(getName())`，**没有 Java 侧描述兜底**，文案只存在于语言表。
 - `getInfo()` 默认 `null`，`getInfoString()` 拼 `别名 [info]` 供 ModuleList HUD；`getCategory()` 返回构造分类。
 
 ### 2.2 设置与键位
@@ -45,20 +44,21 @@ public record Keybind(int code, Mode mode, boolean mouse) {
 
 ### 2.3 启停生命周期（事件订阅发生在 enable）
 
-`enable()`：`enabled = true` → `ClientAccess.eventBus.subscribe(this)` → post `ModuleToggleEvent` → `onToggle()` → `onEnable()`；`disable()` 对称且先 `unsubscribe(this)`。**模块里的 `@EventHandler` 只在启用期间被调用**，处理器通常不必再判断 `isToggled()`。`isToggled()` 返回 `enabled`，`toggle()/setToggled(boolean)` 来自 `client/utils/core/Toggleable.java` 的 default 方法；`onEnable/onDisable/onToggle` 是空实现钩子。
+`enable()`：先判 `isAvailable() || isToggled()` → `enabled = true` → `ClientAccess.eventBus.subscribe(this)` → post `ModuleToggleEvent` → `onToggle()` → `onEnable()`；`disable()` 对称且先 `unsubscribe(this)`。**模块里的 `@EventHandler` 只在启用期间被调用**，处理器通常不必再判断 `isToggled()`。`isToggled()` 返回 `enabled`，`toggle()/setToggled(boolean)` 来自 `client/utils/core/Toggleable.java` 的 default 方法；`onEnable/onDisable/onToggle` 是空实现钩子。
 
 ### 2.4 序列化与两个覆盖开关
 
-`toJson()` 写 `enabled`、`key`(int)、`state`(`Keybind.Mode#getSerializedName`)、`mouse`、`drawn`、`settings`（只写非 `isGroupOnly()` 且非 `isExcludedFromConfig()` 的设置，键为 `Setting#getConfigName()`）；`fromJson()` 对称、逐项容错、缺键忽略。
+`toJson()` 写 `enabled`、`key`(int)、`state`(`Keybind.Mode#getSerializedName`)、`mouse`、`drawn`、`settings`（只写非 `isGroupOnly()` 且非 `isExcludedFromConfig()` 的设置，键为 `Setting#getConfigName()`）；`fromJson()` 对称、逐项容错、缺键忽略，并先经 `LegacyConfigMigrations.migrateModule(...)` 做旧键迁移。
 
 - `protected boolean usesExternalKeybind()`：`true` 时 `fromJson` **不**用配置覆盖 key/mouse（键位托管给原版 `KeyMapping` 的模块用）。
 - `protected void ignoreState()`：此后 `enabled` 不写也不读（状态由外部驱动的常驻模块用）。
 
-`setDrawn/isDrawn` 控制列表/通知展示，`setWip`(protected)/`isWip` 只标记开发中。
+`setDrawn/isDrawn` 控制列表/通知展示；没有 `setWip/isWip`。
 
-### 2.5 可选模组依赖
+### 2.5 可选模组与平台依赖
 
 - 整个模块依赖某个可选模组时，在构造器调 `protected final void requiresMod(String... modIds)`：任一 id 加载即算可用（如 `"baritone", "baritone-meteor"`）。`isAvailable()` 返回结果，GUI/补全会据此过滤；不可用模块仍注册（配置不丢），但不会出现在 ClickGUI、搜索和模块名补全里，`;<alias>` 不注册，`enable()` 直接返回。
+- 平台能力缺失（如缺少内置 native 助手）用 `protected final void requiresPlatform(boolean supported)`：与 `requiresMod` 一起收敛到 `isAvailable()`，同样只隐藏、保留配置。
 - 只有个别配置项依赖可选模组时，用 `Setting#hideWithoutBaritone()` 或 `hideUnlessModLoaded(String...)`，别把无意义的开关留在界面上。
 - 可选模组类不能出现在模块的字段类型、`implements` 列表或 `@EventHandler` 方法签名里（反射解析字段类型会在未安装时崩溃），桥接与字段类型禁区见 `SKILL.md` §3.8。
 
@@ -76,24 +76,24 @@ public record Keybind(int code, Mode mode, boolean mouse) {
 
 ### 3.2 PermanentModule
 
-`public abstract class PermanentModule extends Module`：`isToggled()` 恒 `true`、`isDrawn()` 恒 `false`、`getKeybind()` 恒 `Keybind.UNBOUND`、`disable()` 空实现、`toJson()` 去掉 `enabled/key/state`。子类：`SettingsModule`、`ColorsModule`、`BaritoneModule`、`AntiCheatModule`。
+`public abstract class PermanentModule extends Module`：`isToggled()` 恒 `true`、`isDrawn()` 恒 `false`、`getKeybind()` 恒 `Keybind.UNBOUND`、`disable()` 空实现、`toJson()` 去掉 `enabled/key/state`。子类：`SettingsModule`、`ColorsModule`、`BaritoneModule`、`AntiCheatModule`、`WaypointSettingsModule`。
 
 **坑**：`isToggled()` 恒真使 `Module.enable()` 第一行提前 return，**PermanentModule 永远不会被 `enable()` 订阅**，必须在构造器手动订阅（`AntiCheatModule`、`BaritoneModule`）：`ClientAccess.eventBus.subscribe(this);`。它们不反订阅，生命周期等于进程。
 
 ### 3.3 HudWidgetModule（HUD 组件契约）
 
-`public abstract class HudWidgetModule extends Module`：构造器 `public HudWidgetModule(String name, String... aliases)`，分类固定 `HUD`，`isDrawn()` 恒 `false`；覆写 `fromJson/toJson`，在 `settings` 外额外持久化 `hud`：`anchor`、`index`，anchor 为 `NONE` 时还存 `h`/`v`（水平/垂直对齐 ordinal）与相对坐标 `x`/`y`。
+`public abstract class HudWidgetModule extends Module`：构造器 `public HudWidgetModule(String name, String... aliases)`，分类固定 `HUD`，`isDrawn()` 恒 `false`；覆写 `fromJson/toJson`，`toJson` 只写 `enabled`、`settings` 与 `hud`（**没有 key/state/mouse/drawn**）：`hud` 含 `anchor`、`index`，anchor 为 `NONE` 时还存 `h`/`v`（水平/垂直对齐 ordinal）与相对坐标 `x`/`y`。
 
-- `protected void setRenderer(HudWidgetRenderer renderer)`：**必须在构造器里调用**，否则 `renderer` 为 null；`getRenderer()`、`getAnchor()`、`setAnchor(HudAnchor)`（重挂到 `ClientContext.getHudEditor()` 锚点分组）。
+- `protected void setRenderer(HudWidgetRenderer renderer)`：**必须在构造器里调用**，否则 `renderer` 为 null；`getRenderer()`、`getAnchor()`、`setAnchor(HudAnchor)`（重挂到 `ClientContext.getHudEditor()` 锚点分组）、`getAnchorIndex()`（当前锚点组内的序号）。
 - 尺寸由渲染器缓存：`HudWidgetRenderer.getDimensions()`/`setDimensions(float[])`，子类在 `calculateDimensions()` 算好交回。
 - 文本型 `HudTextListRenderer` + `HudTextRow`（行 `Supplier<Component>` 每帧生成）；自绘型 `ResizableHudWidgetRenderer`（覆写 `calculateDimensions()`/`renderContent(PoseStack)`）。
 - `getHudColor(float position)` 用 `HUDModule#fadeSetting`；`isInHudEditor()` 判断是否在编辑器。
 
-HUD 模块注册点在 `HudModuleRegistry` 构造器，配置落 `hud.json`；combat 专用 `PlacementModule` 普通模块不要继承。
+HUD 模块注册点在 `HudModuleRegistry` 构造器，配置落 `hud.json`；`HudModuleRegistry.fromJson` 按 `hud.index` 升序恢复锚点组顺序。combat 专用 `PlacementModule` 普通模块不要继承。
 
 ## 4. settings/ 设置体系
 
-源码 `client/settings/`；所有设置均为 `Setting<T>` 子类。
+源码 `client/settings/`；所有设置均为 `Setting<T>` 子类。`core/` 放契约，`types/` 放具体类型。
 
 ### 4.1 Setting<T> 基类
 
@@ -110,9 +110,9 @@ Setting(String name, T defaultValue, T minimumValue, T maximumValue)
 Setting(String name, T defaultValue, T min, T max, Predicate<? super T> visibility)
 ```
 
-取值：`getValue()`、`getStagedValue()`、`getDefaultValue()`、`getMinimumValue/getMaximumValue()`、`setValue(T)`（数值按 min/max 钳制；引用变化触发 changeCallback）、`setDefaultValue(T)`、`reset()`。`getConfigName()` 默认等于 name，`setConfigName(String)` 改持久化键；`getDisplayName()` = `Translations.setting(getName())`——**标签看 name，配置与 tooltip 看 configName**。
+取值：`getValue()`、`getStagedValue()`、`getDefaultValue()`、`getMinimumValue/getMaximumValue()`、`setValue(T)`（数值按 min/max 钳制；引用变化触发 changeCallback）、`setDefaultValue(T)`、`reset()`。`getConfigName()` 默认等于 name，`setConfigName(String)` 改持久化键；`getDisplayName()` 默认 `Translations.setting(getName())`，被 `setDisplayNameKey(String)` 覆盖时整键查表——**标签看 name（或插件的完整键），配置与 tooltip 看 configName**。
 
-小接口：`NamedEntry`（`String getName()`，default `getDisplayName()` = `Translations.value(getName())`）；`ValueProvider<T>`（`T getValue()`）；`JsonConfigurable`（`fromJson(JsonElement)` / `toJson()` / default `getConfigName()` 返回 `""`，注册表覆写成文件名如 `modules.json`）；`SettingLabelCondition`（枚举 `MIN`/`MAX`，配合 `setBoundaryLabel`）。
+小接口：`NamedEntry`（`String getName()`，default `getDisplayName()` = `Translations.value(getName())`、`withName(String)` 返回改名副本、`getDisplayComponent()` 返回未翻译的 `Component.literal(getName())`）；`ValueProvider<T>`（`T getValue()`）；`JsonConfigurable`（`fromJson(JsonElement)` / `toJson()` / default `getConfigName()` 返回 `""`，注册表覆写成文件名如 `modules.json`）；`SettingLabelCondition`（枚举 `MIN`/`MAX`，配合 `setBoundaryLabel`）。
 
 ### 4.2 链式修饰（全部真实存在）
 
@@ -120,11 +120,12 @@ Setting(String name, T defaultValue, T min, T max, Predicate<? super T> visibili
 | --- | --- | --- |
 | `dependsOn` | `final Setting<T> dependsOn(Setting<?>... dependencies)` | 普通设置按 Boolean，false 隐藏；group 依赖要求 `isExpanded() && isVisible()`；非 Boolean 只能作 group 依赖；返回 `Setting<T>`。 |
 | `markAsGroup` | `Setting<T> markAsGroup()` | 折叠组标题：`groupOnly = true` 且 `markVisibilityDependency()`。 |
-| `markVisibilityDependency` | `void`；配套 `addVisibilityPredicate(Predicate<? super T>)` | 标记可见性依赖提供者；子设置用 `dependsOn(父)`，多谓词取与。 |
+| `markVisibilityDependency` | `Setting<T>`；配套 `addVisibilityPredicate(Predicate<? super T>)` | 标记可见性依赖提供者；子设置用 `dependsOn(父)`，多谓词取与。 |
+| `setDisplayNameKey` | `Setting<T> setDisplayNameKey(String)` | 用完整语言键覆盖标签查找（`AddonModule#add` 自动用于 `addons.<id>.names.settings.*`）。 |
 | `setConfigName` | `void setConfigName(String)` | 改配置键；**发布后不可改，否则老配置失效**。 |
 | `setChangeCallback` | `void setChangeCallback(Runnable)` | 值引用变化时执行；异常被吞。 |
 | `hideWithoutBaritone` | `void hideWithoutBaritone()` | Baritone 不可用时隐藏。 |
-| `hideUnlessModLoaded` | `void hideUnlessModLoaded(String... modIds)` | 任一给定模组 id 未加载时隐藏，用于 Xaero 等其它可选模组的单项配置。 |
+| `hideUnlessModLoaded` | `void hideUnlessModLoaded(String... modIds)` | 任一给定模组 id 未加载时隐藏，用于 Xaero / Litematica 等可选模组的单项配置。 |
 | `setBoundaryLabel` | `final Setting<T> setBoundaryLabel(String, SettingLabelCondition)` | 触 MIN/MAX 显示标签（`"None"`/`"Vanilla"`），仅 `hasNumericValue()`。 |
 | `forceOpaqueColor` | `Setting<T> forceOpaqueColor()` | alpha=255。 |
 | `setExcludedFromConfig` | `void setExcludedFromConfig(boolean)` | 不进 `Module#toJson/fromJson` 与预设。 |
@@ -146,7 +147,7 @@ Setting(String name, T defaultValue, T min, T max, Predicate<? super T> visibili
 | `RegistrySetSetting<E>` | `(String, Registry<E>, E... defaults)`；带 Predicate | `Set<E>` |
 | `CyclingTextSetting`（接口） | — | — |
 
-备注：`BooleanSetting.parseValue` 接受 toggle/true/false/1/0；`NumberSetting` 有 `withUnit(String)`、`setNumber(Number)`、`Setting#disableNumericBounds()`，类型由 default 决定；`EnumSetting` 写 `getName()`，未知值回落首个常量；`ColorSetting` 有 `getColor()`、JSON 存 `{rgba, rainbow, sync}`；`IdentifierSetting` 存 `{name, category}`，`parseValue` 接受 `name` 或 `category:name`；`SetSetting` 子类实现 `parseEntry(String)`、`formatEntry(E)`、`getAvailableEntries()`，另有 `addEntry/removeEntry/containsEntry`；`StringSetSetting` 读写转小写、可用表为空；`StringListSetting` 有序、增删改触发 changeCallback、`withPrepareAction(Runnable)` 打开前重载文件、文件为唯一数据源时配 `setExcludedFromConfig(true)` + `withResetAction(Runnable)`；`ActionSetting` 不保存值、自动 `setExcludedFromConfig(true)`、`withInfo(Supplier<String>)`；`RegistrySetSetting` 存注册表 id，有 `getRegistry()`、`modifyEntries(Consumer<Set<E>>)`；`CyclingTextSetting` 只由 `NumberSetting`/`EnumSetting` 实现，供 `;module` 命令。
+备注：`BooleanSetting.parseValue` 接受 toggle/true/false/1/0；`NumberSetting` 有 `withUnit(String)`、`setNumber(Number)`、`Setting#disableNumericBounds()`，类型由 default 决定；`EnumSetting` 写 `getName()`，未知值回落首个常量；`ColorSetting` 有 `getColor()`、JSON 存 `{rgba, rainbow, sync}`；`IdentifierSetting` 存 `{name, category}`，`parseValue` 接受 `name` 或 `category:name`；`SetSetting` 子类实现 `parseEntry(String)`、`formatEntry(E)`、`getAvailableEntries()`，另有 `addEntry/removeEntry/containsEntry`；`StringSetSetting` 的 `parseEntry/formatEntry` 转小写，但 `fromJson` 直接保留读到的值；`StringListSetting` 有序、增删改触发 changeCallback、`withPrepareAction(Runnable)` 打开前重载文件、文件为唯一数据源时配 `setExcludedFromConfig(true)` + `withResetAction(Runnable)`；`ActionSetting` 不保存值、自动 `setExcludedFromConfig(true)`、`withInfo(Supplier<String>)`；`RegistrySetSetting` 存注册表 id，有 `getRegistry()`、`modifyEntries(Consumer<Set<E>>)`；`CyclingTextSetting` 只由 `NumberSetting`/`EnumSetting` 实现，供 `;module` 命令。
 
 ## 5. settings/options 枚举约定
 
@@ -160,8 +161,8 @@ Setting(String name, T defaultValue, T min, T max, Predicate<? super T> visibili
 | --- | --- | --- |
 | `ESPModeChoice` | `PLAIN("Plain")/TEXT("Text")/BOTH("Both")` | JSON 加 `evernight.names.values.Plain` 等。 |
 | `HudAnchor` | `name` + `HudVerticalAlignment` + `HudHorizontalAlignment` + `BiFunction<Integer,Integer,FloatBounds> boundsFactory` | `getName()` 是小写 id（`top_left`…`none`），JSON 键 `evernight.names.values.top_left`；`NONE` 为自由定位（才写 `h/v/x/y`）；`getBounds()/contains()` 供编辑器命中。 |
-| `PresetCategory` | 实现 `JsonConfigurable`，每常量覆写 `fromJson/toJson` | 决定文件名与 payload：`getDirectory()` → `presets/<小写名>`，`writeMetadata` 写 `client/category`，`findByName` 供命令解析；新增分类补 `evernight.names.values.<getName()>`，`ConfigurationManager.load()` 遍历 `values()` 建目录。 |
-| `ListFilterMode` | 普通枚举 + 静态 `matches(...)`/`isAny()` | 行为由**调用方**显式调用，不会自动生效。 |
+| `PresetCategory` | 实现 `JsonConfigurable`，常量各自覆写 `fromJson/toJson`（`ALL` 只覆写 `toJson`，`fromJson` 复用 `ModuleRegistry`） | 决定文件名与 payload：`getDirectory()` → `presets/<小写名>`，写出时 `writeMetadata` 写 `client/category`（`MACRO` 不写，`ALL` 复用 `ModuleRegistry.toJson` 自带元数据），`findByName` 供命令解析；新增分类补 `evernight.names.values.<getName()>`，`ConfigurationManager.load()` 遍历 `values()` 建目录。 |
+| `ListFilterMode` | 普通枚举 + 静态 `matches(...)` 重载 + 实例 `isAny()`/`isFiltering()` | 行为由**调用方**显式调用，不会自动生效。 |
 
 ## 6. 注册表与初始化顺序
 
@@ -169,20 +170,20 @@ Setting(String name, T defaultValue, T min, T max, Predicate<? super T> visibili
 
 - `RegistryContainer<T>`（`client/utils/inventory/RegistryContainer.java`）：`register/unregister/getRegistry`；`AbstractRegistry<T>`：`protected final List<T> entries`，`getRegistry()` 返回它，`findFirst/findFirstOrNull(Predicate)`。
 - `Registry<T extends NamedEntry>`：`registerEntry` 按 `getName()` 去重，重名返回 `false` 且不入表；`unregisterEntry`。
-- `ModuleRegistry`：所有模块的唯一存储表。构造器逐个 `registerModule(new XxxModule())`，失败即 `throw new IllegalStateException("Registration rejected XxxModule")`；最后按 `Module::getName` 排序。`registerModule` 按 `Module::getName` 去重，重名返回 `false`；`getModule(Class)`（`@Deprecated` 但仍用）按类型索引；`getConfigName()` = `"modules.json"`。
+- `ModuleRegistry`：所有模块的唯一存储表。构造器逐个 `registerModule(new XxxModule())`，失败即 `throw new IllegalStateException("Registration rejected XxxModule")`；最后按 `Module::getName` 排序。`registerModule` 按 `Module::getName` 去重，重名返回 `false`；`getModule(Class)` 按类型索引，**不是 deprecated**（仅建议外部改用 `ClientContext.getModule`）；另有 `unregisterModule`、`getModulesByCategory(ModuleCategory)`、`getPlacementModules()`；`getConfigName()` = `"modules.json"`，顶层带 `"client":"evernight"`、`"category":"all"`。
 - **坑：模块的字段类型、父类和方法签名不能是可选模组的类。** 模块 `enable()` 时 `EventBus` 会用 `getDeclaredMethods()` 扫描 `@EventHandler` 并解析参数类型，字段/父类类型在构造或首次触碰时加载。字段若声明成依赖可选模组的实现类（例：`EntityControlModule.pathfinder` 声明为 `EntityControlPathfinder`，后者 `implements AbstractGameEventListener`），没装 Baritone 时会在类加载阶段抛 `NoClassDefFoundError: baritone/api/event/listener/AbstractGameEventListener`，客户端卡在主初始化阶段。字段只声明桥接口或与可选模组无关的抽象，实现由桥在 `isAvailable()` 为真时构造（`BaritoneBridge` + `DisabledBaritoneBridge`、`WaypointAdapter` + `DisabledWaypointAdapter`，见 `SKILL.md` §3.8）；可选模组类也不要出现在模块的字段类型、`implements` 列表或 `@EventHandler` 方法签名里。
-- `HudModuleRegistry`：构造器把 HUD 模块 `ClientContext.moduleRegistry.registerModule(new XxxModule())` 注册进同一 `ModuleRegistry`；`getConfigName()` = `"hud.json"`；收到 `ClientInitializationEvent` 时对所有 `HudWidgetModule` 重新 `setAnchor(getAnchor())` 重建锚点分组。
-- `ConfigurableRegistry`：`ConfigurationManager` 保存/加载的 `JsonConfigurable` 列表，两个 registry 已在内。
+- `HudModuleRegistry`：构造器把 HUD 模块 `ClientContext.moduleRegistry.registerModule(new XxxModule())` 注册进同一 `ModuleRegistry`；`getConfigName()` = `"hud.json"`；收到 `ClientInitializationEvent` 时对所有 `HudWidgetModule` 重新 `setAnchor(getAnchor())` 重建锚点分组；`fromJson` 按 `hud.index` 升序恢复。
+- `ConfigurableRegistry`：`ConfigurationManager` 保存/加载的 `JsonConfigurable` 列表；当前有 16 个配置源（webhook、screenshot、module、social、waypoint、macro、stash、hud、kit、autopreset、alias、chatfilter、glint、command、trade、blockcolor），并提供公开 `register(...)`，插件配置也走这里。
 
 ### 6.2 初始化顺序（决定你能安全依赖什么）
 
-`ClientInitializer.initialize()` 先 `ClientContext.moduleRegistry = new ModuleRegistry()` 再 `ClientContext.hudModuleRegistry = new HudModuleRegistry()`。`initializeClient()` 顺序：`ModuleDependencies.bind(ClientContext.moduleRegistry)`→ `ClientKeybinds.register()` → post `ClientInitializationEvent`→ `new ConfigurationManager()` + `configuration.load()`（**模块全部构造完之后**才读配置）。
+`ClientInitializer.initialize()` 先 `ClientContext.moduleRegistry = new ModuleRegistry()` 再 `ClientContext.hudModuleRegistry = new HudModuleRegistry()`，随后 `AddonManager.initialize()` 构造插件模块。`initializeClient()` 顺序：`ModuleDependencies.bind(ClientContext.moduleRegistry)` → `ClientKeybinds.register()` → post `ClientInitializationEvent` → `new ConfigurationManager()` → 注册 `AddonManager` 暂存的配置源 → `configuration.load()`（**模块全部构造完之后**才读配置）。
 
 **坑**：模块构造器/静态初始化里不要依赖后注册的模块。`moduleRegistry` 在 `new ModuleRegistry()` 返回后才赋值，构造期间 `ClientContext.getModule(Xxx.class)` 返回 `null`（HUD 模块注册更晚，构造时能取到 HUD 等模块，属特例）。跨模块引用统一写静态 `bind` 方法并在 `ModuleDependencies.bind` 加一行，如 `ColorSetting.bindModuleRegistry(registry)` 把 `ColorsModule` 回填给颜色设置。
 
 ## 7. 事件总线与 @EventHandler
 
-源码 `client/events/bus/`（`EventBus`、`EventDispatcher`、`EventListener`、`MethodEventListener`），事件定义在 `client/events/`；总线单例是 `ClientAccess.eventBus`。`EventDispatcher`：`subscribe/unsubscribe/subscribeStatic/post/postCancellable`；`EventListener`：`isStatic()/getEventType()/getPriority()/call(Object)`；`MethodEventListener` 把 `@EventHandler` 方法经 `LambdaMetafactory` 绑成 `Consumer`。
+源码 `client/events/bus/`（`EventBus`、`EventDispatcher`、`EventListener`、`MethodEventListener`），事件定义在 `client/events/`；总线单例是 `ClientAccess.eventBus`。`EventDispatcher`：`subscribe/unsubscribe/subscribeStatic/post/postCancellable`，另有 `subscribeListener(EventListener)` / `unsubscribeListener(...)`；`EventListener`：`isStatic()/getEventType()/getPriority()/call(Object)`；`MethodEventListener` 把 `@EventHandler` 方法经 `LambdaMetafactory` 绑成 `Consumer`。
 
 ### 7.1 方法签名规则
 
@@ -208,9 +209,9 @@ private void onSomeEvent(SomeEvent event) { ... }   // void、恰好 1 个非基
 
 ### 7.3 取消语义与 EventStage
 
-可取消事件继承 `CancellableEvent`（`client/events/core/CancellableEvent.java`）：`isCancelled()`、`cancel()`、`resetCancellation()`。`EventBus.post(event)` 只逐个调用监听器、**不会**在取消后停止；发送方须在派发后自行检查，如 `mixin/ConnectionMixin.java`：`post(event); if (event.isCancelled()) callback.cancel();`。
+可取消事件继承 `CancellableEvent`（`client/events/core/CancellableEvent.java`）：`isCancelled()`、`cancel()`、`resetCancellation()`。`EventBus.post(event)` 只逐个调用监听器、**不会**在取消后停止；发送方须在派发后自行检查，如 `mixin/minecraft/network/ConnectionMixin.java`：`post(event); if (event.isCancelled()) callback.cancel();`。
 
-`EventBus.postCancellable(Cancellable)` 派发前 `setCancelled(false)`，遇取消立即 break；但 `Cancellable` 接口在当前事件里没有实现者，仓库事件统一用 `CancellableEvent`，也没有 `postCancellable` 调用点——照 ConnectionMixin 的 `post` + `isCancelled()` 写法即可。
+`EventBus.postCancellable(Cancellable)` 派发前 `setCancelled(false)`，遇取消立即 break；但 `Cancellable` 接口在当前事件里没有实现者，仓库事件统一用 `CancellableEvent`，也没有 `postCancellable` 调用点——照 `ConnectionMixin` 的 `post` + `isCancelled()` 写法即可。
 
 带阶段的事件（如 `PlayerAttackEvent`、`StepHeightEvent`）用 `getStage()` 返回 `EventStage.Pre/Post`（`isPre()/isPost()`），同一事件类按阶段各派发一次；`PacketEvent` 用 `Receive/Send/PostSend` 三个子类区分方向与时机。
 
@@ -218,19 +219,19 @@ private void onSomeEvent(SomeEvent event) { ... }   // void、恰好 1 个非基
 
 ### 8.1 配置文件在哪、键怎么来
 
-- 根目录 `<gameDir>/evernight`（`ConfigurationManager.ROOT_DIRECTORY`）；旧目录 `mio-fabric` 由 `ClientDataDirectory.migrateLegacy` 启动时迁移。
-- **旧配置键/旧格式的读取期迁移集中在 `client/config/legacy/LegacyConfigMigrations`**：模块名改名（`AntiVoid`→`Avoid` 等）、各模块旧设置键与旧值格式、`webhook.json` 旧 Telegram 地址、剪贴板预设旧字段 `module`、颜色裸数组、`friends.json`→`socials.json`、`autoez/`→`killsay/`。新增旧格式兼容只改这里，不要再往模块里写 `fromJson` 覆盖。`mio-fabric` 目录与预设品牌（`"client":"mio-fabric"`）由 `LegacyBranding` 单独负责。
+- 根目录 `<gameDir>/evernight`（`ConfigurationManager.ROOT_DIRECTORY`）；旧目录 `mio-fabric` 由 `ClientDataDirectory.migrateLegacy` 启动时迁移；预设里的旧品牌 `"client":"mio-fabric"` 由 `LegacyBranding` 归一到 `evernight`。
+- **旧配置键/旧格式的读取期迁移集中在 `client/config/legacy/LegacyConfigMigrations`**：模块名改名（`AntiVoid`→`Avoid` 等）、各模块旧设置键与旧值格式、`webhook.json` 旧 Telegram 地址、剪贴板预设旧字段 `module`、颜色裸数组、`friends.json`→`socials.json`、`autoez/`→`killsay/`。新增旧格式兼容只改这里，不要再往模块里写 `fromJson` 覆盖。
 - 每个 `JsonConfigurable` 一个文件，文件名 = `getConfigName()`：`evernight/modules.json`、`evernight/hud.json`。
 - 凭据：`ExtraScreenshot` 的 `ClientId` 走 `evernight/screenshot.json`（`ScreenshotCredentialStore`），模块设置 `setExcludedFromConfig(true)`，故配置、预设与剪贴板预设都不带该凭据。
-- 写盘 `ConfigurationManager.save()` 遍历 `ConfigurableRegistry`，`mixin/MinecraftMixin.java` 在 `Minecraft.destroy` 调用；读盘在 `configuration.load()`。
-- 模块键 = `Module#getConfigName()`，`settings` 键 = `Setting#getConfigName()`，另有 `enabled/key/state/mouse/drawn`。**键一旦发布不可改名，否则丢玩家配置**。
+- 写盘 `ConfigurationManager.save()` 遍历 `ConfigurableRegistry`，`mixin/minecraft/client/MinecraftMixin.java` 在 `Minecraft.destroy` 调用；读盘在 `configuration.load()`。
+- 模块键 = `Module#getConfigName()`，`settings` 键 = `Setting#getConfigName()`，另有 `enabled/key/state/mouse/drawn`；`HudWidgetModule` 例外，只写 `enabled`、`settings`、`hud`。**键一旦发布不可改名，否则丢玩家配置**。
 - 新增模块不用手动注册：`toJson/fromJson` 自动遍历所有模块（跳过 `HudWidgetModule`，它们归 `hud.json`）。
 
 ### 8.2 预设
 
 - 目录 `<gameDir>/evernight/presets/<category.getName().toLowerCase()>`（`PresetCategory.getDirectory()`）。
-- `PresetCategory.toJson` 先 `writeMetadata` 写 `"client": "evernight"`、`"category": <小写分类名>`，再按分类写模块/设置（`MODULES/BINDS/HUD/COLORS/VISUALS/MACRO/ALL`）。`PresetData` 是 `record PresetData(String name, JsonObject contents)`，`saveToDirectory(Path)` 写 `<name>.json`。
-- `PresetRegistry`（`extends Registry<PresetData>`）：`applyPreset(String)`、`savePreset(String)`、`getPreset(String)`、`loadPresets()`、`forEachPreset(Consumer<PresetData>)`；从 `ClientContext.configurationManager.getPresetRegistry(category)` 获取。
-- 单模块剪贴板预设：`ModulePresetCodec.encode(Module)` 把 `module.toJson()` 去掉 `key/state/mouse/enabled/drawn` 后 Base64，**并加入 `m` 字段 = `module.getConfigName()`**；`decode(String)` 优先读 `m`、兼容旧字段 `module`，按 `getConfigName()` 找模块，找不到抛 `IllegalArgumentException`；结果 `json` 直接喂 `module.fromJson(...)`（`PresetCommand`）。
+- `PresetCategory.toJson` 中 `MODULES/BINDS/HUD/COLORS/VISUALS` 先 `writeMetadata` 写 `"client": "evernight"`、`"category": <小写分类名>`；`MACRO` 直接输出宏注册表、不写元数据；`ALL` 复用 `ModuleRegistry.toJson`（其顶层已带 `client/category`）。`PresetData` 是 `record PresetData(String name, JsonObject contents)`，`saveToDirectory(Path)` 写 `<name>.json`。
+- `PresetRegistry`（`extends Registry<PresetData>`）：`applyPreset(String)`、`savePreset(String)`、`getPreset(String)`、`loadPresets()`、`forEachPreset(Consumer<PresetData>)`，另有撤销/重命名辅助 `restorePreset`、`deletePresetForUndo`、`renamePresetForUndo`、`copyPreset`、`saveAllPresets`（配套 `PresetUndoState`）；从 `ClientContext.configurationManager.getPresetRegistry(category)` 获取。
+- 单模块剪贴板预设：`ModulePresetCodec.encode(Module)` 把 `module.toJson()` 去掉 `key/state/mouse/enabled/drawn` 后 Base64，**并加入 `m` 字段 = `module.getConfigName()`**；`decode(String)` 优先读 `m`、兼容旧字段 `module`，先经 `LegacyConfigMigrations.canonicalModuleName(...)` 迁移模块名，返回 `DecodedPreset(Module module, JsonObject json)`（找不到模块抛 `IllegalArgumentException`）；调用方取 `.module()` / `.json()`，结果直接喂 `module.fromJson(...)`（`PresetCommand`）。
 
 验证与提交见 `SKILL.md` 第 4 节。

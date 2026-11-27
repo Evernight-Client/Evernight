@@ -1,60 +1,62 @@
 # Evernight 工具类 —— client/utils 全量速查
 
-覆盖 `src/main/java/evernight/client/utils/` 全部 137 个文件（chat、collections、combat、entity、inventory、math、
-movement、network、world 9 个子包 + 根目录），路径相对仓库根。方法名齐全，参数只保留有语义的部分（类型见源码）；
-`**坑**` 为必须遵守的约束。
+覆盖 `src/main/java/evernight/client/utils/` 全部 **154 个文件、12 个子包**（chat、collections、combat、core、entity、
+inventory、math、movement、network、search、vault、world；**根目录已无 Java 文件**），路径相对仓库根。
+方法名齐全，参数只保留有语义的部分（类型见源码）；`**坑**` 为必须遵守的约束。
+本文不再引用 `Xxx.java:NN` 行号（重构后必漂），需要定位时按类名检索。
 
 ## 1. 使用前提
 
 大多 `implements ClientAccess`（`FileUtils`/`ElapsedTimer`/`InterpolatedFloat` 等纯算法类不实现）；实例用
-`ClientAccess.evernightMinecraft`（`ClientAccess.java:17`），`mc.player == null || mc.level == null` 时别调。
+`ClientAccess.evernightMinecraft`，`mc.player == null || mc.level == null` 时别调。
 
-- 全局管理器在 `ClientContext`（`ClientContext.java:48`）：`rotationManager`、`playerStateTracker`、
-  `inventoryStateManager`、`worldStateManager`、`socialRegistry`、`swingManager`、`blockBreakTracker`、
-  `movementSpeedTracker`、`totemPopTracker`、`frameTiming`、`mapDataCache`；模块用
-  `ClientContext.getModule(XxxModule.class)`（可能 `null`）。
-- 除标注处，方法**只能在客户端线程**调用。构造器全 `private`；实例类（`BlockBreakTracker`、
-  `PlayerStateTracker`、`MovementSpeedTracker`、`MapDataCache`、`NukerBlockQueue`）自订阅事件，**不要 new**。
+- 全局管理器在 `ClientContext`：`rotationManager`、`playerStateTracker`、`inventoryStateManager`、
+  `worldStateManager`、`socialRegistry`、`swingManager`、`blockBreakTracker`、`movementSpeedTracker`、
+  `totemPopTracker`、`frameTiming`、`mapDataCache`；模块用 `ClientContext.getModule(XxxModule.class)`（可能 `null`）。
+- 除标注处，方法**只能在客户端线程**调用。纯工具类构造器为 `private`；实例类（`BlockBreakTracker`、
+  `PlayerStateTracker`、`MovementSpeedTracker`、`MapDataCache`、`NukerBlockQueue`、`ChunkScanner`、`Waypoint` 等）
+  构造器是 public，但它们自订阅事件或持有共享状态，**不要 `new`**，用 `ClientContext` 里的实例。
 
-## 2. utils 根目录
+## 2. utils/core
 
-`src/main/java/evernight/client/utils/`
+`src/main/java/evernight/client/utils/core/`
 
 | 类 | 关键 API |
 | --- | --- |
 | `ClampedInterpolatedFloat` 0~1 开关动画 | 继承 `InterpolatedFloat`；`setTarget`、`setValue`、`reset` |
-| `CompressionUtils` zlib | `inflate`、`deflate` |
-| `FrameTiming` 帧率/插值（`ClientContext.frameTiming`） | `recordFrame`、`getFrameFactor`、`getFramesPerSecond` |
+| `CompressionUtils` zlib | `inflate(byte[])`、`deflate(byte[] input, int level)`（**level 必填**） |
+| `FrameTiming` 帧率/插值（`ClientContext.frameTiming`） | `recordFrame`、`getFrameFactor(float rateScale)`、`getFramesPerSecond` |
 | `ServerAddressUtils` | `getCurrentServerAddress`（失败/本地 → `singleplayer`） |
 | `SoftwareKeyMapping` | 继承 `KeyMapping`，覆写 `isDown`/`setDown` |
 | `Toggleable` | `enable`、`disable`、`isToggled`、默认 `toggle`/`setToggled` |
 | `UncheckedExceptions` | `rethrow`（sneaky throw） |
+| `WaypointServerKey` 当前服务器键 | `getCurrent()`（路径点/自动预设共用；替代各处自拼 server 名） |
 
-### `ElapsedTimer`（`utils/ElapsedTimer.java:5`）毫秒计时器
+### `ElapsedTimer`（`core/ElapsedTimer.java`）毫秒计时器
 
 `reset`、`hasElapsed(long)`、`hasElapsedAndReset(long)`、`elapsedMillis`、`clear`、`setTime(long|double, TimeUnit)`、
 `hasElapsed(double, TimeUnit)`。**坑**：初值 `lastResetMillis = -1`，新建或 `clear()` 后 `elapsedMillis()` 极大、
 `hasElapsed(x)` 立刻 `true`，要等待先 `reset()`；非线程安全。
 
-### `InterpolatedFloat`（`utils/InterpolatedFloat.java:9`）逐帧平滑 float
+### `InterpolatedFloat`（`core/InterpolatedFloat.java`）逐帧平滑 float
 
 构造 `(float speed)` / `(float speed, boolean easingEnabled)` / `(Supplier<Float> speedSupplier, boolean
 easingEnabled)`；`setTarget`、`updateAndGet`（**每帧一次**）、`setValue`、`setEasingEnabled`、`setSpeedSupplier`、
 `getSpeedSupplier`。**坑**：依赖 `ClientContext.frameTiming`；FPS ≤ 15 直接吸附。
 
-### `FloatAnimation`（`utils/FloatAnimation.java:7`）定时线性补间
+### `FloatAnimation`（`core/FloatAnimation.java`）定时线性补间
 
 `setTarget(float target, long durationMillis)`、`setTarget(boolean target, long durationMillis)`（true=1/false=0）、
 `setValue`、`getValue`、`getValue(Function easing)`。不依赖帧率。
 
-### `InputUtils`（`utils/InputUtils.java:7`）改写本地输入
+### `InputUtils`（`core/InputUtils.java`）改写本地输入
 
 `setSneak`/`setJump`/`setForward`/`setBack`/`setLeft`/`setRight`/`setSprint` 改写 `ClientInput.keyPresses`
 （mixin accessor）；`setForwardMovement`、`setSidewaysMovement` 改 `moveVector`；`clearKeyPresses`、
 `createInput`（`moveVector=(0,1)`）。**坑**：**不自己发包**，由后续 tick 的移动包体现；用例
-`client/managers/player/InputOverrideManager.java:104`。
+`client/managers/player/InputOverrideManager.java`。
 
-### `KeyUtils`（`utils/KeyUtils.java:17`）物理键/鼠标与键名
+### `KeyUtils`（`core/KeyUtils.java`）物理键/鼠标与键名
 
 `isPhysicallyDown`、`isPhysicalKeyDown`、`isPhysicalMouseButtonDown`（直接问 GLFW，绕过 KeyMapping 的 GUI 影响；
 `isShiftDown`/`isControlDown`/`isAltDown` 只测**左**侧键）；`parseKeybind(String)` → `evernight.client.modules.Keybind`
@@ -62,11 +64,11 @@ easingEnabled)`；`setTarget`、`updateAndGet`（**每帧一次**）、`setValue
 `IllegalArgumentException`）；`getKeyName`（`int, boolean` / `Keybind`；负数 → `NONE`，鼠标 → `MOUSE<n>`）、
 `getKeyAliases`。
 
-### `FileUtils`（`utils/FileUtils.java:13`）与 `LockUtils`（`utils/LockUtils.java:6`）
+### `FileUtils`（`core/FileUtils.java`）与 `LockUtils`（`core/LockUtils.java`）
 
-`readBytes`、`writeBytes`、`readUtf8`、`writeUtf8`（均抛 `IOException`）、`findExistingWithSuffixes`；范例
-`client/managers/config/ConfigurationManager.java:73`。`LockUtils`：`runWithSharedLock`、`wrapWithSharedLock`、
-`runWithLock`、`wrapWithLock`；**坑**：锁内别长阻塞。
+`readBytes`、`writeBytes`、`readUtf8`、`writeUtf8`、`writeUtf8Atomically`（均抛 `IOException`）、
+`findExistingWithSuffixes`；范例 `client/managers/config/ConfigurationManager.java`。`LockUtils`：`runWithSharedLock`、
+`wrapWithSharedLock`、`runWithLock`、`wrapWithLock`；**坑**：锁内别长阻塞。
 
 ## 3. utils/chat
 
@@ -75,9 +77,10 @@ easingEnabled)`；`setTarget`、`updateAndGet`（**每帧一次**）、`setValue
 | 类 | 关键 API |
 | --- | --- |
 | `ChatFilterEntry` 过滤器条目 | `record ChatFilterEntry(String id, String filter)`（`ChatFilterRegistry` 数据载体） |
+| `PrivateMessageParser` 私聊解析 | `parse(String)` → `record PrivateMessage(String sender, String content)`；识别 `X whispers:`、`X -> me` 等格式与 emoji |
 | `RandomTagReplacer` 随机标签替换 | `TOKEN="<随机>"`、`ASCII_ALIAS="<random>"`、`RANDOM_LENGTH=5`；`containsTag`、`apply`（每次出现生成新的 5 位 `[A-Za-z0-9]`，无标签原样返回） |
 
-### `ChatUtils`（`utils/chat/ChatUtils.java:30`）聊天输出/前缀/水印
+### `ChatUtils`（`chat/ChatUtils.java`）聊天输出/前缀/水印
 
 `printChat(Component message, MessageSignature signature)`：**聊天反馈入口**，自动加 `[Evernight]` 前缀并投递主线程
 （**任意线程可调**），另有 `printChat(Component, int id)`、`printChat(Component, MessageSignature,
@@ -106,10 +109,10 @@ MessagePriority)`（彩色 `[!]`；`MessagePriority.HIGH/MID/LOW`）；`DEFAULT_
 ## 5. utils/combat
 
 `src/main/java/evernight/client/utils/combat/`；**本包没有 `CombatUtils`**：战斗能力 = `DamageUtils`（伤害）、
-`RaycastUtils`/`BlockRaycastContext`（射线）、`TargetSelector`（选目标）、`BoundingBoxUtils`（包围盒）；
-纯计算/查询，**不发包、不改世界**。
+`RaycastUtils`/`BlockRaycastContext`（射线）、`TargetSelector`（选目标）、`BoundingBoxUtils`（包围盒）、
+`PotionTrackerUtils`（药水效果行）；纯计算/查询，**不发包、不改世界**。
 
-### `DamageUtils`（`combat/DamageUtils.java:40`）爆炸伤害预测
+### `DamageUtils`（`combat/DamageUtils.java`）爆炸伤害预测
 
 `getCrystalDamage(Vec3 explosionPosition, LivingEntity target[, AABB bounds])` power **6.0**、`getBedDamage(...)`
 **5.0**；`getExplosionDamage(Vec3, LivingEntity, AABB, double power, boolean ignoreLowResistance, BlockPos
@@ -118,7 +121,7 @@ Collection ignoredPositions, BlockPos solidPosition, boolean ignoreLowResistance
 `scaleForDifficulty`、`getDurabilityPercent`（1~100）。**坑**：读 `AutoCrystalModule.assumeBestArmorSetting` 与
 `level.getDifficulty()`，不改状态。
 
-### `RaycastUtils`（`combat/RaycastUtils.java:32`）方块/实体射线
+### `RaycastUtils`（`combat/RaycastUtils.java`）方块/实体射线
 
 `raycast(BlockRaycastContext)`（可忽略/强制实心方块，原版 `level.clip` 做不到）；`raycastFromRotation(Vec3 origin,
 float yaw, float pitch, float range)`（只测方块、忽略流体、不含实体）；`raycastWithEntityTrace(LocalPlayer)`（走原版
@@ -126,7 +129,11 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
 `isLineVisible`。**坑**：`raycastWithEntityTrace` 期间压制 Reach 的 noEntityTrace（**全局副作用，用完自动复位**）；
 `getGroundDistance` 下方无方块会测到世界底，不可用。
 
-### `TargetSelector`（`combat/TargetSelector.java:27`）目标筛选
+### `PotionTrackerUtils`（`combat/PotionTrackerUtils.java`）药水效果行
+
+`formatLines(...)` 把追踪到的药水效果拼成 NameTags 用的字符串行；纯格式化，不改状态。
+
+### `TargetSelector`（`combat/TargetSelector.java`）目标筛选
 
 非静态 builder：`new TargetSelector()` 链式后 `select()` 返回最佳 `Entity`（无则 `null`）；`withPlayers`/
 `withNeutrals`/`withAnimals`/`withVillagers`/`withHostiles`/`withCrystals`/`withProjectiles`/`withVehicles`、
@@ -134,7 +141,7 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
 `ignoreInvisibles`、`sortBy`、`filter`；默认按距离平方升序。**坑**：默认 `visibleRange = wallRange = 0`，不调
 `range()` 永远选不到；`select()` 已用 `WorldUtils.isTargetable` 排除自己/好友/死亡。
 
-### `RotationRequest`（`combat/RotationRequest.java:3`）转向请求
+### `RotationRequest`（`combat/RotationRequest.java`）转向请求
 
 `record RotationRequest(float[] angles, int priority)`（`angles = {yaw, pitch}`）：新请求 `priority >= 当前` 才替换。
 **坑**：别直接 `new`，用 `ClientContext.rotationManager.requestRotation(float[] angles, int priority)`（或带
@@ -142,8 +149,8 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
 
 | 类 | 关键 API |
 | --- | --- |
-| `BoundingBoxUtils` AABB 工具 | `getInterpolationBounds`、`getRenderBounds`、`hasVolumeOverlap`、`clampToBounds`、`getBlockShapeBounds`/`getBlockCollisionBounds`、`placeAtBlock`、`getBottomCenter`/`getTopCenter`/`getLowerQuarterCenter`、`recenter`、`intersectsBlock`、`getPredictionTicks` |
-| `BlockRaycastContext` 射线上下文 | `new BlockRaycastContext.Builder(start, end).withEntity(Entity).withClassifier(s).build()`；`getStart`/`getEnd`/`getClassifier`/`getCollisionContext`/`getBlockShape` |
+| `BoundingBoxUtils` AABB 工具 | `getInterpolationBounds`、`getRenderBounds`、`hasVolumeOverlap`、`clampToBounds`、`getBlockShapeBounds`/`getBlockCollisionBounds(BlockPos, Block)`、`placeAtBlock`、`getBottomCenter`/`getTopCenter`/`getLowerQuarterCenter`、`recenter`、`intersectsBlock`、`getPredictionTicks` |
+| `BlockRaycastContext` 射线上下文 | `new BlockRaycastContext.Builder(start, end).withEntity(Entity).withBlockMode(...).withFluidMode(...).withClassifier(s).build()`；record 访问器 `start()`/`end()`/`classifier()`/`collisionContext()`，另有 `getBlockShape`/`getFluidShape`（**没有** `getStart/getEnd/getClassifier/getCollisionContext`） |
 | `BlockRaycastClassifier` 方块判定 | `NO_OVERRIDE`、`IGNORE_LOW_RESISTANCE`、`test`、`ignorePosition`、`ignorePositions`、`solidPosition`、`solidPositions`、`firstNonNone` |
 | `BlockRaycastOverride` | `enum {NONE, IGNORE, SOLID}` |
 | `TotemPopTracker` 图腾计数（`ClientContext.totemPopTracker`） | `getPopCount`（`Player` / `String` 两种） |
@@ -155,7 +162,7 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
 
 `src/main/java/evernight/client/utils/entity/`
 
-### `EntityUtils`（`entity/EntityUtils.java:46`）分类/血量
+### `EntityUtils`（`entity/EntityUtils.java`）分类/血量
 
 `isHostile`（末影人 `isCreepy()`、僵尸猪灵攻击中、狼 angry 纹理、中立怪 `isAngry()`、猪灵 `armPose`、
 `Enemy`/`PolarBear` 都算敌对）、`isNeutral`、`isPassive`、`isLookingAtPlayer`、`getHealthWithAbsorption`
@@ -163,7 +170,7 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
 `hasCollisionBelow`、`hasFirework`、`getFireworkPositions`、`isFirstPersonCameraEntity`。**坑**：`setStepHeight` /
 `getStepHeight` 改 `Attributes.STEP_HEIGHT` base value，**会残留**，用完还原。
 
-### `PlayerStateUtils`（`entity/PlayerStateUtils.java:44`）本地玩家状态
+### `PlayerStateUtils`（`entity/PlayerStateUtils.java`）本地玩家状态
 
 `getMovementDirection`（→ `Direction`）、`getMovementVector`（水平 `Vec3`）、`getBodySampleHeights`
 （`float[3] = {1.62, 1.27, 0.4}`，**别改内部数组**）、`streamBodySamplePositions`、`isLowProfile`、
@@ -173,7 +180,7 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
 `getOffsetBlockPositions`、`getSurroundPositions`（脚下邻格）、`oppositeHand`。**坑**：`isFallFlying()` 有副作用
 （临时把 `ElytraFlyModule.hook` 置 true 再读），会短暂影响鞘翅模块。
 
-### `PlayerStateTracker`（`entity/PlayerStateTracker.java:20`，`ClientContext.playerStateTracker`）
+### `PlayerStateTracker`（`entity/PlayerStateTracker.java`，`ClientContext.playerStateTracker`）
 
 读：`isPacketOnGround`、`getPacketPosition`、`getPacketRotations`（`{yaw,pitch}`，从最后发出的移动包解出）、
 `getLastSentInput`、`getGroundedTicks`/`getAirborneTicks`、`getFallDistance`、`getTickDisplacement`、
@@ -183,7 +190,7 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
 
 | 类 | 关键 API |
 | --- | --- |
-| `PlayerState` 注入 `Player` 的扩展接口（`mixin/PlayerMixin.java:48`） | `evernight$setRole`、`evernight$getRole`、`evernight$isNextToWall`、`evernight$wasCrawling`、`evernight$getHealthFactor`、`getItemUseProgress` |
+| `PlayerState` 注入 `Player` 的扩展接口（`mixin/minecraft/entity/PlayerMixin.java`） | `evernight$setRole`、`evernight$getRole`、`evernight$isNextToWall`、`evernight$wasCrawling`、`evernight$getHealthFactor`、`getItemUseProgress` |
 | `SwingAction` 挥手类型 | `enum {INTERACT, MINING, HIT}`；`isEnabled(AntiCheatModule)` 判断该类挥手是否发包 |
 | `SidePlayer` 侧影假玩家（FakeLag/Chams/LogoutSpots） | `SIDE_PLAYER_TAG`、`restoreFrom`、`readSnapshot`、`copyPlayerState`；**模块内部，不要复用** |
 
@@ -191,10 +198,10 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
 
 `src/main/java/evernight/client/utils/inventory/`
 
-### `InventoryUtils`（`inventory/InventoryUtils.java:30`）槽位查找与切换
+### `InventoryUtils`（`inventory/InventoryUtils.java`）槽位查找与切换
 
 - 选中/点击：`selectHotbarSlot(int 0..8)`（改 slot 后调 `MultiPlayerGameModeAccessor.sync()`）、
-  `selectHotbarSlotForPlacement`、`swapWithHotbarSlot(int menuSlot, int hotbarSlot)`、`swapMenuSlots`、
+  `swapIntoSelectedSlot(int)`、`selectHotbarSlotForPlacement`、`swapWithHotbarSlot(int menuSlot, int hotbarSlot)`、`swapMenuSlots`、
   `swapSlotsWithPickup`、`clickSlot(int slot, int button, ClickType)` / `clickSlot(int containerId, int slot,
   int button, ClickType)`、`getSelectedSlot`、`getCarriedStack`。
 - 查找（`-1` = 没找到）：`findHotbarSlot`（`Item...`/`Item`/`Predicate<ItemStack>`，先看主手）、
@@ -209,14 +216,14 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
   `runWithSwap(previousSlot, slot, action)`；`swapTo`、`swapBack`。`record SwapSlot(int slot, boolean hotbar,
   InteractionHand hand)`：`isFound`/`getStack`/`isInHand`，副手命中 = `(-2, false, OFF_HAND)`。
 
-### `EnchantmentUtils`（`inventory/EnchantmentUtils.java:27`）附魔等级
+### `EnchantmentUtils`（`inventory/EnchantmentUtils.java`）附魔等级
 
 `getLevel`（`(ResourceKey enchantment, ItemStack)` / `(ResourceKey, EquipmentSlot, LivingEntity)` /
 `(ResourceKey, EquipmentSlot)`）→ `int`，空物品/无附魔 0，附魔书读 `DataComponents.STORED_ENCHANTMENTS`；
 `hasEnchantment`（三种重载 = `getLevel > 0`）、`getLevels`、`getHolder`（`ResourceKey|String`；查不到 `null`）、
 `getKey`（`String` → `ResourceKey`，默认 `minecraft:`）。
 
-### `ItemUtils`（`inventory/ItemUtils.java:25`）与 `EquipmentUtils`（`inventory/EquipmentUtils.java:25`）
+### `ItemUtils`（`inventory/ItemUtils.java`）与 `EquipmentUtils`（`inventory/EquipmentUtils.java`）
 
 `isSword`/`isPickaxe`/`isAxe`（走标签）、`isSpear`/`isMace`（兼容自定义名）、`isGlass`、`isShulkerBox`、
 `isSmithingTemplate`、`providesTrimMaterial`、`isFood`、`getFireworkDuration`（`(flightDuration+1)*10+1`）。
@@ -224,7 +231,7 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
 腿 = 爆炸保护4 同前，靴再加摔落4；武器 = 锋利5+火2+击退2+横扫3+耐久3+经验修补1；鞘翅 = 耐久3+经验修补1）、
 `isRepairMaterial`（依据 `REPAIRABLE`）。
 
-### `PotionUtils`（`inventory/PotionUtils.java:27`）药水识别
+### `PotionUtils`（`inventory/PotionUtils.java`）药水识别
 
 `getPotion`（读 `DataComponents.POTION_CONTENTS`；无组件返回 `MISSING_POTION`，名 `empty`）、
 `getEffectsByParticleColor`（`Set<Holder<MobEffect>>`，从粒子颜色反查）。
@@ -233,6 +240,15 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
 | --- | --- |
 | `ArmorSlot` 护甲槽枚举 | `getInventoryIndex`、`getArmorIndex`、`getContainerSlot` |
 | `AutoMineProvider` / `AutoMineProviderBase` / `AutoMineFeetProvider` / `AutoMineHeadProvider` / `AutoMineTerrainProvider` / `AutoMineCandidates` AutoMine 候选方块 | `collectCandidates`、`isEnabled`；**模块内部** |
+| `AutoMiningCrafting` AutoMining 合成 | `invalidateCache`、`findRecipe(Item)`、`placeRecipe(menu, recipe, placeAll)` |
+| `AutoMiningTools` AutoMining 工具/潜影盒槽 | `isPickaxe`、`findFortunePickaxeSlot`、`findSilkTouchPickaxeSlot`、`findLowDurabilityPickaxe`、`findSlot`、`hasEmptyMainSlot` |
+| `ContainerInteractionUtils` 容器开关/丢弃 | `openContainer(BlockPos, boolean rotate)`、`closeScreen`、`closeForeignScreen(Class)`、`menuKind`、`throwStack(Item...)` → `record Dropped` |
+| `ContainerInventoryMath` 容器槽位/容量纯计算 | `isMainInventoryFull`、`isDurabilityLow`、`inventorySlotToMenuSlot`、`isShulkerFull`、`findFullTargetBoxSlot`、`pickStorageBox`、`pickTakableShulker`、`findTradeSlot`、`isYRangeChanged`、`shouldRestartMining` |
+| `ExperienceBottleRepairer` 经验瓶修理 | `isMendingItem`、`needsRepair(…, int|float)`、`findMendingSlot`、`findLowDurabilitySlot`、`anyGearNeedsRepair`、`countBottles`、`findBottleSlot` |
+| `ExperienceBottleUtils` 经验瓶投掷 | `countBottles`、`throwBottles(hand, SwapSlot, count, …)` |
+| `PlacedBlockReclaim` 回收已放置方块 | `matchesPlacedBlock`、`countPlacedBlockItems`、`corner(List, boolean largest)`、`expectedPickups`、`allCollected` |
+| `ShulkerBoxUtils` 潜影盒识别/槽位 | `isShulkerBoxItem`、`isFullStack`、`hasShulkerBox`、`findStorageBoxSlot`、`findFullLootBoxSlot`、`findEmptyContainerSlot`、`findTakableShulkerInMenu`、`isShulkerFull` |
+| `StorageChainController` 存储链状态机 | 构造 `(Host, BaritoneBlockTask)`；`beginStore`、`resumeStorage`、`tick()`、`cancel`、`hasManagedScreen`、`getSafeSpot`、`failureKey`、`queueReclaim`、`ensureStandingAtSpot`；**AutoMining 内部** |
 | `ChestSearchController` 箱子搜索栏（`INSTANCE`） | `isFull`、`namesMatch`、`onDrawGui`、`afterInit`；**模块内部** |
 | `ContainerTooltipComponent` 容器 tooltip | `record ContainerTooltipComponent(List<ItemStack> items)` + `getHeight`/`getWidth`/`renderImage`；**模块内部** |
 | `CustomItemRegistries` 自定义注册表 | `foodItems`、`smithingTemplates`、`trimMaterials`、`initialize` |
@@ -251,17 +267,17 @@ float yaw, float pitch, float range)`（只测方块、忽略流体、不含实�
 
 `src/main/java/evernight/client/utils/math/`
 
-### `MathUtils`（`math/MathUtils.java:25`）通用数学
+### `MathUtils`（`math/MathUtils.java`）通用数学
 
 `distanceToCamera`、`distanceToBlockCenter`、`cameraRotationDifference`、`yawDifferenceToPlayer`、
-`directionFromPitchYaw(float pitch, float yaw)`（单位 `Vec3`，**pitch 在前**）、`wrapAngle`（0~360）、
+`directionFromPitchYaw(float pitch, float yaw)`（单位 `Vec3`，**pitch 在前**）、`toRadians(float)`、`wrapAngle`（0~360）、
 `interpolateFrame(double start, double end)` / `(float, float)`、`lerp(double start, double end, double delta)`、
 `floorToDecimals`、`rangeProgress`（自动交换边界，0~1）、`nearestBound`、`randomFloat`、`randomInt`、
 `passesRandomThreshold`、`faceCorners`、`getDistanceScale`、`getPositionDelta`。**坑**：`lerp` 顺序是
 start/end/delta（不是 `Mth.lerp` 的 delta 在前）；`passesRandomThreshold` 的 `threshold = 0` 永远 `false`
 （即「0 关闭」）；`floorToDecimals` 用 BigDecimal FLOOR，负数抛异常。
 
-### `Vec3Utils`（`math/Vec3Utils.java:6`）Vec3 小工具
+### `Vec3Utils`（`math/Vec3Utils.java`）Vec3 小工具
 
 `setComponents(Vec3 vector, double x, double y, double z)`：**原地修改**传入 Vec3（依赖 `Vec3Accessor` mixin），
 只能给自己新建的临时对象用；`horizontalDistance`、`lerp(float fraction, Vec3 start, Vec3 end)`。
@@ -275,7 +291,7 @@ start/end/delta（不是 `Mth.lerp` 的 delta 在前）；`passesRandomThreshold
 
 `src/main/java/evernight/client/utils/movement/`
 
-### `MovementPhysics`（`movement/MovementPhysics.java:18`）移动物理
+### `MovementPhysics`（`movement/MovementPhysics.java`）移动物理
 
 常量 `public static float baseMoveSpeed = 0.2873F`、`scaledBaseMoveSpeed`（**public 可变，别随手改**）；
 `getHorizontalMotion(float yaw, ClientInput input, double speed)` → `double[]{x, z}`（已处理 45° 斜向）、
@@ -299,7 +315,7 @@ start/end/delta（不是 `Mth.lerp` 的 delta 在前）；`passesRandomThreshold
 
 `src/main/java/evernight/client/utils/network/`
 
-### `PacketSender`（`network/PacketSender.java:27`）发包
+### `PacketSender`（`network/PacketSender.java`）发包
 
 `send(Packet)`（走 `Connection.sendPacket`，触发 `PacketEvent.Send`/`PacketEvent.PostSend`，可被取消）、
 `sendDirect(Packet)`（`connection.channel.writeAndFlush`，**跳过 `Connection` 层与 `PacketEvent.Send/PostSend`**，
@@ -311,17 +327,17 @@ Action, BlockPos, Direction)`、`sendPlayerCommand`、`sendStartFallFlying`、`s
 `BlockInteractionUtils.placeBlock` 那条路径）；`sendAttack` **不触发本地挥手/攻击冷却**；`ABORT_DESTROY_BLOCK` 的
 sequence 固定 0。
 
-### `InteractPacketUtils`（`network/InteractPacketUtils.java:10`）解析 `ServerboundInteractPacket`
+### `InteractPacketUtils`（`network/InteractPacketUtils.java`）解析 `ServerboundInteractPacket`
 
 `getEntity`（查不到 `null`）、`getAction` → `InteractPacketUtils.Action {INTERACT, ATTACK, INTERACT_AT}`。
-用于 `PacketEvent` 判断这包在打谁（例 `client/commands/misc/Fakeplayer/FakeplayerCommand.java:201`）。
+用于 `PacketEvent` 判断这包在打谁（例 `client/managers/player/FakeplayerManager.java`、`HitmarkerModule`、`CriticalsModule`）。
 
-### `HttpRequests`（`network/HttpRequests.java:18`）HTTP 客户端
+### `HttpRequests`（`network/HttpRequests.java`）HTTP 客户端
 
 `get(String url)` / `post(String url, BodyPublisher)` / `newRequest(String url)`（带 30s 超时）、
 `send(HttpRequest)`（**阻塞**）、`send(HttpRequest, BodyHandler<T>)`、`sendAsync`（`CompletableFuture`）。
 **坑**：**别放客户端线程**；失败抛 `CompletionException`/`UncheckedIOException`，参考
-`client/commands/social/Namehistory/NamehistoryCommand.java:121`。
+`client/commands/social/Namehistory/NamehistoryCommand.java`。
 
 | 类 | 关键 API |
 | --- | --- |
@@ -334,7 +350,7 @@ sequence 固定 0。
 
 `src/main/java/evernight/client/utils/world/`
 
-### `BlockInteractionUtils`（`world/BlockInteractionUtils.java:82`）放置/交互/攻击方块
+### `BlockInteractionUtils`（`world/BlockInteractionUtils.java`）放置/交互/攻击方块
 
 两条放置路径，返回值只表示「已发起」，**不等服务端确认**：
 
@@ -359,11 +375,12 @@ boolean allowFire, boolean shortHeight, boolean expandPlayers)`、`attackCrystal
 **坑**：`isInteractionCooldownActive`/`resetInteractionCooldown` 是 50ms 手动冷却闸门，**仓库里没有任何地方调
 reset**，默认恒 `false`，要用得自己 arm；`canPlaceCrystal` 要求基座是黑曜石/基岩；`attackEntity` 成功后重置攻击冷却。
 
-### `WorldUtils`（`world/WorldUtils.java:65`）世界查询与可见性
+### `WorldUtils`（`world/WorldUtils.java`）世界查询与可见性
 
 `getTopY`（`minY + level.getHeight()`）、`getDimension`（→ `evernight.client.settings.options.DimensionType`）、
 `getBlock`、`isAir`、`isReplaceable`、`hasFluid`、`hasCollision`、`getHardness`、`isBedrockOrObsidian`、
 `canMineBlock`（空气/流体/负硬度 false）、`getLoadedChunks`、`getLoadedBlockEntities`、`reloadRenderer`、
+`isPlacementOccupied(BlockPos)`（转发 `worldStateManager`）、
 `canSee(Vec3 origin, Vec3 target)` / `canSee(Vec3, Vec3, BlockPos targetBlock, Direction targetFace)`、
 `canSeeFromEyes`、`canSeeBlock`、`canSeeAny`（两种）、`findVisiblePoint`、`streamSphereBlocks(Vec3 center,
 float radius)`、`collectSphereBlocks(Vec3 center, float radius, boolean excludeAir)`、`isTargetable`、`getEntityDistance`、
@@ -372,12 +389,12 @@ float radius)`、`collectSphereBlocks(Vec3 center, float radius, boolean exclude
 **坑**：`canSee` 距离 > 128 直接 false（MISS 或命中点 == target 才算可见）；`reloadRenderer` 走
 `levelRenderer.allChanged()`，**开销大**；`isTargetable` 已排除自己/好友/死亡。
 
-### `BlockBreakTracker`（`world/BlockBreakTracker.java:36`，`ClientContext.blockBreakTracker`）挖掘进度
+### `BlockBreakTracker`（`world/BlockBreakTracker.java`，`ClientContext.blockBreakTracker`）挖掘进度
 
 `getBreakProgress`（0~1；无记录/不可挖 0）、`getEntries`（`List<BlockBreakEntry>`）。**坑**：构造时自
 `eventBus.subscribe(this)` 订阅 `LocalPlayerTickEvent` 与 `PacketEvent`，与 `SpeedMine` 联动，**不要自己 new**。
 `BlockBreakEntry`：`getPosition`、`getProgress`、`getInterpolatedProgress`、`isBroken`、`isExtraBreak`、
-`getEntityId`、`getAirTicks`。
+`getEntity`、`getEntityId`、`getAirTicks`、`getProgressTimer`、`resetInactivityTimer`、`isExpired`。
 
 | 类 | 关键 API |
 | --- | --- |
@@ -392,8 +409,12 @@ float radius)`、`collectSphereBlocks(Vec3 center, float radius, boolean exclude
 | `BlockRegistryGroupMatcher` 方块版 `RegistryGroupMatcher` | `getRegistryId`、`getGroupNames`、`getGroupEntries` |
 | `Season` 季节枚举（`UIModule`/`ClientScreen` 主题） | `WINTER/SPRING/SUMMER/AUTUMN`；`fromMonth`、`containsMonth` |
 | `ItemFrameContainerLocator` 展示框标记容器 | `findMarkedFrames`、`findNearestFrame(Predicate<ItemStack>, double)`、`findAllContainers`、`findNearestContainer(Predicate<ItemStack>\|Item, double)`、`resolveContainer(ItemFrame)`、`isContainer(BlockPos)`；按玩家距离升序，只认 `Container` 方块实体 |
+| `AutoMiningEscape` 深暗逃离 | `isDeepDark`、`findEscapeSpot(BlockPos)`、`hasArrived(BlockPos, BlockPos)`；**AutoMining 内部** |
+| `BaritoneBlockTask` Baritone 放置/破坏任务 | `isActive`、`startPlace`、`startBreak`、`startBreakArea`、`tick()`、`cancel`；**AutoMining/存储链内部** |
+| `CoordinateCensor` 坐标脱敏 | `containsCoordinate`、`containsBase64`、`censorAllNumbers`、`censorCoordinates`、`censorInfoDisplay`、`censorDebugLine`、`censorMapText` |
+| `StoragePlacement` 存储点选址 | `findSafeSpot`、`findSurfaceSpot`、`findPlacePosition`、`hasClearVolume`、`isSafeSpotCandidate`、`isPlaceableSlot`、`canPlaceOn`、`canPlaceAt`；**AutoMining 内部** |
 
-## 10. utils/search
+## 12. utils/search
 
 统一搜索（`utils/search/`）。配置在 `UI > 搜索`（位于「设置提示」与「元素」之间）：`搜索语言`（`SearchMode.effective()`
 解析 `AUTO` → 当前 Evernight 语言；`CHINESE` 匹配中文名 + 智能拼音，`ENGLISH` 匹配英文名 + 注册名）与 `模糊拼音`
@@ -401,12 +422,26 @@ float radius)`、`collectSphereBlocks(Vec3 center, float radius, boolean exclude
 
 | 类 | 关键 API |
 | --- | --- |
-| `SearchQuery` 一次查询（不可变） | `of(String)` / `of(String, SearchMode)`、`isBlank`、`text`、`mode`、`matchesEnglish(String...)`（大小写不敏感 `contains`）、`matchesChinese(String...)`（字面或拼音）；内置按候选串的结果缓存，**同一实例可每帧复用** |
-| `SearchQueryHolder` 搜索框缓存 | `update(String rawText)`：文本、生效模式或模糊音开关变化才重建 `SearchQuery`，布局循环里直接调 |
+| `SearchQuery` 一次查询（不可变） | `of(String)` / `of(String, SearchMode)`、`isBlank`、`text`、`mode`、`fuzzyMask()`、`matchesEnglish(String...)`（大小写不敏感 `contains`）、`matchesChinese(String...)`（字面或拼音）；内置按候选串的结果缓存，**同一实例可每帧复用** |
+| `SearchQueryHolder` 搜索框缓存 | `update(String rawText)`：文本、生效模式或模糊音掩码变化才重建 `SearchQuery`，布局循环里直接调 |
 | `SearchKey` 条目名字集合 | `of(Collection, Collection)`、`empty`、`matches(SearchQuery)`（按模式选英文/中文一侧）、`english()`、`chinese()`、`allTexts()` |
 | `SearchNames` 条目 → `SearchKey` | `forItem`、`forBlock`、`forEntityType`、`forMobEffect`、`forPotion`、`forSound`、`forEnchantment(Enchantment, Identifier)`、`forItemStack`（含附魔/药水效果/自定义名）、`forModule`、`forRegistryEntry(Identifier, entry, label)`；注册表对象带缓存 |
 | `LocalizedNames` 固定语言名 | `english` / `chinese`（资源管理器 `en_us` / `zh_cn` 表，含模组键）、`clientEnglish` / `clientChinese`（Evernight 自带语言文件） |
-| `PinyinMatcher` 拼音匹配 | `contains(text, query)`（首次调用解析内置 PinIn 字典；模糊音按 `UI > 搜索` 的开关在匹配锁内应用）、`preloadAsync()`（客户端初始化已异步预热） |
+| `PinyinMatcher` 拼音匹配 | `contains(text, query)`、`currentFuzzyMask()`（模糊音按 `UI > 搜索` 的开关在匹配锁内应用）、`preloadAsync()`（客户端初始化已异步预热） |
 
 **坑**：`PinyinMatcher` 的 PinIn 上下文只在客户端线程匹配；`LocalizedNames` 首次使用会在客户端线程解析语言表（一次性）。
+`SearchNames` 为插件模块/注册表条目构造 `SearchKey` 时，中文侧优先读 `LanguageTable` overlay；完全没有中文名时会把英文名
+并入中文集合（未翻译条目仍可搜），英文侧永远不会命中中文名。
 
+## 13. utils/vault
+
+`src/main/java/evernight/client/utils/vault/`（12 个类，服务 `VaultPrediction` / `VaultESP` / `VaultOpenedHud`）。
+
+| 类 | 作用 / 关键 API |
+| --- | --- |
+| `VaultLootEngine` | 宝库战利品检索入口：`search(seed, ominous, offset, limit, ...)`、`matches(seed, ominous, maxScan, spec)`、`narrow(seed, ominous, rangeStart, rangeEnd, ...)`、`detect(seed, ominous, start, maxAttempts, spec)`、`clearCache()` |
+| `VaultLootCore` | 底层检索：`record Hit(long offset, String itemId, int count)`；`search`、`matches`、`narrow`、`detect` |
+| `VaultLootLogic` | 结果整形：`record Hit` / `record Occurrence`、`windowForSeconds(long)`、`firstN(List, int)`、`occurrences(List<Hit>)` |
+| `VaultLootCapture` | 开箱掉落捕获：`Capture(List<ItemStack>, boolean ominous)`、`setListener`/`hasListener`/`clear`、`onBlockUpdate`、`onEntitySpawn`、`onEntityData` |
+| `VaultItemComponents` | 物品规格：`specPart(ItemStack)`、`fingerprint(ItemStack)` |
+| `VaultLootSpec` / `VaultLootGenerator` / `VaultRandom` / `VaultEnchantments` / `VaultComponentHash` / `VaultLootData` / `VaultSequenceCache` | 包内实现：战利品规格解析、随机序列生成、附魔抽取、组件指纹、数据表与序列缓存；**不要跨包引用**（多数是 package-private） |

@@ -36,7 +36,7 @@ public final class ExampleModule extends Module {
     private final BooleanSetting strictSetting;
 
     public ExampleModule() {
-        super("Example", "Does something.", ModuleCategory.MISC, "example", "ex");
+        super("Example", ModuleCategory.MISC, "example", "ex");
         this.strictSetting = this.add(new BooleanSetting("Strict", false));
         this.add(new NumberSetting<>("Range", 3.0F, 1.0F, 6.0F).dependsOn(this.strictSetting));
     }
@@ -113,7 +113,7 @@ public abstract class AvatarMixin {
         SomeModule module = ClientContext.getModule(SomeModule.class);
         if (module == null || !module.shouldSuppressLocal()) return;
         if ((Object) this != Minecraft.getInstance().player) return;
-        callback.setReturnValue(module.getStableValue(part));
+        callback.setReturnValue(module.getSavedModelPart(part));
     }
 }
 ```
