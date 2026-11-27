@@ -2212,7 +2212,7 @@
   "evernight.descriptions.settings.VaultPrediction.ChatNotify": "关闭后宝库预测不再向聊天栏发送任何消息，HUD 仍会显示。",
   "evernight.descriptions.settings.VaultPrediction.CountDisplay": "聊天预判列表：开启时显示绝对次数与距离，关闭时只显示距离。HUD 的显示由宝库预测 HUD 自己的设置控制。",
   "evernight.descriptions.settings.VaultPrediction.OpenGap": "按时间推算别人可能开了多少次的封顶：\n10 秒 30 次、60 秒 200 次，之后每 60 秒 +200，最高不超过这里的值。",
-  "evernight.descriptions.settings.VaultPrediction.PredictCount": "每个目标物品各列出几个，1 到 20；填 1 就是每个目标各显示 1 个。",
+  "evernight.descriptions.settings.VaultPrediction.PredictCount": "预判到的目标物品总共列出几个，1 到 20。",
   "evernight.descriptions.settings.VaultPrediction.ScanLimitWan": "每次查询向后扫描多少万次开箱（500 = 500 万 = 5,000,000 次）；\n纯 Java 核心每秒能跑几百万次，找不到结果时可以调大。",
   "evernight.descriptions.settings.VaultPrediction.Seed": "服务器世界种子，填整数。",
   "evernight.descriptions.settings.VaultPrediction.StartOffsetWan": "当前全服已经开出多少万次不祥宝库，没开过填 0；\n例如 500 表示 500 万次。检测成功后会自动更新。",

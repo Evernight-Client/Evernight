@@ -2212,7 +2212,7 @@
   "evernight.descriptions.settings.VaultPrediction.ChatNotify": "When off, VaultPrediction stops sending chat messages; the dedicated HUD widget still works.",
   "evernight.descriptions.settings.VaultPrediction.CountDisplay": "Chat prediction list: on shows absolute worldwide opening numbers with the distance, off shows only the distance. The HUD has its own display settings.",
   "evernight.descriptions.settings.VaultPrediction.OpenGap": "Cap for the time-based window of openings others may have done:\n10 s allows 30, 60 s allows 200, then 200 per further minute, capped here.",
-  "evernight.descriptions.settings.VaultPrediction.PredictCount": "How many of each target item to list, 1 to 20. 1 shows one occurrence of each selected target.",
+  "evernight.descriptions.settings.VaultPrediction.PredictCount": "How many predicted target items to list in total, 1 to 20.",
   "evernight.descriptions.settings.VaultPrediction.ScanLimitWan": "How many 万 (10,000) openings to scan per query (500 = 5,000,000);\nthe Java core handles millions per second, raise this when nothing is found.",
   "evernight.descriptions.settings.VaultPrediction.Seed": "World seed of the server, as an integer.",
   "evernight.descriptions.settings.VaultPrediction.StartOffsetWan": "How many 万 (10,000) ominous vaults were already opened worldwide, 0 when none.\nExample: 500 means 5,000,000 openings. Detection updates it once the offset is known.",
