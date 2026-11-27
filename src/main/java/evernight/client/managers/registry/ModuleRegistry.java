@@ -42,7 +42,7 @@ import evernight.client.modules.combat.Arrows.ArrowsModule;
 import evernight.client.modules.combat.Aura.AuraModule;
 import evernight.client.modules.combat.AutoArmor.AutoArmorModule;
 import evernight.client.modules.combat.AutoBowRelease.AutoBowReleaseModule;
-import evernight.client.modules.combat.AutoClicker.AutoClickerModule;
+import evernight.client.modules.auto.AutoClicker.AutoClickerModule;
 import evernight.client.modules.combat.AutoCrystal.AutoCrystalModule;
 import evernight.client.modules.combat.AutoDrop.AutoDropModule;
 import evernight.client.modules.combat.AutoExp.AutoExpModule;
@@ -147,21 +147,21 @@ import evernight.client.modules.movement.Sprint.SprintModule;
 import evernight.client.modules.movement.Step.StepModule;
 import evernight.client.modules.movement.Velocity.VelocityModule;
 import evernight.client.modules.movement.Warp.WarpModule;
-import evernight.client.modules.player.AutoBreed.AutoBreedModule;
-import evernight.client.modules.player.AutoCraft.AutoCraftModule;
-import evernight.client.modules.player.AutoEat.AutoEatModule;
-import evernight.client.modules.player.AutoFarm.AutoFarmModule;
-import evernight.client.modules.player.AutoFish.AutoFishModule;
-import evernight.client.modules.player.AutoGrindstone.AutoGrindstoneModule;
-import evernight.client.modules.player.AutoMining.AutoMiningModule;
-import evernight.client.modules.player.AutoMount.AutoMountModule;
-import evernight.client.modules.player.AutoNameTag.AutoNameTagModule;
-import evernight.client.modules.player.AutoSand.AutoSandModule;
-import evernight.client.modules.player.AutoTame.AutoTameModule;
-import evernight.client.modules.player.AutoTemplate.AutoTemplateModule;
+import evernight.client.modules.auto.AutoBreed.AutoBreedModule;
+import evernight.client.modules.auto.AutoCraft.AutoCraftModule;
+import evernight.client.modules.auto.AutoEat.AutoEatModule;
+import evernight.client.modules.auto.AutoFarm.AutoFarmModule;
+import evernight.client.modules.auto.AutoFish.AutoFishModule;
+import evernight.client.modules.auto.AutoGrindstone.AutoGrindstoneModule;
+import evernight.client.modules.auto.AutoMining.AutoMiningModule;
+import evernight.client.modules.auto.AutoMount.AutoMountModule;
+import evernight.client.modules.auto.AutoNameTag.AutoNameTagModule;
+import evernight.client.modules.auto.AutoSand.AutoSandModule;
+import evernight.client.modules.auto.AutoTame.AutoTameModule;
+import evernight.client.modules.auto.AutoTemplate.AutoTemplateModule;
 import evernight.client.modules.player.AutoTool.AutoToolModule;
-import evernight.client.modules.player.AutoTrade.AutoTradeModule;
-import evernight.client.modules.player.AutoTransport.AutoTransportModule;
+import evernight.client.modules.auto.AutoTrade.AutoTradeModule;
+import evernight.client.modules.auto.AutoTransport.AutoTransportModule;
 import evernight.client.modules.player.ChestStealer.ChestStealerModule;
 import evernight.client.modules.player.FastPlace.FastPlaceModule;
 import evernight.client.modules.player.Freecam.FreecamModule;
@@ -264,25 +264,25 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected AutoArmorModule");
         if (!this.registerModule(new evernight.client.modules.combat.AutoBowRelease.AutoBowReleaseModule()))
             throw new IllegalStateException("Registration rejected AutoBowReleaseModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoBreed.AutoBreedModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoBreed.AutoBreedModule()))
             throw new IllegalStateException("Registration rejected AutoBreedModule");
-        if (!this.registerModule(new evernight.client.modules.combat.AutoClicker.AutoClickerModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoClicker.AutoClickerModule()))
             throw new IllegalStateException("Registration rejected AutoClickerModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoCraft.AutoCraftModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoCraft.AutoCraftModule()))
             throw new IllegalStateException("Registration rejected AutoCraftModule");
         if (!this.registerModule(new evernight.client.modules.combat.AutoCrystal.AutoCrystalModule()))
             throw new IllegalStateException("Registration rejected AutoCrystalModule");
         if (!this.registerModule(new evernight.client.modules.combat.AutoDrop.AutoDropModule()))
             throw new IllegalStateException("Registration rejected AutoDropModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoEat.AutoEatModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoEat.AutoEatModule()))
             throw new IllegalStateException("Registration rejected AutoEatModule");
         if (!this.registerModule(new evernight.client.modules.combat.AutoExp.AutoExpModule()))
             throw new IllegalStateException("Registration rejected AutoExpModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoFarm.AutoFarmModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoFarm.AutoFarmModule()))
             throw new IllegalStateException("Registration rejected AutoFarmModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoFish.AutoFishModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoFish.AutoFishModule()))
             throw new IllegalStateException("Registration rejected AutoFishModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoGrindstone.AutoGrindstoneModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoGrindstone.AutoGrindstoneModule()))
             throw new IllegalStateException("Registration rejected AutoGrindstoneModule");
         if (!this.registerModule(new evernight.client.modules.combat.AutoLog.AutoLogModule()))
             throw new IllegalStateException("Registration rejected AutoLogModule");
@@ -290,11 +290,11 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected AutoMaceModule");
         if (!this.registerModule(new evernight.client.modules.combat.AutoMine.AutoMineModule()))
             throw new IllegalStateException("Registration rejected AutoMineModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoMining.AutoMiningModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoMining.AutoMiningModule()))
             throw new IllegalStateException("Registration rejected AutoMiningModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoMount.AutoMountModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoMount.AutoMountModule()))
             throw new IllegalStateException("Registration rejected AutoMountModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoNameTag.AutoNameTagModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoNameTag.AutoNameTagModule()))
             throw new IllegalStateException("Registration rejected AutoNameTagModule");
         if (!this.registerModule(new evernight.client.modules.combat.AutoPot.AutoPotModule()))
             throw new IllegalStateException("Registration rejected AutoPotModule");
@@ -302,21 +302,21 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected AutoReconnectModule");
         if (!this.registerModule(new evernight.client.modules.misc.AutoRespawn.AutoRespawnModule()))
             throw new IllegalStateException("Registration rejected AutoRespawnModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoSand.AutoSandModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoSand.AutoSandModule()))
             throw new IllegalStateException("Registration rejected AutoSandModule");
         if (!this.registerModule(new evernight.client.modules.misc.AutoSign.AutoSignModule()))
             throw new IllegalStateException("Registration rejected AutoSignModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoTame.AutoTameModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoTame.AutoTameModule()))
             throw new IllegalStateException("Registration rejected AutoTameModule");
         if (!this.registerModule(new evernight.client.modules.player.AutoTool.AutoToolModule()))
             throw new IllegalStateException("Registration rejected AutoToolModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoTrade.AutoTradeModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoTrade.AutoTradeModule()))
             throw new IllegalStateException("Registration rejected AutoTradeModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoTransport.AutoTransportModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoTransport.AutoTransportModule()))
             throw new IllegalStateException("Registration rejected AutoTransportModule");
         if (!this.registerModule(new evernight.client.modules.combat.AutoTrap.AutoTrapModule()))
             throw new IllegalStateException("Registration rejected AutoTrapModule");
-        if (!this.registerModule(new evernight.client.modules.player.AutoTemplate.AutoTemplateModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.AutoTemplate.AutoTemplateModule()))
             throw new IllegalStateException("Registration rejected AutoTemplateModule");
         if (!this.registerModule(new evernight.client.modules.movement.AutoWalk.AutoWalkModule()))
             throw new IllegalStateException("Registration rejected AutoWalkModule");
@@ -496,7 +496,7 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected OffhandModule");
         if (!this.registerModule(new evernight.client.modules.render.Particles.ParticlesModule()))
             throw new IllegalStateException("Registration rejected ParticlesModule");
-        if (!this.registerModule(new evernight.client.modules.player.PearlBot.PearlBotModule()))
+        if (!this.registerModule(new evernight.client.modules.auto.PearlBot.PearlBotModule()))
             throw new IllegalStateException("Registration rejected PearlBotModule");
         if (!this.registerModule(new evernight.client.modules.exploit.Phase.PhaseModule()))
             throw new IllegalStateException("Registration rejected PhaseModule");

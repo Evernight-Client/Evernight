@@ -8,7 +8,7 @@ import evernight.client.events.network.MultiPlayerGameModeUseItemOnEvent;
 import evernight.client.managers.registry.ModuleRegistry;
 import evernight.client.modules.Module;
 import evernight.client.modules.ModuleCategory;
-import evernight.client.modules.player.AutoEat.AutoEatModule;
+import evernight.client.modules.auto.AutoEat.AutoEatModule;
 import evernight.client.modules.player.NoInteract.NoInteractModule;
 import evernight.client.settings.types.BooleanSetting;
 import evernight.client.settings.types.NumberSetting;

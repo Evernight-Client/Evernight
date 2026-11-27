@@ -7,7 +7,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import evernight.client.ClientAccess;
 import evernight.client.ClientContext;
 import evernight.client.modules.client.AntiCheat.AntiCheatModule;
-import evernight.client.modules.combat.AutoClicker.AutoClickerModule;
+import evernight.client.modules.auto.AutoClicker.AutoClickerModule;
 import evernight.client.modules.player.AutoTool.AutoToolModule;
 import evernight.client.modules.player.InventoryTweaks.InventoryTweaksModule;
 import evernight.client.modules.player.NoInteract.NoInteractModule;

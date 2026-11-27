@@ -38,7 +38,7 @@ MIT 与 GPL-3.0 兼容，合并后的整体按 GPL-3.0-only 分发；上游的�
 
 ### LPCTools — LGPL-3.0-only
 
-`evernight/client/modules/player/AutoGrindstone/` 移植自 LPCTools 的自动砂轮工具，版权归 LPCTools 作者。
+`evernight/client/modules/auto/AutoGrindstone/` 移植自 LPCTools 的自动砂轮工具，版权归 LPCTools 作者。
 
 - 条款：[LGPL-3.0.txt](LGPL-3.0.txt)，其依赖的 GPL-3.0 全文见 [LICENSE](../LICENSE)。
 - 按 LGPL-3.0 第 2 条，该部分并入本项目后按 GPL-3.0-only 分发。
