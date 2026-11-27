@@ -218,7 +218,7 @@
   "evernight.descriptions.modules.PearlBot": "朋友私信触发时自动拉珍珠。\n收到含触发词的私信后，机器人会在附近告示牌中找写着发信人名字的那块，走到它下方的按钮或活板门并点击，然后走回原位。\n有多块匹配告示牌时，优先选下方（3 格内）挂着末影珍珠实体的那块，其次取最近的。\n按钮点一下；活板门间隔一个 tick 点两下（先开后关）。\n回复会显示在本地聊天并私聊回发信人；四条文案和搜索半径都可自定义。\n<red>需要 Baritone 才能走到告示牌",
   "evernight.descriptions.modules.VaultESP": "只高亮不祥宝库。\n不祥宝库不是独立方块，而是 minecraft:vault 的方块状态 ominous=true，\n所以高亮完全来自服务端已经下发的区块数据，不发任何数据包。\n右键点过的宝库会被记录为已打开，即使服务端之后不再重发方块状态，\n开过的宝库也不会再被标出来。\n扫描跟随区块加载与方块更新，不按 tick 轮询。",
   "evernight.descriptions.modules.VaultOpenedHud": "显示已开启的宝库次数，记录不区分服务器与维度。",
-  "evernight.descriptions.modules.VaultPrediction": "预测全服第几次开不祥宝库会出附魔金苹果或沉重核心。\n不祥宝库的战利品表共用一条随机序列，每开一次推进一次，\n因此「全服第 N 次开」的掉落只由世界种子决定。\n自己开宝库时，模块还能用弹出的物品反推这次是全服第几次，\n持续缩圈直到位置唯一。\n<yellow>纯 Java 运算核心：不依赖原生二进制、不启动子进程、不因平台隐藏。\n<yellow>偏移全程 long，5000 万次以上仍精确；起始/范围设置以「万」为单位。",
+  "evernight.descriptions.modules.VaultPrediction": "预测全服第几次开不祥宝库会出附魔金苹果或沉重核心。\n不祥宝库的战利品表共用一条随机序列，每开一次推进一次，\n因此「全服第 N 次开」的掉落只由世界种子决定。\n自己开宝库时，模块还能用弹出的物品反推这次是全服第几次，\n持续缩圈直到位置唯一。",
   "evernight.descriptions.modules.VaultPredictionHud": "标准 HUD 组件：列出预判到的目标物品及其贴图、次数/距离，也可显示最近一次开的是全服第几次。需要先开启宝库预测功能。",
   "evernight.names.modules.AimAssist": "瞄准辅助",
   "evernight.names.modules.AnchorAura": "重生锚光环",
