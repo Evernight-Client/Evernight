@@ -147,14 +147,9 @@ tasks.named('test', Test) {
     useJUnitPlatform()
 }
 
-// Tests are intentionally not part of `build`: a normal compile/package must not launch the client
-// or spend time on the suite. `releaseTest` is the explicit pre-release gate.
-tasks.named('build') {
-    setDependsOn([tasks.named('assemble')])
-}
-
+// Unit tests run as part of `build`; `releaseTest` is kept as the explicit pre-release gate.
 tasks.register('releaseTest') {
     group = 'verification'
-    description = 'Pre-release gate: build and unit tests.'
-    dependsOn 'build', 'test'
+    description = 'Pre-release gate: build (includes unit tests).'
+    dependsOn 'build'
 }
