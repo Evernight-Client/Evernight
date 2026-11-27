@@ -11,6 +11,9 @@ import java.util.function.LongConsumer;
  * stdout. The core now lives in {@link VaultLootCore}: same global vanilla sequence, same offset
  * semantics, but no native binary, no subprocess, no extracted tools directory, and no platform
  * hiding. Offsets are long-based, so the old 50-million ceiling is gone as well.
+ *
+ * <p>The 1.21.11 and 26.1.2 trial-chamber tables and random-sequence semantics are identical, so the
+ * facade no longer takes a game-version token.
  */
 public final class VaultLootEngine {
     private VaultLootEngine() {
@@ -19,11 +22,9 @@ public final class VaultLootEngine {
     /**
      * Scans {@code limit} openings starting after {@code offset} and returns at most {@code amount}
      * hits for the semicolon-separated item ids in {@code targetSpec}.
-     *
-     * @param lootVersion kept for source compatibility; the 1.21.11 and 26.1 tables are identical
      */
     public static List<VaultLootLogic.Hit> search(long seed, boolean ominous, long offset, long limit,
-                                                  int amount, String targetSpec, String lootVersion,
+                                                  int amount, String targetSpec,
                                                   LongConsumer progress) {
         List<VaultLootCore.Hit> hits = VaultLootCore.search(seed, ominous, offset, limit, amount,
                 targetSpec, progress);
@@ -36,7 +37,7 @@ public final class VaultLootEngine {
 
     /** Every 1-based offset in {@code [1, maxScan]} whose full drop sequence matches {@code spec}. */
     public static List<Long> matches(long seed, boolean ominous, long maxScan, String spec,
-                                     LongConsumer progress, String lootVersion) {
+                                     LongConsumer progress) {
         return VaultLootCore.matches(seed, ominous, maxScan, spec, progress);
     }
 
@@ -46,14 +47,14 @@ public final class VaultLootEngine {
      */
     public static List<Long> narrow(long seed, boolean ominous, long rangeStart, long rangeEnd,
                                     long delta, String spec, List<Long> candidates,
-                                    LongConsumer progress, String lootVersion) {
+                                    LongConsumer progress) {
         return VaultLootCore.narrow(seed, ominous, rangeStart, rangeEnd, delta, spec, candidates,
                 progress);
     }
 
     /** First matching offset in {@code [start, start + maxAttempts)}, or {@code -1}. */
     public static long detect(long seed, boolean ominous, long start, long maxAttempts, String spec,
-                              LongConsumer progress, String lootVersion) {
+                              LongConsumer progress) {
         return VaultLootCore.detect(seed, ominous, start, maxAttempts, spec, progress);
     }
 
