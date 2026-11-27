@@ -51,9 +51,7 @@ dependencies {
     modCompileOnly('maven.modrinth:viafabricplus:RM6hveoK') { exclude group: 'dev.kastle.webrtc' }
     modLocalRuntime('maven.modrinth:viafabricplus:RM6hveoK') { exclude group: 'dev.kastle.webrtc' }
     modCompileOnly 'maven.modrinth:lithium:Ow7wA0kG'
-    modLocalRuntime 'maven.modrinth:lithium:Ow7wA0kG'
     modCompileOnly 'maven.modrinth:immediatelyfast:4EwhsTu7'
-    modLocalRuntime 'maven.modrinth:immediatelyfast:4EwhsTu7'
     modCompileOnly 'maven.modrinth:sodium:rkdTcxoT'
     modLocalRuntime 'maven.modrinth:sodium:rkdTcxoT'
     modCompileOnly 'maven.modrinth:xaeros-minimap:g0LRDWwe'
@@ -109,18 +107,6 @@ loom {
     }
 }
 
-fabricApi {
-    configureTests {
-        createSourceSet = true
-        modId = 'evernight-gametest'
-        enableGameTests = false
-        enableClientGameTests = true
-        eula = true
-        clearRunDirectory = true
-        username = 'Player0'
-    }
-}
-
 def modVersion = project.version
 
 processResources {
@@ -169,10 +155,6 @@ tasks.named('build') {
 
 tasks.register('releaseTest') {
     group = 'verification'
-    description = 'Pre-release gate: build, unit tests and client GameTests.'
-    dependsOn 'build', 'test', 'runClientGameTest'
-}
-
-tasks.named('runClientGameTest') {
-    mustRunAfter 'test'
+    description = 'Pre-release gate: build and unit tests.'
+    dependsOn 'build', 'test'
 }

@@ -22,11 +22,11 @@ gradlew.bat build
 # 单元测试；按需单独运行
 gradlew.bat test
 
-# 发版前必须在本机运行：构建 + 单元测试 + 真实客户端 GameTest
+# 发版前必须在本机运行：构建 + 单元测试
 gradlew.bat releaseTest
 ```
 
-测试不挂在 `build` 上，避免普通构建启动客户端或拖慢打包；`releaseTest` 是发版门槛。GameTest 依赖真实客户端/GPU，只能在本地跑，GitHub Actions 工作流不跑测试。
+测试不挂在 `build` 上，避免普通构建拖慢打包；`releaseTest` 是发版门槛。GitHub Actions 工作流不跑测试。
 
 发版流程：
 

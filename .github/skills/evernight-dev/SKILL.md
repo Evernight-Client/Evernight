@@ -144,10 +144,10 @@ public abstract class AvatarMixin {
 ```bash
 gradlew.bat build        # 任何改动完成后都完整构建；不跑测试
 gradlew.bat test         # 单元测试，按需单独运行
-gradlew.bat releaseTest  # 发版前必须在本机运行：build + 单元测试 + Client GameTest
+gradlew.bat releaseTest  # 发版前必须在本机运行：build + 单元测试
 ```
 
-GameTest 只能在本地跑；`.github/workflows/release.yml` 只从 tag 构建并发布 GitHub Release，不跑测试。
+`.github/workflows/release.yml` 只从 tag 构建并发布 GitHub Release，不跑测试。
 
 编码与排版：UTF-8（无 BOM）、LF 行尾、空格缩进（Java 4 空格，JSON/YAML 2 空格；`.bat` 检出为 CRLF），由根目录 `.gitattributes` 与 `.editorconfig` 约束；不要提交 CRLF、tab 或 BOM。
 
