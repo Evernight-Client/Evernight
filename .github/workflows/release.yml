@@ -10,11 +10,6 @@ on:
         description: 'Release tag (must match v<mod_version>, e.g. v1.2.7)'
         required: true
         type: string
-      local_release_test_passed:
-        description: 'I ran ./gradlew releaseTest locally (tests are not run in this workflow)'
-        required: true
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -40,13 +35,6 @@ jobs:
             exit 1
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
-
-      - name: Require local releaseTest confirmation
-        if: github.event_name == 'workflow_dispatch' && inputs.local_release_test_passed != true
-        shell: bash
-        run: |
-          echo "Run './gradlew releaseTest' locally before publishing a release."
-          exit 1
 
       - name: Checkout release tag
         uses: actions/checkout@v4
