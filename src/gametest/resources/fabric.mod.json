@@ -6,7 +6,8 @@
   "environment": "client",
   "entrypoints": {
     "fabric-client-gametest": [
-      "evernight.gametest.EvernightClientGameTest"
+      "evernight.gametest.EvernightClientGameTest",
+      "evernight.gametest.CommandGameTest"
     ]
   },
   "depends": {
