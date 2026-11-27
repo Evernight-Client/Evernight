@@ -46,6 +46,8 @@ public final class ExampleModule extends Module {
 `dependsOn` / `setConfigName` 返回 `Setting<T>`：先建变量再 `this.add(...)`，别写成 `NumberSetting<Float> x = this.add(...dependsOn(...))`（类型不匹配）。
 设置标签键：`evernight.names.settings.Strict`，两份 JSON 都加。依赖其它模块时在 `bootstrap/ModuleDependencies` 声明顺序。
 
+文件位置：模块按分类放 `modules/<分类小写>/<Name>/`（`client/`、`combat/`、`exploit/`、`hud/`、`misc/`、`movement/`、`player/`、`render/`、`auto/`），类名 `<Name>Module`，控制器与枚举等同包。`AUTO` 分类统一在 `modules/auto/`。
+
 注册（`ModuleRegistry` 构造器内按字母序）：
 
 ```java

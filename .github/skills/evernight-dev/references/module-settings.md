@@ -6,6 +6,8 @@
 
 源码在 `src/main/java/evernight/client/`：`modules/`、`settings/`（`core/` 放 `Setting`、`NamedEntry`、`JsonConfigurable` 等契约，`types/` 放各设置类型，`options/` 放选项枚举）、`managers/`（注册表/配置）、`events/` 与 `events/bus/`、`bootstrap/`（`ClientInitializer`、`ModuleDependencies`）、`config/`（`json/` 编码器、`preset/` 预设、`legacy/` 旧配置迁移）。语言表在 `src/main/resources/assets/evernight/lang/`（`en_us.json`、`zh_cn.json`）。
 
+`modules/` 按分类分子目录：`client/`、`combat/`、`exploit/`、`hud/`、`misc/`、`movement/`、`player/`、`render/`，以及 `auto/`（`ModuleCategory.AUTO`）。每个模块一个与类名同名的子包，例如 `modules/combat/Aura/AuraModule.java`、`modules/auto/PearlBot/PearlBotModule.java`；模块的控制器/枚举等辅助类放同一个子包。`hud/` 下的组件继承 `HudWidgetModule`（分类固定 `HUD`），不需要传 `ModuleCategory`。
+
 ## 2. Module 基类
 
 源码 `evernight/client/modules/Module.java`。
