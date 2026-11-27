@@ -108,4 +108,12 @@ public final class DisabledBaritoneBridge implements BaritoneBridge {
     @Override
     public void restoreMiningProfile() {
     }
+
+    @Override
+    public void requestNoBreakPlace() {
+    }
+
+    @Override
+    public void releaseNoBreakPlace() {
+    }
 }

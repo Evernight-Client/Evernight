@@ -49,6 +49,9 @@ import java.util.function.Supplier;
  *
  * <p>A position jump larger than the configured teleport distance is treated as an arrival on every
  * phase, because the partner may trigger the pearl before the local player has finished loading.
+ *
+ * <p>While the transport owns a Baritone path it switches block breaking and placing off, so the walk
+ * to a chest never digs through or builds over the base.
  */
 public final class AutoTransportController implements ClientAccess {
     private static final int PHASE_TIMEOUT_TICKS = 600;
@@ -105,6 +108,7 @@ public final class AutoTransportController implements ClientAccess {
     private boolean closingScreen;
     private boolean openRequested;
     private boolean pathActive;
+    private boolean pathingOnlyHeld;
     private boolean throwAimed;
     private boolean noCargoChestNotified;
     private boolean inventoryFullNotified;
@@ -738,6 +742,7 @@ public final class AutoTransportController implements ClientAccess {
         this.moduleScreenOpen = false;
         if (player.blockPosition().distSqr(position) > 9.0D) {
             if (!ClientContext.baritoneBridge.isPathingOrCalculating()) {
+                this.holdPathingOnly();
                 ClientContext.baritoneBridge.pathTo(position);
                 this.pathActive = true;
             }
@@ -785,6 +790,29 @@ public final class AutoTransportController implements ClientAccess {
         if (this.pathActive) {
             ClientContext.baritoneBridge.cancelPathing();
             this.pathActive = false;
+        }
+        this.releasePathingOnly();
+    }
+
+    /**
+     * Keeps Baritone from digging or placing while the transport owns the path; paired with
+     * {@link #releasePathingOnly()}.
+     */
+    private void holdPathingOnly() {
+        if (this.pathingOnlyHeld || ClientContext.baritoneBridge == null) {
+            return;
+        }
+        ClientContext.baritoneBridge.requestNoBreakPlace();
+        this.pathingOnlyHeld = true;
+    }
+
+    private void releasePathingOnly() {
+        if (!this.pathingOnlyHeld) {
+            return;
+        }
+        this.pathingOnlyHeld = false;
+        if (ClientContext.baritoneBridge != null) {
+            ClientContext.baritoneBridge.releaseNoBreakPlace();
         }
     }
 

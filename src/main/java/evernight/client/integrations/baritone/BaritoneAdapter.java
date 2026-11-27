@@ -65,6 +65,8 @@ public final class BaritoneAdapter implements ClientAccess, BaritoneBridge {
     private static final List<String> MINING_IGNORED_BUILD_PROPERTIES = List.of("facing");
     private final ObjectSet<NamedFeature> pauseRequests = ObjectSets.synchronize(new ObjectOpenHashSet<>());
     private final Map<Settings.Setting<?>, Object> miningSettingsBackup = new LinkedHashMap<>();
+    private final Map<Settings.Setting<?>, Object> travelSettingsBackup = new LinkedHashMap<>();
+    private int noBreakPlaceRequests;
 
     public BaritoneAdapter() {
         EventBus eventBus = ClientAccess.eventBus;
@@ -302,6 +304,36 @@ public final class BaritoneAdapter implements ClientAccess, BaritoneBridge {
         if (!this.miningSettingsBackup.containsKey(setting)) {
             this.miningSettingsBackup.put(setting, setting.value);
         }
+    }
+
+    // ---- travel bots (pearl bot / cargo transport) ----
+
+    @Override
+    public void requestNoBreakPlace() {
+        if (this.noBreakPlaceRequests++ > 0) {
+            return;
+        }
+        Settings settings = BaritoneAPI.getSettings();
+        this.travelSettingsBackup.put(settings.allowBreak, settings.allowBreak.value);
+        this.travelSettingsBackup.put(settings.allowPlace, settings.allowPlace.value);
+        settings.allowBreak.value = false;
+        settings.allowPlace.value = false;
+    }
+
+    @Override
+    public void releaseNoBreakPlace() {
+        if (this.noBreakPlaceRequests == 0) {
+            return;
+        }
+        if (--this.noBreakPlaceRequests > 0) {
+            return;
+        }
+        for (Map.Entry<Settings.Setting<?>, Object> entry : this.travelSettingsBackup.entrySet()) {
+            @SuppressWarnings("unchecked")
+            Settings.Setting<Object> setting = (Settings.Setting<Object>) entry.getKey();
+            setting.value = entry.getValue();
+        }
+        this.travelSettingsBackup.clear();
     }
 
     private class PauseProcess implements IBaritoneProcess {

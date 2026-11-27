@@ -24,10 +24,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -41,6 +39,9 @@ import java.util.regex.Pattern;
  * <p>The interaction itself is sent from {@link #tick()} after {@link #onSendPosition(
  * LocalPlayerSendPositionEvent)} has written the target rotation into this tick's movement packet, so
  * the server receives "turn toward the trigger" before "use the trigger".
+ *
+ * <p>While the bot owns the path it also switches Baritone's block breaking and placing off, so the
+ * walk neither digs through nor builds over the base.
  */
 public final class PearlBotController implements ClientAccess {
     /** One tick of pure rotation before the first click, so the press never looks instantaneous. */
@@ -93,6 +94,7 @@ public final class PearlBotController implements ClientAccess {
     private int settleTicks;
     private int clickDelayTicks;
     private int clicksSent;
+    private boolean pathingOnlyHeld;
 
     public PearlBotController(PearlBotModule module) {
         this.module = module;
@@ -127,21 +129,20 @@ public final class PearlBotController implements ClientAccess {
         if (player == null || player.isDeadOrDying() || player.isSpectator()) {
             return;
         }
-        Set<String> names = identifyNames(incomingSender);
-        if (names.isEmpty()) {
+        // The displayed sender may carry a rank prefix; the whisperable name is the last name token.
+        String replyName = replyNameOf(incomingSender);
+        if (replyName.isBlank()) {
             return;
         }
         String localName = evernightMinecraft.getUser().getName();
-        if (localName != null && names.contains(localName.toLowerCase(Locale.ROOT))) {
+        if (localName != null && localName.equalsIgnoreCase(replyName)) {
             return;
         }
         if (ClientContext.baritoneBridge == null || !ClientContext.baritoneBridge.isAvailable()) {
             this.module.notifyError("NoBaritone");
             return;
         }
-        // The displayed sender may carry a rank prefix; the whisperable name is the last name token.
-        String replyName = replyNameOf(incomingSender);
-        StasisTarget foundTarget = this.findTarget(names);
+        StasisTarget foundTarget = this.findTarget(replyName);
         if (foundTarget == null) {
             this.module.reply(replyName, this.module.getNotFoundMessage());
             return;
@@ -213,11 +214,13 @@ public final class PearlBotController implements ClientAccess {
         this.clicksSent = 0;
         this.walkTimer.reset();
         this.repathTimer.reset();
+        this.holdPathingOnly();
         this.pathToTarget();
     }
 
     private void enterInteract() {
         this.cancelPathing();
+        this.releasePathingOnly();
         this.phase = Phase.INTERACT;
         this.settleTicks = SETTLE_TICKS;
         this.clickDelayTicks = 0;
@@ -323,6 +326,7 @@ public final class PearlBotController implements ClientAccess {
         this.pathAttempts = 0;
         this.returnTimer.reset();
         this.repathTimer.reset();
+        this.holdPathingOnly();
         this.pathToOrigin();
     }
 
@@ -337,6 +341,7 @@ public final class PearlBotController implements ClientAccess {
 
     private void abort() {
         this.cancelPathing();
+        this.releasePathingOnly();
         this.phase = Phase.IDLE;
         this.sender = null;
         this.target = null;
@@ -400,6 +405,28 @@ public final class PearlBotController implements ClientAccess {
         this.pathActive = false;
     }
 
+    /**
+     * Keeps Baritone from digging or placing while the bot owns the path; paired with
+     * {@link #releasePathingOnly()}.
+     */
+    private void holdPathingOnly() {
+        if (this.pathingOnlyHeld || ClientContext.baritoneBridge == null) {
+            return;
+        }
+        ClientContext.baritoneBridge.requestNoBreakPlace();
+        this.pathingOnlyHeld = true;
+    }
+
+    private void releasePathingOnly() {
+        if (!this.pathingOnlyHeld) {
+            return;
+        }
+        this.pathingOnlyHeld = false;
+        if (ClientContext.baritoneBridge != null) {
+            ClientContext.baritoneBridge.releaseNoBreakPlace();
+        }
+    }
+
     private boolean isWithinReach() {
         LocalPlayer player = evernightMinecraft.player;
         if (player == null || this.target == null) {
@@ -434,10 +461,11 @@ public final class PearlBotController implements ClientAccess {
     }
 
     /**
-     * Picks the sign to trigger. Signs with an ender pearl hanging below them win, because those
-     * chambers actually hold a pearl to pull; among equally good signs the closest one wins.
+     * Picks the sign to trigger: a sign with a line that is exactly the sender's name. Signs with an
+     * ender pearl hanging below them win, because those chambers actually hold a pearl to pull; among
+     * equally good signs the closest one wins.
      */
-    private StasisTarget findTarget(Set<String> names) {
+    private StasisTarget findTarget(String name) {
         LocalPlayer player = evernightMinecraft.player;
         if (player == null) {
             return null;
@@ -458,7 +486,7 @@ public final class PearlBotController implements ClientAccess {
             if (distance > range) {
                 continue;
             }
-            if (!matchesNames(sign, names)) {
+            if (!matchesName(sign, name)) {
                 continue;
             }
             BlockPos triggerPosition = this.findTrigger(signPosition);
@@ -565,24 +593,6 @@ public final class PearlBotController implements ClientAccess {
         return !level.getBlockState(floor).getCollisionShape(level, floor).isEmpty();
     }
 
-    private static Set<String> identifyNames(String sender) {
-        LinkedHashSet<String> names = new LinkedHashSet<>();
-        if (sender == null) {
-            return names;
-        }
-        String trimmed = sender.trim().toLowerCase(Locale.ROOT);
-        if (trimmed.isEmpty()) {
-            return names;
-        }
-        names.add(trimmed);
-        for (String token : NAME_SEPARATOR.split(trimmed)) {
-            if (token.length() >= 3 && token.length() <= 16) {
-                names.add(token);
-            }
-        }
-        return names;
-    }
-
     private static String replyNameOf(String sender) {
         String trimmed = sender.trim();
         String[] tokens = NAME_SEPARATOR.split(trimmed);
@@ -595,26 +605,30 @@ public final class PearlBotController implements ClientAccess {
         return trimmed;
     }
 
-    private static boolean matchesNames(SignBlockEntity sign, Set<String> names) {
-        String text = signText(sign);
-        for (String name : names) {
-            if (text.contains(name)) {
+    /**
+     * Matches a sign line against the sender name exactly, ignoring case and surrounding whitespace.
+     * Substring matching is deliberately not used: a sign only triggers the bot when one of its lines
+     * is the whole name.
+     */
+    private static boolean matchesName(SignBlockEntity sign, String name) {
+        for (String line : signLines(sign)) {
+            if (line.trim().equalsIgnoreCase(name)) {
                 return true;
             }
         }
         return false;
     }
 
-    private static String signText(SignBlockEntity sign) {
-        StringBuilder builder = new StringBuilder();
-        appendSignText(sign, true, builder);
-        appendSignText(sign, false, builder);
-        return builder.toString().toLowerCase(Locale.ROOT);
+    private static List<String> signLines(SignBlockEntity sign) {
+        List<String> lines = new ArrayList<>(4);
+        appendSignLines(sign, true, lines);
+        appendSignLines(sign, false, lines);
+        return lines;
     }
 
-    private static void appendSignText(SignBlockEntity sign, boolean front, StringBuilder builder) {
+    private static void appendSignLines(SignBlockEntity sign, boolean front, List<String> lines) {
         for (Component line : sign.getText(front).getMessages(false)) {
-            builder.append(line.getString()).append('\n');
+            lines.add(line.getString());
         }
     }
 

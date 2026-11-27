@@ -116,4 +116,20 @@ public interface BaritoneBridge {
      * {@link #setMiningYRange}.
      */
     void restoreMiningProfile();
+
+    /**
+     * Stops Baritone from breaking or placing blocks while one of the travel bots (the pearl bot and
+     * the cargo transport) walks, so the route neither digs through nor builds over the base.
+     *
+     * <p>The restriction is reference counted: every call must be paired with
+     * {@link #releaseNoBreakPlace()}, and the values that were active before the first request are
+     * restored when the last holder releases.
+     */
+    void requestNoBreakPlace();
+
+    /**
+     * Releases one {@link #requestNoBreakPlace()} hold; the last release restores the previous
+     * {@code allowBreak}/{@code allowPlace} values. A call without a matching request is ignored.
+     */
+    void releaseNoBreakPlace();
 }
