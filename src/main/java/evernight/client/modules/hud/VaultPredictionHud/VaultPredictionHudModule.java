@@ -161,10 +161,7 @@ public class VaultPredictionHudModule extends HudWidgetModule {
                     rows.add(new Row(Translations.format("modules.VaultPredictionHud.CountDistance", nextOffset,
                             distance), showIcon ? itemId : null));
                 } else {
-                    long current = prediction.getCurrentOpening();
-                    rows.add(new Row(current > 0
-                            ? Translations.format("modules.VaultPrediction.Info", current)
-                            : Translations.ui("modules.VaultPredictionHud.Waiting"), null));
+                    rows.add(new Row(Translations.ui("modules.VaultPredictionHud.Waiting"), null));
                 }
             } else if (hasTarget) {
                 rows.add(new Row(Translations.format("modules.VaultPredictionHud.Distance", distance),
