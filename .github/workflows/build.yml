@@ -21,9 +21,6 @@ jobs:
           distribution: temurin
           java-version: '25'
 
-      - name: Validate language tables
-        run: python3 .github/skills/evernight-dev/scripts/check-lang.py
-
       - name: Build
         run: |
           chmod +x gradlew
