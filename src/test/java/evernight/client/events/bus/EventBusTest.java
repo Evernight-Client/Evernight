@@ -179,7 +179,8 @@ class EventBusTest {
         this.bus.subscribe(subscriber);
         PingEvent instanceEvent = new PingEvent();
         this.bus.post(instanceEvent);
-        // 同优先级 handler 的先后顺序来自 getDeclaredMethods()，JVM 不保证；这里只校验两者都被触发。
+        // The order of same-priority handlers comes from getDeclaredMethods() and is not guaranteed
+        // by the JVM; only assert that both were triggered.
         assertEquals(Set.of("static", "instance"), Set.copyOf(instanceEvent.calls));
         this.bus.unsubscribe(subscriber);
         PingEvent afterUnsubscribe = new PingEvent();

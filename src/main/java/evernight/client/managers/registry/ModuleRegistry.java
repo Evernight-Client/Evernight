@@ -754,8 +754,9 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
     }
 
     /**
-     * 按类型取模块。内部各处直接持有注册表，因此该方法不是 deprecated；
-     * 插件与外部代码请改用 {@link evernight.client.ClientContext#getModule(Class)}（它会判空 registry）。
+     * Looks a module up by type. Internal code holds the registry directly, so this method is not
+     * deprecated; plugins and external code should use
+     * {@link evernight.client.ClientContext#getModule(Class)} instead (it null-checks the registry).
      */
     public <S extends Module> S getModule(Class<S> moduleType) {
         return moduleType.cast(this.modulesByClass.get(moduleType));
