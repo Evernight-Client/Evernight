@@ -1,11 +1,11 @@
-# 统一行尾：所有文本文件在提交与检出时都使用 LF。
-# 不依赖各机器的 core.autocrlf，保证 Windows / Linux / macOS 检出的字节一致。
+# Uniform line endings: every text file uses LF on commit and on checkout.
+# This does not rely on each machine's core.autocrlf, so Windows / Linux / macOS check out identical bytes.
 * text=auto eol=lf
 
-# Windows 批处理例外：按惯例检出为 CRLF（仓库内仍存 LF）。
+# Windows batch exception: checked out as CRLF by convention (the repository still stores LF).
 *.bat text eol=crlf
 
-# 二进制资源：禁止行尾转换与文本 diff。
+# Binary assets: no line-ending conversion and no text diff.
 *.png binary
 *.jpg binary
 *.jpeg binary

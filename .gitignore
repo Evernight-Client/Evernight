@@ -40,5 +40,5 @@ run
 /tools/
 /.ref/
 
-# DSH 本地目录（项目 skill 在 .github/skills/）
+# Local DSH directory (project skills live in .github/skills/)
 .dsh/

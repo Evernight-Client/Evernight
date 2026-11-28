@@ -58,7 +58,8 @@ dependencies {
     modLocalRuntime 'maven.modrinth:xaeros-minimap:g0LRDWwe'
     modCompileOnly 'maven.modrinth:entityculling:bTu42fvx'
     modLocalRuntime 'maven.modrinth:entityculling:bTu42fvx'
-    // 投影：Litematica 及其前置 MaLiLib（编译期只读 + 开发运行时可联调，不进发布 jar）
+    // Litematica (schematic mod) and its dependency MaLiLib: compile-time read-only, available at
+    // dev runtime for integration testing, and not shipped in the release jar.
     modCompileOnly "maven.modrinth:litematica:${litematica_version}"
     modLocalRuntime "maven.modrinth:litematica:${litematica_version}"
     modCompileOnly "maven.modrinth:malilib:${malilib_version}"
@@ -69,7 +70,8 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    // 语言表测试只依赖 Gson，显式声明以免测试类路径随 Loom 的 Minecraft 配置变化。
+    // The language-table test only needs Gson; declare it explicitly so the test classpath does not
+    // depend on Loom's Minecraft configuration.
     testImplementation 'com.google.code.gson:gson:2.11.0'
 
     modCompileOnly 'com.github.rfresh2:baritone-fabric:1.21.11-SNAPSHOT'
@@ -88,8 +90,9 @@ dependencies {
     modLocalRuntime nestedLibraries(configurations.entityCullingDistribution) {
         include 'META-INF/jars/*.jar'
     }
-    // Xaero 小地图把 XaeroLib 打成 META-INF/jars 嵌套 jar；dev 运行环境不展开它，
-    // 单独抽出来作为独立模组加进运行期，否则启动报 "需要 xaerolib"。
+    // Xaero's minimap bundles XaeroLib as a nested jar under META-INF/jars; the dev runtime does not
+    // unpack it, so extract that jar and add it as a separate runtime mod, otherwise startup fails
+    // with "requires xaerolib".
     modLocalRuntime nestedLibraries(configurations.xaeroDistribution) {
         include 'META-INF/jars/xaerolib-*.jar'
     }
@@ -113,7 +116,8 @@ processResources {
     inputs.property 'version', modVersion
     filesMatching('fabric.mod.json') { expand version: modVersion }
 
-    // 许可与第三方声明随 jar 一起分发，满足 GPL-3.0 与各组件许可证的随附要求。
+    // License and third-party notices ship inside the jar, as required by GPL-3.0 and by the
+    // licenses of the bundled components.
     from('LICENSE') { into 'META-INF' }
     from('licenses') { into 'META-INF/licenses' }
 }
