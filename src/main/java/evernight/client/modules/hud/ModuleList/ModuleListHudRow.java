@@ -2,7 +2,7 @@ package evernight.client.modules.hud.ModuleList;
 
 import evernight.client.modules.Module;
 import net.minecraft.network.chat.Component;
-import evernight.client.modules.hud.HudTextRow;
+import evernight.client.render.hud.HudTextRow;
 
 public class ModuleListHudRow extends HudTextRow {
     private final Module module;

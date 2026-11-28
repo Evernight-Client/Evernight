@@ -1,4 +1,4 @@
-package evernight.client.modules.hud;
+package evernight.client.media.core;
 
 import evernight.client.media.core.MediaSnapshot;
 import evernight.client.media.core.PortableMediaSessionProvider;

@@ -1,4 +1,4 @@
-package evernight.client.modules.hud;
+package evernight.client.modules.hud.Welcomer;
 
 import evernight.client.ClientAccess;
 import evernight.client.render.text.Translations;

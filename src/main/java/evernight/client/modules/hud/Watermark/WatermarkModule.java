@@ -13,8 +13,8 @@ import net.minecraft.network.chat.MutableComponent;
 
 import java.time.LocalDate;
 import java.time.Month;
-import evernight.client.modules.hud.HudTextListRenderer;
-import evernight.client.modules.hud.HudTextRow;
+import evernight.client.render.hud.HudTextListRenderer;
+import evernight.client.render.hud.HudTextRow;
 
 public class WatermarkModule extends HudWidgetModule {
     private static boolean aprilFoolsDay;

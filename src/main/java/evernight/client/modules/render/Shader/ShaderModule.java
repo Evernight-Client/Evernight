@@ -66,7 +66,7 @@ import evernight.client.settings.types.BooleanSetting;
 import evernight.client.settings.types.ColorSetting;
 import evernight.client.settings.types.EnumSetting;
 import evernight.client.settings.types.NumberSetting;
-import evernight.client.modules.render.EntityCullingOverrides;
+import evernight.client.integrations.entityculling.EntityCullingOverrides;
 
 public class ShaderModule extends Module {
     private static NameTagsModule nameTagsModule = ClientContext.getModule(NameTagsModule.class);

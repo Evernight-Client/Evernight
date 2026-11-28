@@ -11,7 +11,6 @@ import evernight.client.modules.HudWidgetModule;
 import evernight.client.modules.Keybind;
 import evernight.client.modules.Module;
 import evernight.client.modules.ModuleCategory;
-import evernight.client.modules.client.*;
 import evernight.client.modules.misc.KillEffects.KillEffectsModule;
 import evernight.client.modules.render.LogoutSpots.LogoutSpotsModule;
 import evernight.client.settings.types.ColorSetting;

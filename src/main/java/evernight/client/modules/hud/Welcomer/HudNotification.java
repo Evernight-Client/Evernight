@@ -1,4 +1,4 @@
-package evernight.client.modules.hud;
+package evernight.client.modules.hud.Welcomer;
 
 import java.awt.*;
 

@@ -39,7 +39,7 @@ import java.util.function.Predicate;
 import evernight.client.modules.combat.AutoCrystal.AutoCrystalModule;
 import evernight.client.modules.combat.AutoExp.AutoExpModule;
 import evernight.client.modules.combat.Offhand.OffhandModule;
-import evernight.client.modules.combat.LethalDamageTracker;
+import evernight.client.utils.combat.LethalDamageTracker;
 
 public class MainhandModule extends Module implements LethalDamageTracker.LethalCheckPolicy {
     private static NoInteractModule noInteractModule = ClientContext.getModule(NoInteractModule.class);

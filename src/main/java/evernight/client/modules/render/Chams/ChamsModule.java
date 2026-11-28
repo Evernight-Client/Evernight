@@ -75,7 +75,7 @@ import evernight.client.settings.types.BooleanSetting;
 import evernight.client.settings.types.ColorSetting;
 import evernight.client.settings.types.EnumSetting;
 import evernight.client.settings.types.NumberSetting;
-import evernight.client.modules.render.EntityCullingOverrides;
+import evernight.client.integrations.entityculling.EntityCullingOverrides;
 
 public class ChamsModule extends Module {
     private static final Identifier SHINE_TEXTURE;

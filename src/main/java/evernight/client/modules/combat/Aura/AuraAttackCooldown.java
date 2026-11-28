@@ -19,7 +19,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import java.util.List;
-import evernight.client.modules.combat.ItemAttributeUtils;
 
 public final class AuraAttackCooldown implements ClientAccess {
     private final AuraModule aura;

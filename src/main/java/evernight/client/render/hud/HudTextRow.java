@@ -1,4 +1,4 @@
-package evernight.client.modules.hud;
+package evernight.client.render.hud;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import evernight.client.ClientContext;

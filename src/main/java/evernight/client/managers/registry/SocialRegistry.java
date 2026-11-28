@@ -8,7 +8,7 @@ import evernight.client.ClientAccess;
 import evernight.client.ClientContext;
 import evernight.client.config.json.EnumJsonConverter;
 import evernight.client.modules.client.Colors.ColorsModule;
-import evernight.client.modules.misc.SocialEntry;
+import evernight.client.managers.social.SocialEntry;
 import evernight.client.settings.core.JsonConfigurable;
 import evernight.client.settings.core.Setting;
 import evernight.client.settings.options.SocialRole;

@@ -70,7 +70,7 @@ import evernight.client.settings.types.BooleanSetting;
 import evernight.client.settings.types.EnumSetting;
 import evernight.client.settings.types.NumberSetting;
 import evernight.client.settings.types.RegistrySetSetting;
-import evernight.client.modules.combat.LethalDamageTracker;
+import evernight.client.utils.combat.LethalDamageTracker;
 
 public class OffhandModule extends Module implements LethalDamageTracker.LethalCheckPolicy {
     private static final ElapsedTimer RECENT_SWAP_TIMER = new ElapsedTimer();

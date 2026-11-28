@@ -1,4 +1,4 @@
-package evernight.client.modules.client;
+package evernight.client.modules.client.HUD;
 
 import evernight.client.ClientContext;
 import evernight.client.managers.registry.ModuleRegistry;

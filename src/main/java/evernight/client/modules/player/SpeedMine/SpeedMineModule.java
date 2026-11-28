@@ -4,7 +4,6 @@ import evernight.client.ClientAccess;
 import evernight.client.ClientContext;
 import evernight.client.modules.Module;
 import evernight.client.modules.ModuleCategory;
-import evernight.client.modules.combat.*;
 import evernight.client.modules.exploit.MultiTask.MultiTaskModule;
 import evernight.client.modules.render.LogoutSpots.LogoutSpotsModule;
 import evernight.client.settings.options.*;

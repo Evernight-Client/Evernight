@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalFloatRef;
 import evernight.client.ClientAccess;
 import evernight.client.bootstrap.MixinModuleRefs;
-import evernight.client.modules.movement.*;
 import evernight.client.modules.render.ViewModel.ViewModelModule;
 import evernight.client.render.esp.ForcedEntityLayers;
 import evernight.client.utils.math.Vec3Utils;

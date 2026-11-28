@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
-import evernight.client.modules.hud.HudTextListRenderer;
+import evernight.client.render.hud.HudTextListRenderer;
 
 public class ModuleListModule extends HudWidgetModule {
     public final Setting<Boolean> onlyBoundSetting;

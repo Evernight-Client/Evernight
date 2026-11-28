@@ -30,8 +30,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
-import evernight.client.modules.hud.HudTextListRenderer;
-import evernight.client.modules.hud.HudTextRow;
+import evernight.client.render.hud.HudTextListRenderer;
+import evernight.client.render.hud.HudTextRow;
 
 public class MetricsModule extends HudWidgetModule {
     private final Setting<Boolean> speedSetting;

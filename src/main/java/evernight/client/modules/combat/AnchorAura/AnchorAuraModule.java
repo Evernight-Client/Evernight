@@ -69,7 +69,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import evernight.client.modules.combat.AutoCrystal.AutoCrystalModule;
 import evernight.client.modules.combat.Offhand.OffhandModule;
-import evernight.client.modules.combat.CrystalPlacementResult;
+import evernight.client.utils.combat.CrystalPlacementResult;
 
 public class AnchorAuraModule extends Module {
     private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();

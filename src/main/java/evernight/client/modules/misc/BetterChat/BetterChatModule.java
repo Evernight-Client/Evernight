@@ -50,7 +50,7 @@ import evernight.client.settings.types.EnumSetting;
 import evernight.client.settings.types.IdentifierSetting;
 import evernight.client.settings.types.NumberSetting;
 import evernight.client.settings.types.StringSetting;
-import evernight.client.modules.misc.SocialEntry;
+import evernight.client.managers.social.SocialEntry;
 
 public class BetterChatModule extends Module {
     private static final Pattern NUMERIC_MESSAGE_PATTERN;

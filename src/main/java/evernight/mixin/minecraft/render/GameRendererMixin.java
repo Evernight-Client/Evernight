@@ -18,7 +18,6 @@ import evernight.client.managers.registry.ShaderRegistry;
 import evernight.client.modules.client.HUD.HUDModule;
 import evernight.client.modules.player.Freecam.FreecamModule;
 import evernight.client.modules.player.NameProtect.NameProtectModule;
-import evernight.client.modules.render.*;
 import evernight.client.render.gui.GuiDrawUtils;
 import evernight.client.render.gui.GuiProjectionUtils;
 import evernight.client.render.util.RenderUtils;

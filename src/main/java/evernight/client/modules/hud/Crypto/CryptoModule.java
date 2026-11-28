@@ -29,8 +29,8 @@ import java.time.Duration;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import evernight.client.modules.hud.HudTextListRenderer;
-import evernight.client.modules.hud.HudTextRow;
+import evernight.client.render.hud.HudTextListRenderer;
+import evernight.client.render.hud.HudTextRow;
 
 public class CryptoModule extends HudWidgetModule {
     private final Setting<String> coinSetting;

@@ -12,7 +12,7 @@ import evernight.client.settings.types.StringSetting;
 
 import java.util.regex.Matcher;
 import evernight.client.modules.hud.Welcomer.WelcomerModule;
-import evernight.client.modules.hud.MediaSessionBridge;
+import evernight.client.media.core.MediaSessionBridge;
 
 public class MusicModule extends HudWidgetModule {
     private final Setting<Boolean> prefixSetting;

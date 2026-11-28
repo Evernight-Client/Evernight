@@ -51,7 +51,7 @@ import evernight.client.events.player.LocalPlayerPreTickEvent;
 import evernight.client.events.player.LocalPlayerTickPhaseEvent;
 import evernight.client.events.player.StatusEffectQueryEvent;
 import evernight.client.events.render.WorldRenderEvent;
-import evernight.client.modules.movement.EnumSelectionMap;
+import evernight.client.settings.core.EnumSelectionMap;
 
 public class NoSlowModule extends Module {
     private static MultiTaskModule multiTask;

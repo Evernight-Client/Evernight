@@ -1,4 +1,4 @@
-package evernight.client.modules.render;
+package evernight.client.integrations.entityculling;
 
 import evernight.client.ClientAccess;
 import evernight.client.events.core.EventHandler;

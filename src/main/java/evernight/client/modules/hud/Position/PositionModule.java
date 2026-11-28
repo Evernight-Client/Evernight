@@ -33,8 +33,8 @@ import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.concurrent.TimeUnit;
-import evernight.client.modules.hud.HudTextListRenderer;
-import evernight.client.modules.hud.HudTextRow;
+import evernight.client.render.hud.HudTextListRenderer;
+import evernight.client.render.hud.HudTextRow;
 
 public class PositionModule extends HudWidgetModule {
     private static final FreecamModule freecam;

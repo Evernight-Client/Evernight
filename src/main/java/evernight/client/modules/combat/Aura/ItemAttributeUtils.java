@@ -1,4 +1,4 @@
-package evernight.client.modules.combat;
+package evernight.client.modules.combat.Aura;
 
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;

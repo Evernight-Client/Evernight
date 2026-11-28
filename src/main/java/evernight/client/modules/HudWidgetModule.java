@@ -8,7 +8,7 @@ import evernight.client.ClientContext;
 import evernight.client.config.json.EnumJsonConverter;
 import evernight.client.gui.screens.hud.HudEditorScreen;
 import evernight.client.modules.client.HUD.HUDModule;
-import evernight.client.modules.client.HudColorMode;
+import evernight.client.modules.client.HUD.HudColorMode;
 import evernight.client.render.hud.HudAnchorGroup;
 import evernight.client.render.hud.HudHorizontalAlignment;
 import evernight.client.render.hud.HudVerticalAlignment;

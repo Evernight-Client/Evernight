@@ -39,8 +39,6 @@ import evernight.client.settings.types.BooleanSetting;
 import evernight.client.settings.types.ColorSetting;
 import evernight.client.settings.types.EnumSetting;
 import evernight.client.settings.types.NumberSetting;
-import evernight.client.modules.client.ChatInputOverlay;
-import evernight.client.modules.client.HudColorMode;
 
 public class HUDModule extends Module {
     private static NoRenderModule noRenderModule = ClientContext.getModule(NoRenderModule.class);

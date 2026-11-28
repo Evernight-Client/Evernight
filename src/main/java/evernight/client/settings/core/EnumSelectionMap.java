@@ -1,4 +1,4 @@
-package evernight.client.modules.movement;
+package evernight.client.settings.core;
 
 import evernight.client.settings.core.Setting;
 

@@ -1,4 +1,4 @@
-package evernight.client.modules.misc;
+package evernight.client.managers.social;
 
 import evernight.client.settings.core.NamedEntry;
 import evernight.client.settings.options.SocialRole;

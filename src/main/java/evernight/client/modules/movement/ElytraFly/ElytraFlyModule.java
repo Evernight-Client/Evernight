@@ -57,7 +57,7 @@ import evernight.client.settings.core.SettingLabelCondition;
 import evernight.client.settings.types.BooleanSetting;
 import evernight.client.settings.types.EnumSetting;
 import evernight.client.settings.types.NumberSetting;
-import evernight.client.modules.movement.EnumSelectionMap;
+import evernight.client.settings.core.EnumSelectionMap;
 
 public class ElytraFlyModule extends Module {
     public static boolean hook = false;

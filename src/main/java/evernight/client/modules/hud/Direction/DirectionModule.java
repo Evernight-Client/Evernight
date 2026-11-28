@@ -12,8 +12,8 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import evernight.client.modules.hud.HudTextListRenderer;
-import evernight.client.modules.hud.HudTextRow;
+import evernight.client.render.hud.HudTextListRenderer;
+import evernight.client.render.hud.HudTextRow;
 
 public class DirectionModule extends HudWidgetModule {
     private final Setting<Boolean> preciseSetting;

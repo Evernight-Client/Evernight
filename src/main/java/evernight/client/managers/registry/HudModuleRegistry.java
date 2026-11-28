@@ -9,7 +9,6 @@ import evernight.client.events.core.EventHandler;
 import evernight.client.events.bus.EventBus;
 import evernight.client.modules.HudWidgetModule;
 import evernight.client.modules.Module;
-import evernight.client.modules.hud.*;
 import evernight.client.settings.core.JsonConfigurable;
 
 import java.util.AbstractMap.SimpleEntry;

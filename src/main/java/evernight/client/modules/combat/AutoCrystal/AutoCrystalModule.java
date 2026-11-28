@@ -102,11 +102,11 @@ import evernight.client.settings.types.BooleanSetting;
 import evernight.client.settings.types.ColorSetting;
 import evernight.client.settings.types.EnumSetting;
 import evernight.client.settings.types.NumberSetting;
-import evernight.client.modules.combat.CrystalDamagePolicy;
-import evernight.client.modules.combat.CrystalLethality;
-import evernight.client.modules.combat.CrystalPlacementKind;
-import evernight.client.modules.combat.CrystalPlacementResult;
-import evernight.client.modules.combat.CrystalTargetDamage;
+import evernight.client.utils.combat.CrystalDamagePolicy;
+import evernight.client.utils.combat.CrystalLethality;
+import evernight.client.utils.combat.CrystalPlacementKind;
+import evernight.client.utils.combat.CrystalPlacementResult;
+import evernight.client.utils.combat.CrystalTargetDamage;
 
 public class AutoCrystalModule extends Module {
     private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();

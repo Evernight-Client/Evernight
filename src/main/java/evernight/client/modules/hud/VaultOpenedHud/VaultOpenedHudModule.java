@@ -1,8 +1,8 @@
 package evernight.client.modules.hud.VaultOpenedHud;
 
 import evernight.client.modules.HudWidgetModule;
-import evernight.client.modules.hud.HudTextListRenderer;
-import evernight.client.modules.hud.HudTextRow;
+import evernight.client.render.hud.HudTextListRenderer;
+import evernight.client.render.hud.HudTextRow;
 import evernight.client.modules.render.VaultESP.VaultOpenedStore;
 import evernight.client.render.text.Translations;
 import evernight.client.settings.options.HudAnchor;

@@ -12,7 +12,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
 
 import java.util.function.Supplier;
-import evernight.client.modules.hud.HudTextRow;
+import evernight.client.render.hud.HudTextRow;
 
 public class EffectHudRow extends HudTextRow implements ClientAccess {
     private final Holder<MobEffect> effectHolder;

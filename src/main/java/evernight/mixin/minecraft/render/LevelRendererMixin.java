@@ -18,7 +18,6 @@ import evernight.client.events.render.WorldRenderEvent;
 import evernight.client.managers.registry.RenderTargetRegistry;
 import evernight.client.managers.player.RotationManager;
 import evernight.client.modules.player.Freecam.FreecamModule;
-import evernight.client.modules.render.*;
 import evernight.client.render.util.EntityRenderStateAccess;
 import evernight.client.render.shader.IrisShaderBridge;
 import evernight.client.render.shader.LevelRendererFramebufferAccess;

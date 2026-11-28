@@ -32,11 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import evernight.client.modules.hud.LagOMeter.LagOMeterModule;
 import evernight.client.modules.hud.Music.MusicModule;
-import evernight.client.modules.hud.GreetingNotification;
-import evernight.client.modules.hud.HudNotification;
-import evernight.client.modules.hud.LagNotification;
-import evernight.client.modules.hud.MediaSessionBridge;
-import evernight.client.modules.hud.MusicNotification;
+import evernight.client.media.core.MediaSessionBridge;
 
 public class WelcomerModule extends HudWidgetModule {
     public final Setting<WelcomerMode> modeSetting;

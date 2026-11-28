@@ -1,4 +1,4 @@
-package evernight.client.modules.combat;
+package evernight.client.utils.combat;
 
 import evernight.client.ClientAccess;
 import evernight.client.ClientContext;

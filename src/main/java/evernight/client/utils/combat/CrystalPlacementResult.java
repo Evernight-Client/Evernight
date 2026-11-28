@@ -1,4 +1,4 @@
-package evernight.client.modules.combat;
+package evernight.client.utils.combat;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;

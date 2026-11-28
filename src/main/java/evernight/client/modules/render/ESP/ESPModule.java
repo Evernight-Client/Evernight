@@ -82,7 +82,7 @@ import evernight.client.settings.types.ColorSetting;
 import evernight.client.settings.types.EnumSetting;
 import evernight.client.settings.types.NumberSetting;
 import evernight.client.settings.types.RegistrySetSetting;
-import evernight.client.modules.render.EntityCullingOverrides;
+import evernight.client.integrations.entityculling.EntityCullingOverrides;
 
 public class ESPModule extends Module {
     private static ColorsModule colorsModule = ClientContext.getModule(ColorsModule.class);

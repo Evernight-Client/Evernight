@@ -1,4 +1,4 @@
-package evernight.client.modules.render;
+package evernight.client.integrations.entityculling;
 
 import dev.tr7zw.entityculling.EntityCullingModBase;
 import dev.tr7zw.entityculling.versionless.EntityCullingVersionlessBase;
