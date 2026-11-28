@@ -25,7 +25,6 @@ import evernight.client.config.legacy.LegacyConfigMigrations;
 import evernight.client.modules.client.AntiCheat.AntiCheatModule;
 import evernight.client.modules.client.Capes.CapesModule;
 import evernight.client.modules.client.Colors.ColorsModule;
-import evernight.client.modules.client.Discord.DiscordModule;
 import evernight.client.modules.client.Fonts.FontsModule;
 import evernight.client.modules.client.HUD.HUDModule;
 import evernight.client.modules.client.Notifications.NotificationsModule;
@@ -360,8 +359,6 @@ public final class ModuleRegistry extends Registry<Module> implements ClientAcce
             throw new IllegalStateException("Registration rejected CrosshairModule");
         if (!this.registerModule(new evernight.client.modules.misc.CustomDeathText.CustomDeathTextModule()))
             throw new IllegalStateException("Registration rejected CustomDeathTextModule");
-        if (!this.registerModule(new evernight.client.modules.client.Discord.DiscordModule()))
-            throw new IllegalStateException("Registration rejected DiscordModule");
         if (!this.registerModule(new evernight.client.modules.misc.WebhookNotifs.WebhookNotifsModule()))
             throw new IllegalStateException("Registration rejected WebhookNotifsModule");
         if (!this.registerModule(new evernight.client.modules.render.ESP.ESPModule()))

@@ -12,7 +12,6 @@ import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.time.Duration;
 import java.util.concurrent.*;
-import com.jagrosh.discordipc.entities.User;
 
 /**
  * Minimal QQ Bot OpenAPI gateway listener.

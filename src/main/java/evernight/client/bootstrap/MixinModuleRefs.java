@@ -1,7 +1,6 @@
 package evernight.client.bootstrap;
 
 import evernight.client.managers.registry.ModuleRegistry;
-import evernight.client.modules.client.Discord.DiscordModule;
 import evernight.client.modules.client.UI.UIModule;
 import evernight.client.modules.combat.Arrows.ArrowsModule;
 import evernight.client.modules.auto.AutoClicker.AutoClickerModule;
@@ -50,7 +49,6 @@ public final class MixinModuleRefs {
     public static AutoCrystalModule autoCrystal;
     public static AutoEatModule autoEat;
     public static ChamsModule chams;
-    public static DiscordModule discord;
     public static ElytraFlyModule elytraFly;
     public static EntityControlModule entityControl;
     public static FastClimbModule fastClimb;
@@ -88,7 +86,6 @@ public final class MixinModuleRefs {
         autoCrystal = registry.getModule(AutoCrystalModule.class);
         autoEat = registry.getModule(AutoEatModule.class);
         chams = registry.getModule(ChamsModule.class);
-        discord = registry.getModule(DiscordModule.class);
         elytraFly = registry.getModule(ElytraFlyModule.class);
         entityControl = registry.getModule(EntityControlModule.class);
         fastClimb = registry.getModule(FastClimbModule.class);

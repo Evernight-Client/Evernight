@@ -9,7 +9,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
-import com.jagrosh.discordipc.entities.User;
 import evernight.client.commands.Command;
 import evernight.client.utils.network.HttpRequests;
 

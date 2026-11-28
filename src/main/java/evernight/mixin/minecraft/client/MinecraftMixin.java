@@ -142,9 +142,4 @@ public class MinecraftMixin {
             callback.setReturnValue(false);
         }
     }
-
-    @Inject(method = "close", at = @At("HEAD"))
-    public void closeDiscordClient(CallbackInfo callback) {
-        MixinModuleRefs.discord.closeClient();
-    }
 }

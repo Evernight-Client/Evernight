@@ -8,7 +8,6 @@ Evernight 本体以 [GPL-3.0-only](../LICENSE) 发布。本文件记录本体中
 | --- | --- |
 | [GPL-3.0.txt](GPL-3.0.txt) | 本项目整体（GPL-3.0-only）；与根目录的 [LICENSE](../LICENSE) 内容相同 |
 | [LGPL-3.0.txt](LGPL-3.0.txt) | LPCTools 移植模块（AutoGrindstone）；LGPL-3.0 以 GPL-3.0 为基础 |
-| [Apache-2.0.txt](Apache-2.0.txt) | 内置的 DiscordIPC |
 | [MIT-OpenZio.txt](MIT-OpenZio.txt) | 上游 Open Zio 基础代码 |
 | [PinIn-MIT.txt](PinIn-MIT.txt) | 内置的裁剪版 PinIn 拼音匹配库及其拼音字典 |
 | [MiSans.txt](MiSans.txt) | 内置 MiSans 字体（字体许可，非开源许可，按原协议要求随附） |
@@ -42,14 +41,6 @@ MIT 与 GPL-3.0 兼容，合并后的整体按 GPL-3.0-only 分发；上游的�
 
 - 条款：[LGPL-3.0.txt](LGPL-3.0.txt)，其依赖的 GPL-3.0 全文见 [LICENSE](../LICENSE)。
 - 按 LGPL-3.0 第 2 条，该部分并入本项目后按 GPL-3.0-only 分发。
-
-### DiscordIPC（jagrosh）— Apache-2.0
-
-`src/main/java/com/jagrosh/discordipc/` 是 DiscordIPC 的内置副本，用于 Discord Rich Presence。
-
-- 版权归 jagrosh 及 DiscordIPC 贡献者。
-- 许可证全文：[Apache-2.0.txt](Apache-2.0.txt)。
-- 本项目对该副本做过修改（重连退避、传输层与枚举整理等）；按 Apache-2.0 第 4 条在此注明。
 
 ### 参考实现（未包含其代码）
 
