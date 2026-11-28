@@ -27,39 +27,46 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * 所有「旧配置」兼容的唯一实现处。
+ * The single place where legacy-config compatibility is implemented.
  *
- * <p>这里只做读取时的一次性换算：把旧键名、旧值格式和旧文件位置折算成当前格式，迁移结果不额外落盘——
- * {@code ConfigurationManager#save()} 每次都用当前格式整份重写，所以旧键在下一次保存时自然消失。
+ * <p>Conversion happens only while reading: legacy key names, legacy value formats and legacy file
+ * locations are translated into the current format, and nothing extra is written back —
+ * {@code ConfigurationManager#save()} rewrites the whole file in the current format, so legacy keys
+ * disappear naturally on the next save.
  *
- * <p>新增旧格式兼容时只改本类，不要在各模块里散写 {@code fromJson} 覆盖。目前覆盖：
+ * <p>When adding compatibility for another old format, change this class only; do not scatter
+ * {@code fromJson} overrides across modules. Currently covered:
  * <ul>
- *   <li>模块配置键改名：{@link #canonicalModuleName}、{@link #findModuleConfig}（{@code AntiVoid} →
- *       {@code Avoid} 等）</li>
- *   <li>单模块设置迁移：{@link #migrateModule}（AutoFarm、EntityControl、FeetPlace、Watermark、
- *       Welcomer、AutoSign、WebhookNotifs、ESP、Indicator、NoSlow、Crosshair、Baritone、ExtraScreenshot）</li>
- *   <li>其它配置：{@link #migrateWebhookConfig}、{@link #presetModuleName}、{@link #isLegacyColorJson}</li>
- *   <li>数据目录：{@link #migrateSocialsFile}（{@code friends.json} → {@code socials.json}）、
- *       {@link #migrateDataDirectories}（{@code autoez/} → {@code killsay/}）</li>
+ *   <li>Module config key renames: {@link #canonicalModuleName}, {@link #findModuleConfig}
+ *       ({@code AntiVoid} → {@code Avoid}, etc.)</li>
+ *   <li>Per-module setting migrations: {@link #migrateModule} (AutoFarm, EntityControl, FeetPlace,
+ *       Watermark, Welcomer, AutoSign, WebhookNotifs, ESP, Indicator, NoSlow, Crosshair, Baritone,
+ *       ExtraScreenshot)</li>
+ *   <li>Other configs: {@link #migrateWebhookConfig}, {@link #presetModuleName},
+ *       {@link #isLegacyColorJson}</li>
+ *   <li>Data directories: {@link #migrateSocialsFile} ({@code friends.json} → {@code socials.json}),
+ *       {@link #migrateDataDirectories} ({@code autoez/} → {@code killsay/})</li>
  * </ul>
  *
- * <p>不在这里的旧数据：{@code mio-fabric} 数据目录与 {@code "client": "mio-fabric"} 预设品牌由
- * {@link LegacyBranding} 处理（受支持的前身版本，长期保留）；{@code VaultOpenedStore} 的
- * {@code vaultopened.json} 是独立状态文件，不属于配置。
+ * <p>Legacy data handled elsewhere: the {@code mio-fabric} data directory and the
+ * {@code "client": "mio-fabric"} preset branding are covered by {@link LegacyBranding} (a supported
+ * predecessor version, kept long-term); {@code VaultOpenedStore}'s {@code vaultopened.json} is a
+ * standalone state file, not config.
  */
 public final class LegacyConfigMigrations {
-    /** 旧的 ESP 分组颜色键：{@code <Group>}{@code Outline}/{@code Fill} → {@code <Group>}Color。 */
+    /** Legacy ESP group color keys: {@code <Group>}{@code Outline}/{@code Fill} → {@code <Group>}Color. */
     private static final List<String> ESP_COLOR_GROUPS = List.of("Players", "Hostiles", "Animals", "Exp", "Items");
-    /** 旧 ESP 的珍珠颜色键：裸 {@code Fill}/{@code Outline} → {@code PearlsFill}/{@code PearlsOutline}。 */
+    /** Legacy ESP pearl color keys: bare {@code Fill}/{@code Outline} → {@code PearlsFill}/{@code PearlsOutline}. */
     private static final List<String> ESP_PEARL_COLOR_KEYS = List.of("Fill", "Outline");
 
     private LegacyConfigMigrations() {
     }
 
-    // ------------------------------------------------------------------ 模块名
+    // ------------------------------------------------------------------ module names
 
     /**
-     * 前身版本的模块名/别名映射到当前配置名；已经是当前名时原样返回。
+     * Maps a predecessor module name/alias to its current config name; returns the name unchanged
+     * when it is already current.
      */
     public static String canonicalModuleName(String name) {
         return switch (name.toLowerCase(Locale.ROOT)) {
@@ -71,7 +78,8 @@ public final class LegacyConfigMigrations {
     }
 
     /**
-     * 读取模块配置：优先当前键名，缺失时回落旧键名（{@code AntiVoid}/{@code AutoUpgrade}/{@code DiscordNotifs}）。
+     * Reads a module's config: prefers the current key name and falls back to the legacy key
+     * ({@code AntiVoid}/{@code AutoUpgrade}/{@code DiscordNotifs}) when it is missing.
      */
     public static JsonElement findModuleConfig(JsonObject config, String moduleName) {
         if (config.has(moduleName)) {
@@ -85,13 +93,15 @@ public final class LegacyConfigMigrations {
         };
     }
 
-    // ------------------------------------------------------------------ 模块设置
+    // ------------------------------------------------------------------ module settings
 
     /**
-     * 把一个模块的配置 JSON 迁移成当前格式。没有可迁移内容时原样返回同一实例（不产生副本），
-     * 需要迁移时返回深拷贝，调用方的输入对象不会被修改。
+     * Migrates one module's config JSON to the current format. Returns the same instance unchanged
+     * (no copy) when there is nothing to migrate; returns a deep copy when a migration applies, so
+     * the caller's input object is never modified.
      *
-     * <p>个别迁移需要模块实例或跨模块写入，见 {@code migrateBaritone}、{@code migrateScreenshotClientId}。
+     * <p>Some migrations need a module instance or write across modules; see {@code migrateBaritone}
+     * and {@code migrateScreenshotClientId}.
      */
     public static JsonElement migrateModule(String moduleName, JsonElement input) {
         if (!(input instanceof JsonObject module) || !(module.get("settings") instanceof JsonObject)) {
@@ -118,7 +128,7 @@ public final class LegacyConfigMigrations {
         return changed ? migrated : input;
     }
 
-    /** 旧键换新键：新键缺失时继承旧值，随后删掉旧键。 */
+    /** Renames a key: when the new key is missing, inherit the legacy value, then drop the legacy key. */
     private static boolean migrateRenamedKey(JsonObject settings, String legacyKey, String currentKey) {
         if (!settings.has(legacyKey)) {
             return false;
@@ -152,7 +162,10 @@ public final class LegacyConfigMigrations {
         return true;
     }
 
-    /** 旧 FeetPlace 用两个布尔表达「挖掘忽略」和「顺序放置」，现在分别是枚举字符串。 */
+    /**
+     * Legacy FeetPlace expressed "ignore mining" and "sequential placement" as two booleans; both are
+     * now enum strings.
+     */
     private static boolean migrateFeetPlace(JsonObject settings) {
         boolean changed = false;
         JsonElement blockIgnore = settings.get("BlockIgnore");
@@ -176,7 +189,7 @@ public final class LegacyConfigMigrations {
         return changed;
     }
 
-    /** 旧 ESP 用 {@code Items} 开关、{@code Box} 显示模式和「分组+Outline/Fill」颜色键。 */
+    /** Legacy ESP used an {@code Items} toggle, a {@code Box} display mode and "group + Outline/Fill" color keys. */
     private static boolean migrateEsp(JsonObject settings) {
         boolean legacyDraw = !settings.has("DrawItems") && settings.has("Items");
         boolean legacyMode = settings.has("ItemsMode") && "Box".equalsIgnoreCase(stringValue(settings.get("ItemsMode")));
@@ -218,7 +231,10 @@ public final class LegacyConfigMigrations {
         return true;
     }
 
-    /** 旧 Indicator 用 {@code Display} 单值或 {@code Indicators} 数组，现在是每个指示器一个布尔。 */
+    /**
+     * Legacy Indicator used a single {@code Display} value or an {@code Indicators} array; it is now
+     * one boolean per indicator.
+     */
     private static boolean migrateIndicator(JsonObject settings) {
         boolean legacyArray = settings.get("Indicators") instanceof JsonArray;
         if (!legacyArray && !settings.has("Display")) {
@@ -247,7 +263,7 @@ public final class LegacyConfigMigrations {
         return true;
     }
 
-    /** 旧 NoSlow 的 {@code GrimStrict} 物品模式和 {@code Constantiam} 背包模式都已退役。 */
+    /** Legacy NoSlow's {@code GrimStrict} item mode and {@code Constantiam} inventory mode are both retired. */
     private static boolean migrateNoSlow(JsonObject settings) {
         boolean changed = false;
         if (equalsString(settings.get("Mode"), "GrimStrict")) {
@@ -261,7 +277,7 @@ public final class LegacyConfigMigrations {
         return changed;
     }
 
-    /** 旧 Crosshair 只有一个「使用原版准星」布尔，现在是 {@code Mode} 枚举。 */
+    /** Legacy Crosshair had only a "use vanilla crosshair" boolean; it is now a {@code Mode} enum. */
     private static boolean migrateCrosshair(JsonObject settings) {
         if (settings.has("Mode") || !isBoolean(settings.get("Vanilla"))) {
             return false;
@@ -275,10 +291,10 @@ public final class LegacyConfigMigrations {
     }
 
     /**
-     * 旧 Baritone 模块自己存 {@code CensorCoords}，现在归 CoordinateHider。
+     * Legacy Baritone stored {@code CensorCoords} itself; it now belongs to CoordinateHider.
      *
-     * <p>跨模块写入：目标模块的「已有新值不覆盖」判断在
-     * {@link CoordinateHiderModule#applyLegacyBaritoneCensor(boolean)} 里。
+     * <p>Cross-module write: the target module's "do not overwrite an existing new value" check lives
+     * in {@link CoordinateHiderModule#applyLegacyBaritoneCensor(boolean)}.
      */
     private static boolean migrateBaritone(JsonObject settings) {
         if (!isBoolean(settings.get("CensorCoords"))) {
@@ -290,9 +306,11 @@ public final class LegacyConfigMigrations {
     }
 
     /**
-     * 旧版本的 {@code ClientId} 存在 {@code modules.json}，现在只存 {@code screenshot.json}。
+     * Older versions stored {@code ClientId} in {@code modules.json}; it is now stored only in
+     * {@code screenshot.json}.
      *
-     * <p>只在正常配置加载时迁移——预设导入不能把别人的凭据抽出来。见 {@link ClientContext#configurationLoading}。
+     * <p>Migrates only during a normal config load — importing a preset must not extract someone
+     * else's credential. See {@link ClientContext#configurationLoading}.
      */
     private static boolean migrateScreenshotClientId(JsonObject settings) {
         JsonElement legacy = settings.get("ClientId");
@@ -313,11 +331,12 @@ public final class LegacyConfigMigrations {
         return true;
     }
 
-    // ------------------------------------------------------------------ 其它配置
+    // ------------------------------------------------------------------ other configs
 
     /**
-     * 旧 {@code webhook.json} 把 Telegram 机器人地址整个塞在 {@code url} 里，还把 chat id 单独存在
-     * {@code telegramChatId}；返回规范化后的副本，供 {@code WebhookManager#fromJson} 直接读取当前键。
+     * Legacy {@code webhook.json} stuffed the whole Telegram bot URL into {@code url} and stored the
+     * chat id separately in {@code telegramChatId}; returns a normalized copy so
+     * {@code WebhookManager#fromJson} can read the current keys directly.
      */
     public static JsonObject migrateWebhookConfig(JsonObject config) {
         JsonObject migrated = config.deepCopy();
@@ -359,9 +378,10 @@ public final class LegacyConfigMigrations {
     }
 
     /**
-     * 单模块剪贴板预设的模块名：当前字段是 {@code m}，旧版本用 {@code module}。
+     * Module name of a single-module clipboard preset: the current field is {@code m}, older versions
+     * used {@code module}.
      *
-     * @throws IllegalArgumentException 两个字段都不存在
+     * @throws IllegalArgumentException when neither field is present
      */
     public static String presetModuleName(JsonObject preset) {
         if (preset.has("m")) {
@@ -374,15 +394,19 @@ public final class LegacyConfigMigrations {
     }
 
     /**
-     * 旧版本把颜色存成裸 {@code [r,g,b,a]} 数组；当前格式是 {@code {"rgba":[...],...}}。
+     * Older versions stored colors as a bare {@code [r,g,b,a]} array; the current format is
+     * {@code {"rgba":[...],...}}.
      */
     public static boolean isLegacyColorJson(JsonElement json) {
         return json != null && json.isJsonArray();
     }
 
-    // ------------------------------------------------------------------ 数据目录
+    // ------------------------------------------------------------------ data directories
 
-    /** 旧 {@code friends.json} 迁移成 {@code socials.json}；目标已存在或来源缺失时什么都不做。 */
+    /**
+     * Migrates legacy {@code friends.json} to {@code socials.json}; does nothing when the target
+     * already exists or the source is missing.
+     */
     public static void migrateSocialsFile(Path rootDirectory) throws IOException {
         Path friendsPath = rootDirectory.resolve("friends.json");
         Path socialsPath = rootDirectory.resolve("socials.json");
@@ -406,7 +430,7 @@ public final class LegacyConfigMigrations {
         friendsPath.toFile().delete();
     }
 
-    /** 旧的击杀喊话目录叫 {@code autoez/}，现在叫 {@code killsay/}。 */
+    /** The legacy kill-message directory was named {@code autoez/}; it is now {@code killsay/}. */
     public static void migrateDataDirectories(Path rootDirectory, Path killsayDirectory) {
         try {
             File legacyAutoEz = rootDirectory.resolve("autoez").toFile();
@@ -417,7 +441,7 @@ public final class LegacyConfigMigrations {
         }
     }
 
-    // ------------------------------------------------------------------ 工具
+    // ------------------------------------------------------------------ helpers
 
     private static boolean isBoolean(JsonElement element) {
         return element != null && element.isJsonPrimitive() && element.getAsJsonPrimitive().isBoolean();
@@ -436,7 +460,7 @@ public final class LegacyConfigMigrations {
                 && expected.equals(value.getAsString());
     }
 
-    /** 字符串原语的值（已 trim）；不是字符串原语时返回空串。 */
+    /** Value of a string primitive (trimmed); returns an empty string for anything else. */
     private static String stringValue(JsonElement element) {
         if (element == null || !element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
             return "";

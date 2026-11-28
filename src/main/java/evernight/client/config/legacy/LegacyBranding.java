@@ -5,10 +5,11 @@ import com.google.gson.JsonObject;
 import evernight.client.EvernightClient;
 
 /**
- * 前身客户端（Mio）的品牌兼容：{@code mio-fabric} 数据目录与 {@code "client": "mio-fabric"} 预设。
+ * Branding compatibility for the predecessor client (Mio): the {@code mio-fabric} data directory and
+ * the {@code "client": "mio-fabric"} preset branding.
  *
- * <p>这层是受支持的前身版本数据入口，长期保留。旧配置键/旧值换算在
- * {@link LegacyConfigMigrations}。
+ * <p>This layer is the supported entry point for predecessor data and is kept long-term. Legacy
+ * config key/value conversions live in {@link LegacyConfigMigrations}.
  */
 public final class LegacyBranding {
     /**
