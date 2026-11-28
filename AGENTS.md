@@ -8,5 +8,6 @@
 6. 开发前需加载项目 skill
 7. 遇到歧义决策未知主动提问
 8. 统一 UTF-8（无 BOM）、LF 行尾、空格缩进（`.bat` 检出用 CRLF）；由根目录 `.gitattributes` 与 `.editorconfig` 约束，不提交 CRLF、tab 或 BOM。
+9. 注释统一用英文：javadoc、行注释、构建脚本与配置文件里的注释都写英文；标识符与语言表内容不动，文档与提交信息仍可用中文。
 
 细则见 `.github/skills/evernight-dev/`；写插件见 `.github/skills/evernight-addon-dev/`。
