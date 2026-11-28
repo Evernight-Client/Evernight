@@ -1,10 +1,11 @@
 /*
  * Trimmed copy of PinIn (https://github.com/Towdium/PinIn, MIT, Copyright (c) 2019 Juntong Liu).
  */
-package me.towdium.pinin.elements;
+package evernight.client.utils.search.pinin.elements;
 
-import me.towdium.pinin.PinIn;
-import me.towdium.pinin.utils.IndexSet;
+import evernight.client.utils.search.pinin.Keyboard;
+import evernight.client.utils.search.pinin.PinIn;
+import evernight.client.utils.search.pinin.utils.IndexSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,7 +13,7 @@ import java.util.List;
 
 /**
  * One full pinyin reading of a character, split into initial, final and tone by
- * {@link me.towdium.pinin.Keyboard}. A query may skip trailing phonemes, which is what makes
+ * {@link Keyboard}. A query may skip trailing phonemes, which is what makes
  * initials such as {@code zhg} for {@code zhong guo} work.
  */
 public class Pinyin implements Element {

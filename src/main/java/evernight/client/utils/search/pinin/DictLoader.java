@@ -1,7 +1,7 @@
 /*
  * Trimmed copy of PinIn (https://github.com/Towdium/PinIn, MIT, Copyright (c) 2019 Juntong Liu).
  */
-package me.towdium.pinin;
+package evernight.client.utils.search.pinin;
 
 import java.io.BufferedReader;
 import java.io.IOException;

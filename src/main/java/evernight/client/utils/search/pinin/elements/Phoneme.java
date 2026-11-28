@@ -3,10 +3,10 @@
  * The double-pinyin key layouts were removed; the plain quanyin splitter and the fuzzy-spelling
  * options (zh/z, sh/s, ch/c, ang/an, eng/en, ing/in, v/u) are kept.
  */
-package me.towdium.pinin.elements;
+package evernight.client.utils.search.pinin.elements;
 
-import me.towdium.pinin.PinIn;
-import me.towdium.pinin.utils.IndexSet;
+import evernight.client.utils.search.pinin.PinIn;
+import evernight.client.utils.search.pinin.utils.IndexSet;
 
 import java.util.Collections;
 import java.util.HashSet;

@@ -3,7 +3,7 @@ package evernight.client.utils.search;
 import evernight.client.ClientAccess;
 import evernight.client.EvernightClient;
 import evernight.client.modules.client.UI.UIModule;
-import me.towdium.pinin.PinIn;
+import evernight.client.utils.search.pinin.PinIn;
 
 /**
  * Lazily built {@link PinIn} context shared by every search box.

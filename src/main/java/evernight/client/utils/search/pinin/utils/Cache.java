@@ -1,14 +1,16 @@
 /*
  * Trimmed copy of PinIn (https://github.com/Towdium/PinIn, MIT, Copyright (c) 2019 Juntong Liu).
  */
-package me.towdium.pinin.utils;
+package evernight.client.utils.search.pinin.utils;
+
+import evernight.client.utils.search.pinin.PinIn;
 
 import java.util.HashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
- * Lazily filled map for the phoneme and pinyin elements of one {@link me.towdium.pinin.PinIn}
+ * Lazily filled map for the phoneme and pinyin elements of one {@link PinIn}
  * context. Entries are created on first use; {@link #foreach} lets a configuration change rebuild
  * the already created elements in place.
  */

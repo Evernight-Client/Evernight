@@ -2,7 +2,7 @@
  * Trimmed copy of PinIn (https://github.com/Towdium/PinIn, MIT, Copyright (c) 2019 Juntong Liu).
  * The immutable/storage helpers used by the removed indexed searchers were dropped.
  */
-package me.towdium.pinin.utils;
+package evernight.client.utils.search.pinin.utils;
 
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;

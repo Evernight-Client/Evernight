@@ -1,9 +1,9 @@
 /*
  * Trimmed copy of PinIn (https://github.com/Towdium/PinIn, MIT, Copyright (c) 2019 Juntong Liu).
  */
-package me.towdium.pinin.elements;
+package evernight.client.utils.search.pinin.elements;
 
-import me.towdium.pinin.utils.IndexSet;
+import evernight.client.utils.search.pinin.utils.IndexSet;
 
 /**
  * A single character position of a candidate string, matched against the query.

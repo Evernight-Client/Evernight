@@ -3,9 +3,9 @@
  * Only the standard quanyin splitter is kept; the shuangpin/ziranma/... key layouts were removed
  * because Evernight only needs plain pinyin, initials and mixed Chinese/English queries.
  */
-package me.towdium.pinin;
+package evernight.client.utils.search.pinin;
 
-import me.towdium.pinin.elements.Pinyin;
+import evernight.client.utils.search.pinin.elements.Pinyin;
 
 import java.util.ArrayList;
 import java.util.Collection;

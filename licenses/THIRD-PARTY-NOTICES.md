@@ -29,7 +29,7 @@ MIT 与 GPL-3.0 兼容，合并后的整体按 GPL-3.0-only 分发；上游的�
 
 ### PinIn — MIT
 
-`src/main/java/me/towdium/pinin/` 与 `assets/evernight/pinyin/data.txt` 是 [PinIn](https://github.com/Towdium/PinIn) 的裁剪内置副本，用于物品、方块、实体、附魔、模块等搜索框的智能拼音匹配（全拼、首字母、中英混输）。
+`../src/main/java/evernight/client/utils/search` 与 `assets/evernight/pinyin/data.txt` 是 [PinIn](https://github.com/Towdium/PinIn) 的裁剪内置副本，用于物品、方块、实体、附魔、模块等搜索框的智能拼音匹配（全拼、首字母、中英混输）。
 
 - Copyright (c) 2019 Juntong Liu
 - 条款：[PinIn-MIT.txt](PinIn-MIT.txt)。

@@ -8,14 +8,14 @@
  * The supported query forms are the upstream ones: full pinyin, initials, mixed Chinese and pinyin,
  * literal characters, plus the enabled fuzzy spellings (zh/z, sh/s, ch/c, ang/an, eng/en, ing/in, v/u).
  */
-package me.towdium.pinin;
+package evernight.client.utils.search.pinin;
 
-import me.towdium.pinin.elements.Char;
-import me.towdium.pinin.elements.Element;
-import me.towdium.pinin.elements.Phoneme;
-import me.towdium.pinin.elements.Pinyin;
-import me.towdium.pinin.utils.Cache;
-import me.towdium.pinin.utils.IndexSet;
+import evernight.client.utils.search.pinin.elements.Char;
+import evernight.client.utils.search.pinin.elements.Element;
+import evernight.client.utils.search.pinin.elements.Phoneme;
+import evernight.client.utils.search.pinin.elements.Pinyin;
+import evernight.client.utils.search.pinin.utils.Cache;
+import evernight.client.utils.search.pinin.utils.IndexSet;
 
 /**
  * Pinyin matching context.
