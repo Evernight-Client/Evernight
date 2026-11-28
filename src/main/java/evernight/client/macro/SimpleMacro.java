@@ -1,7 +1,6 @@
-package evernight.client.settings.options;
+package evernight.client.macro;
 
 import evernight.client.modules.Keybind;
-import evernight.client.modules.misc.Macro;
 
 import java.util.Iterator;
 

@@ -1,7 +1,6 @@
-package evernight.client.modules.misc;
+package evernight.client.macro;
 
 import evernight.client.modules.Keybind;
-import evernight.client.settings.options.MacroType;
 
 public class HoldMacro extends Macro {
     private boolean pressed;

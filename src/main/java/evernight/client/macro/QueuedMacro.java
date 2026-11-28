@@ -1,7 +1,6 @@
-package evernight.client.settings.options;
+package evernight.client.macro;
 
 import evernight.client.modules.Keybind;
-import evernight.client.modules.misc.Macro;
 
 public class QueuedMacro extends Macro {
     private int nextCommandIndex = 0;

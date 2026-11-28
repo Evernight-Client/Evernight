@@ -1,6 +1,6 @@
 package evernight.client.events.ui;
 
-import evernight.client.modules.misc.Macro;
+import evernight.client.macro.Macro;
 import evernight.client.events.core.CancellableEvent;
 
 public final class MacroTriggerEvent extends CancellableEvent {

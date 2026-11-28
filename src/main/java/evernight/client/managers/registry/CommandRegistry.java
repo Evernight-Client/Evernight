@@ -80,7 +80,7 @@ import evernight.client.commands.world.Nbt.NbtCommand;
 import evernight.client.commands.world.Waypoints.WaypointsCommand;
 import evernight.client.managers.command.CommandAliasBuilder;
 import evernight.client.managers.command.ModuleAliasBuilder;
-import evernight.client.modules.misc.Macro;
+import evernight.client.macro.Macro;
 import evernight.client.utils.inventory.Kit;
 
 public final class CommandRegistry extends Registry<Command> implements ClientAccess, JsonConfigurable {

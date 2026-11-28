@@ -9,7 +9,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import evernight.client.ClientContext;
 import evernight.client.NamedFeature;
 import evernight.client.managers.registry.MacroRegistry;
-import evernight.client.modules.misc.Macro;
+import evernight.client.macro.Macro;
 import evernight.client.render.text.Translations;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;

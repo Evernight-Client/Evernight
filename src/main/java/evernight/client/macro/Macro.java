@@ -1,9 +1,8 @@
-package evernight.client.modules.misc;
+package evernight.client.macro;
 
 import evernight.client.NamedFeature;
 import evernight.client.managers.registry.CommandRegistry;
 import evernight.client.modules.Keybind;
-import evernight.client.settings.options.MacroType;
 
 import java.util.ArrayList;
 import java.util.List;

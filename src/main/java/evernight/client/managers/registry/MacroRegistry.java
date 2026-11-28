@@ -10,10 +10,10 @@ import evernight.client.events.input.InputPressEvent;
 import evernight.client.events.ui.MacroTriggerEvent;
 import evernight.client.events.render.WorldRenderEvent;
 import evernight.client.modules.Keybind;
-import evernight.client.modules.misc.HoldMacro;
-import evernight.client.modules.misc.Macro;
+import evernight.client.macro.HoldMacro;
+import evernight.client.macro.Macro;
 import evernight.client.settings.core.JsonConfigurable;
-import evernight.client.settings.options.MacroType;
+import evernight.client.macro.MacroType;
 import evernight.client.utils.core.KeyUtils;
 
 import java.util.Iterator;

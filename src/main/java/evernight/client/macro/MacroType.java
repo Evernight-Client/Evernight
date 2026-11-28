@@ -1,8 +1,6 @@
-package evernight.client.settings.options;
+package evernight.client.macro;
 
 import evernight.client.modules.Keybind;
-import evernight.client.modules.misc.HoldMacro;
-import evernight.client.modules.misc.Macro;
 import evernight.client.settings.core.NamedEntry;
 
 import java.util.function.BiFunction;
