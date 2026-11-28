@@ -226,7 +226,7 @@ ClickGUI / HUD 编辑器是单例：`ClientContext.getClickGui().open()`、
 
 **聊天 / HUD 通知**：`ChatUtils.printChat(Component, int id)`、`printChat(Component, MessageSignature,
 MessagePriority)`、`createSignature(int)`、`moduleSignature(Module)`、`sendChatOrCommand(String)`；
-`HudNotification(String text, long durationMillis, Color color)`（`getText()`、`getColor()`、`getStartTimeMillis()`、
+`HudNotification(String text, long durationMillis, Color color)`（`modules/hud/Welcomer/`；`getText()`、`getColor()`、`getStartTimeMillis()`、
 `getEndTimeMillis()`，子类 `LagNotification` / `MusicNotification` / `GreetingNotification`）。
 `NotificationsModule` 公开入口只有 `shouldNotifyCommands(NotificationsModule)`、`getBracketColor()`、
 `getWatermarkColor()`（后两者返回 ARGB `int`；另有 public 字段 `watermarkSetting` / `bracketsSetting`），

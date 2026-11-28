@@ -139,7 +139,7 @@ HUD 辉光：`HudEditorScreen` 在 bloom 开启时 `MaskShaderRenderer.setParame
 3. 覆写 `calculateDimensions()` 返回 `float[]{宽度, 高度}`（父类默认直接抛 `RuntimeException`）。
 4. 覆写 `renderContent(PoseStack)`，原点为左上角（对齐用 `getContentX(width)`/`getContentY(height)`）；再注册模块
    （`module-settings.md` 第 6.1 节）、补两份语言表（`i18n.md` 第 5 节）。文本型另有 `HudTextListRenderer` + `HudTextRow`
-   （`module-settings.md` 第 3.3 节）。
+   （`render/hud/`；`module-settings.md` 第 3.3 节）。
 
 ### 6.3 HudWidgetRenderer 常用 API
 

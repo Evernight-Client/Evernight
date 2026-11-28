@@ -1,6 +1,6 @@
 # Evernight 工具类 —— client/utils 全量速查
 
-覆盖 `src/main/java/evernight/client/utils/` 全部 **154 个文件、12 个子包**（chat、collections、combat、core、entity、
+覆盖 `src/main/java/evernight/client/utils/` 全部 **169 个文件、12 个子包**（chat、collections、combat、core、entity、
 inventory、math、movement、network、search、vault、world；**根目录已无 Java 文件**），路径相对仓库根。
 方法名齐全，参数只保留有语义的部分（类型见源码）；`**坑**` 为必须遵守的约束。
 本文不再引用 `Xxx.java:NN` 行号（重构后必漂），需要定位时按类名检索。
@@ -111,6 +111,11 @@ MessagePriority)`（彩色 `[!]`；`MessagePriority.HIGH/MID/LOW`）；`DEFAULT_
 `src/main/java/evernight/client/utils/combat/`；**本包没有 `CombatUtils`**：战斗能力 = `DamageUtils`（伤害）、
 `RaycastUtils`/`BlockRaycastContext`（射线）、`TargetSelector`（选目标）、`BoundingBoxUtils`（包围盒）、
 `PotionTrackerUtils`（药水效果行）；纯计算/查询，**不发包、不改世界**。
+
+水晶评估与致命伤害追踪也放在这里，因为它们是跨模块共用的：`CrystalDamagePolicy` / `CrystalLethality` /
+`CrystalPlacementKind` / `CrystalPlacementResult` / `CrystalTargetDamage` 由 AutoCrystal 与 AnchorAura 共用
+（伤害/致死评估与放置结果值对象），`LethalDamageTracker` 由 Mainhand 与 Offhand 共用。具体成员见源码，
+改动这两个模块时不要各自复制一份。
 
 ### `DamageUtils`（`combat/DamageUtils.java`）爆炸伤害预测
 

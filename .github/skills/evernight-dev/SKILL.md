@@ -48,6 +48,8 @@ public final class ExampleModule extends Module {
 
 文件位置：模块按分类放 `modules/<分类小写>/<Name>/`（`client/`、`combat/`、`exploit/`、`hud/`、`misc/`、`movement/`、`player/`、`render/`、`auto/`），类名 `<Name>Module`，控制器与枚举等同包。`AUTO` 分类统一在 `modules/auto/`。
 
+分类目录根（`modules/<分类>/`）**不放散落文件**：只服务一个模块的辅助类进该模块子包；被多个模块共用的按领域放 `utils/<域>`、`render/hud`、`integrations/<模组>`（可选模组桥接）。宏框架不在 `modules/` 里，见 `macro/`。
+
 注册（`ModuleRegistry` 构造器内按字母序）：
 
 ```java
