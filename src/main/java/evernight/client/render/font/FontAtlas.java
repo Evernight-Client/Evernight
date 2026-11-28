@@ -9,6 +9,7 @@ import net.minecraft.resources.Identifier;
 import org.lwjgl.system.MemoryUtil;
 
 import java.awt.*;
+import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
@@ -28,8 +29,6 @@ public final class FontAtlas {
     private final Char2ObjectOpenHashMap<Glyph> glyphs = new Char2ObjectOpenHashMap<>();
     private final Font font;
     private final Font fallbackFont;
-    private final BufferedImage metricsImage;
-    private final Graphics2D metricsGraphics;
 
     private int atlasSize;
     private int cursorX;
@@ -57,9 +56,6 @@ public final class FontAtlas {
     public FontAtlas(Font font) {
         this.font = font;
         this.fallbackFont = new Font(FALLBACK_FAMILY, font.getStyle(), Math.round(font.getSize2D()));
-        this.metricsImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-        this.metricsGraphics = this.metricsImage.createGraphics();
-        configureGraphics(this.metricsGraphics);
         this.atlasSize = INITIAL_ATLAS_SIZE;
         this.fontHeight = Math.max(1, font.getSize());
         this.allocateInitialBuffers();
@@ -144,9 +140,12 @@ public final class FontAtlas {
     }
 
     private Glyph bakeGlyph(char character, Font glyphFont) {
-        this.metricsGraphics.setFont(glyphFont);
-        FontMetrics metrics = this.metricsGraphics.getFontMetrics();
-        Rectangle2D bounds = metrics.getStringBounds(Character.toString(character), this.metricsGraphics);
+        String text = Character.toString(character);
+        // Never ask Graphics2D.getFontMetrics(): that routes to FontDesignMetrics.getDefaultFrc(),
+        // which resolves the default screen device and throws in a headless JVM (FCL / Android).
+        FontRenderContext frc = this.atlasGraphics.getFontRenderContext();
+        Rectangle2D bounds = glyphFont.getStringBounds(text, frc);
+        int ascent = (int) Math.ceil(glyphFont.getLineMetrics(text, frc).getAscent());
         int width = align(bounds.getBounds().width + 8, 2);
         int height = align(bounds.getBounds().height, 2);
         if (width > MAX_ATLAS_SIZE || height > MAX_ATLAS_SIZE) {
@@ -160,15 +159,15 @@ public final class FontAtlas {
 
         this.atlasGraphics.setFont(glyphFont);
         this.atlasGraphics.setColor(Color.WHITE);
-        FontMetrics fullMetrics = this.atlasGraphics.getFontMetrics();
-        this.atlasGraphics.drawString(Character.toString(character), x + 2, y + fullMetrics.getAscent());
+        this.atlasGraphics.drawString(text, x + 2, y + ascent);
 
         int mipSize = Math.max(1, this.atlasSize / 2);
         Font mipFont = glyphFont.deriveFont(glyphFont.getSize2D() / 2.0F);
+        FontRenderContext mipFrc = this.mipGraphics.getFontRenderContext();
+        int mipAscent = (int) Math.ceil(mipFont.getLineMetrics(text, mipFrc).getAscent());
         this.mipGraphics.setFont(mipFont);
         this.mipGraphics.setColor(Color.WHITE);
-        FontMetrics mipMetrics = this.mipGraphics.getFontMetrics();
-        this.mipGraphics.drawString(Character.toString(character), x / 2 + 1, y / 2 + mipMetrics.getAscent());
+        this.mipGraphics.drawString(text, x / 2 + 1, y / 2 + mipAscent);
 
         if (width > 0 && height > 0) {
             copyPixels(this.atlasImage, this.mipImages[0], x, y, width, height);
@@ -382,7 +381,6 @@ public final class FontAtlas {
             this.mipGraphics.dispose();
             this.mipGraphics = null;
         }
-        this.metricsGraphics.dispose();
         this.glyphs.clear();
     }
 
